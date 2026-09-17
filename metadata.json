@@ -1,0 +1,6 @@
+{
+  "name": "Agpeya Prayers",
+  "description": "Coptic Orthodox Agpeya canonical prayer book with daily scripture verse meditations from the Orthodox Bible in Egypt, customizable spiritual liturgical sound alarms with previews, worldwide timezone reminders, prayer tracking, and multi-language support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
