@@ -234,6 +234,20 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun setVibrateForAllPrayers(enabled: Boolean) {
+        PrayerId.canonicalPrayers.forEach { prayerId ->
+            val current = _alarmSettings.value[prayerId.code] ?: repository.getAlarmSetting(prayerId)
+            updateAlarmSetting(current.copy(vibrateEnabled = enabled))
+        }
+    }
+
+    fun setSoundForAllPrayersEnabled(enabled: Boolean) {
+        PrayerId.canonicalPrayers.forEach { prayerId ->
+            val current = _alarmSettings.value[prayerId.code] ?: repository.getAlarmSetting(prayerId)
+            updateAlarmSetting(current.copy(soundEnabled = enabled))
+        }
+    }
+
     fun refreshDailyVerse() {
         _dailyVerse.value = com.example.data.model.DailyScriptureProvider.getDailyVerseForCalendar()
     }

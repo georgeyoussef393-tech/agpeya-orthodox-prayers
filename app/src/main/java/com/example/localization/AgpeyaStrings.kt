@@ -687,6 +687,46 @@ object AgpeyaStrings {
         AppLanguage.GERMAN -> "Speichern & Synchronisieren"
         AppLanguage.ITALIAN -> "Salva e sincronizza"
     }
+
+    fun vibrationAndSoundTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "التنبيه بالاهتزاز والصوت معاً"
+        AppLanguage.COPTIC -> "Ⲡⲓⲙⲟⲛⲙⲉⲛ ⲛⲉⲙ ⲡⲓϧⲣⲱⲟⲩ ⲉⲩⲥⲟⲡ"
+        AppLanguage.ENGLISH -> "Vibration & Sound Alert Together"
+        AppLanguage.FRENCH -> "Vibration et sonnerie ensemble"
+        AppLanguage.SPANISH -> "Alerta por vibración y sonido juntos"
+        AppLanguage.GERMAN -> "Vibration und Ton zusammen"
+        AppLanguage.ITALIAN -> "Vibrazione e suono insieme"
+    }
+
+    fun vibrationAndSoundDescription(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "يعمل الاهتزاز الإيقاعي جنباً إلى جنب مع الصوت الروحاني لضمان تنبيهك لموعد الصلاة حتى في الأماكن الهادئة أو عند خفض الصوت."
+        AppLanguage.COPTIC -> "Ⲡⲓⲙⲟⲛⲙⲉⲛ ϣⲁϥⲉⲣϩⲱⲃ ⲛⲉⲙ ⲡⲓϧⲣⲱⲟⲩ ⲉ̀ⲑⲣⲉⲕⲛⲁϩϣ ⲉ̀ϯⲡⲣⲟⲥⲉⲩⲭⲏ."
+        AppLanguage.ENGLISH -> "Rhythmic vibration pulses alongside the sacred chime ensure you never miss your canonical prayer time, even in silent mode."
+        AppLanguage.FRENCH -> "Les vibrations rythmiques associées au carillon spirituel vous assurent de ne jamais manquer l'heure de la prière."
+        AppLanguage.SPANISH -> "La vibración rítmica junto con el sonido sagrado asegura que no te pierdas la hora de la oración canónica."
+        AppLanguage.GERMAN -> "Rhythmische Vibration zusammen mit dem geistlichen Ton erinnert Sie pünktlich an das Stundengebet."
+        AppLanguage.ITALIAN -> "La vibrazione ritmica insieme al suono spirituale assicura di non perdere mai l'ora della preghiera."
+    }
+
+    fun enableVibrationAll(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "تفعيل الاهتزاز للكل"
+        AppLanguage.COPTIC -> "Ⲧⲁϩⲟ ⲙ̀ⲡⲓⲙⲟⲛⲙⲉⲛ ⲉ̀ⲡⲧⲏⲣϥ"
+        AppLanguage.ENGLISH -> "Enable Vibrate for All"
+        AppLanguage.FRENCH -> "Activer vibration pour tous"
+        AppLanguage.SPANISH -> "Activar vibración para todos"
+        AppLanguage.GERMAN -> "Vibration für alle aktivieren"
+        AppLanguage.ITALIAN -> "Attiva vibrazione per tutti"
+    }
+
+    fun enableSoundAll(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "تفعيل الصوت للكل"
+        AppLanguage.COPTIC -> "Ⲧⲁϩⲟ ⲙ̀ⲡⲓϧⲣⲱⲟⲩ ⲉ̀ⲡⲧⲏⲣϥ"
+        AppLanguage.ENGLISH -> "Enable Sound for All"
+        AppLanguage.FRENCH -> "Activer son pour tous"
+        AppLanguage.SPANISH -> "Activar sonido para todos"
+        AppLanguage.GERMAN -> "Ton für alle aktivieren"
+        AppLanguage.ITALIAN -> "Attiva suono per tutti"
+    }
 }
 
 

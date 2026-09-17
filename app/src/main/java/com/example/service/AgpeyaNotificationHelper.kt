@@ -7,6 +7,10 @@ import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.MainActivity
 import com.example.data.model.PrayerId
@@ -14,8 +18,10 @@ import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
 
 object AgpeyaNotificationHelper {
-    const val CHANNEL_ID = "agpeya_prayers_channel"
+    const val CHANNEL_ID = "agpeya_prayers_channel_v2"
     private const val CHANNEL_NAME = "Agpeya Prayer Alerts"
+
+    private val PRAYER_VIBRATION_PATTERN = longArrayOf(0, 450, 200, 450, 200, 650)
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -31,11 +37,37 @@ object AgpeyaNotificationHelper {
                 ).apply {
                     description = "Timely reminders for Coptic Agpeya canonical prayers"
                     enableVibration(true)
-                    vibrationPattern = longArrayOf(0, 350, 200, 350, 200, 500)
+                    vibrationPattern = PRAYER_VIBRATION_PATTERN
                     lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
                 }
                 notificationManager.createNotificationChannel(channel)
             }
+        }
+    }
+
+    /**
+     * Directly triggers hardware haptic vibration so the phone vibrates reliably
+     * alongside the spiritual audio chime even if notification channel settings were muted by the system.
+     */
+    fun triggerDeviceVibration(context: Context) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                val vibrator = vibratorManager?.defaultVibrator
+                val effect = VibrationEffect.createWaveform(PRAYER_VIBRATION_PATTERN, -1)
+                vibrator?.vibrate(effect)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                val effect = VibrationEffect.createWaveform(PRAYER_VIBRATION_PATTERN, -1)
+                vibrator?.vibrate(effect)
+            } else {
+                @Suppress("DEPRECATION")
+                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                @Suppress("DEPRECATION")
+                vibrator?.vibrate(PRAYER_VIBRATION_PATTERN, -1)
+            }
+        } catch (e: Exception) {
+            Log.w("AgpeyaNotificationHelper", "Could not trigger hardware vibrator: ${e.message}")
         }
     }
 
@@ -83,8 +115,11 @@ object AgpeyaNotificationHelper {
             val soundEnum = com.example.audio.SpiritualSound.fromId(soundId)
             com.example.audio.SpiritualAudioPlayer.playPreview(context, soundEnum)
         }
+
         if (vibrateEnabled) {
-            builder.setVibrate(longArrayOf(0, 400, 250, 400))
+            builder.setVibrate(PRAYER_VIBRATION_PATTERN)
+            // Directly trigger device vibrator to guarantee physical haptic vibration with sound
+            triggerDeviceVibration(context)
         }
 
         val notificationManager =
@@ -117,7 +152,13 @@ object AgpeyaNotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-            .setVibrate(longArrayOf(0, 300, 200, 300))
+            .setVibrate(PRAYER_VIBRATION_PATTERN)
+
+        // Play sound and trigger physical vibration for test
+        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        builder.setSound(defaultSoundUri)
+        com.example.audio.SpiritualAudioPlayer.playPreview(context, com.example.audio.SpiritualSound.CHURCH_BELLS)
+        triggerDeviceVibration(context)
 
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

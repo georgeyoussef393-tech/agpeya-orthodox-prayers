@@ -38,6 +38,16 @@ class ExampleUnitTest {
       assertTrue(sound.getDescription(AppLanguage.ENGLISH).isNotEmpty())
     }
   }
+
+  @Test
+  fun vibrationLocalization_hasValidText() {
+    AppLanguage.entries.forEach { lang ->
+      assertTrue(com.example.localization.AgpeyaStrings.vibrationAndSoundTitle(lang).isNotEmpty())
+      assertTrue(com.example.localization.AgpeyaStrings.vibrationAndSoundDescription(lang).isNotEmpty())
+      assertTrue(com.example.localization.AgpeyaStrings.enableVibrationAll(lang).isNotEmpty())
+      assertTrue(com.example.localization.AgpeyaStrings.enableSoundAll(lang).isNotEmpty())
+    }
+  }
 }
 
 
