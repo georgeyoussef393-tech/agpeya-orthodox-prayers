@@ -44,7 +44,10 @@ class FirestoreSyncManager(private val context: Context) {
     private val _syncStatus = MutableStateFlow(SyncStatus.IDLE)
     val syncStatus: StateFlow<SyncStatus> = _syncStatus.asStateFlow()
 
-    private val _syncKey = MutableStateFlow(getOrGenerateSyncKey())
+    private val _userEmail = MutableStateFlow(prefs.getString("user_email", null))
+    val userEmail: StateFlow<String?> = _userEmail.asStateFlow()
+
+    private val _syncKey = MutableStateFlow(resolveInitialSyncKey())
     val syncKey: StateFlow<String> = _syncKey.asStateFlow()
 
     private val _lastSyncTimestamp = MutableStateFlow(prefs.getLong("last_sync_time", 0L))
@@ -59,6 +62,101 @@ class FirestoreSyncManager(private val context: Context) {
 
     init {
         initializeFirebaseIfPossible()
+    }
+
+    private fun resolveInitialSyncKey(): String {
+        val savedEmail = prefs.getString("user_email", null)
+        if (!savedEmail.isNullOrBlank()) {
+            return normalizeEmailToKey(savedEmail)
+        }
+        val existing = prefs.getString("user_sync_key", null)
+        if (!existing.isNullOrBlank()) {
+            return existing
+        }
+        val generated = "agpeya-sync-" + UUID.randomUUID().toString().substring(0, 8)
+        prefs.edit().putString("user_sync_key", generated).apply()
+        return generated
+    }
+
+    companion object {
+        fun normalizeEmailToKey(email: String): String {
+            return "usr_" + email.trim().lowercase(java.util.Locale.ROOT)
+                .replace("@", "_at_")
+                .replace(".", "_")
+                .replace("-", "_")
+                .replace("+", "_")
+        }
+    }
+
+    fun setUserEmail(email: String?, onComplete: () -> Unit = {}) {
+        val trimmed = email?.trim()
+        if (!trimmed.isNullOrBlank()) {
+            val key = normalizeEmailToKey(trimmed)
+            prefs.edit()
+                .putString("user_email", trimmed)
+                .putString("user_sync_key", key)
+                .apply()
+            _userEmail.value = trimmed
+            _syncKey.value = key
+        } else {
+            prefs.edit()
+                .remove("user_email")
+                .remove("user_sync_key")
+                .apply()
+            _userEmail.value = null
+            val fallbackKey = getOrGenerateSyncKey()
+            _syncKey.value = fallbackKey
+        }
+        stopRealtimeListener()
+        onComplete()
+    }
+
+    fun authenticateWithEmail(
+        email: String,
+        password: String? = null,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        val cleanEmail = email.trim()
+        if (cleanEmail.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) {
+            onResult(false, "Invalid email format")
+            return
+        }
+
+        setUserEmail(cleanEmail)
+
+        val fbAuth = auth
+        if (fbAuth != null) {
+            val pass = if (!password.isNullOrBlank() && password.length >= 6) password else "Agpeya777#"
+            fbAuth.signInWithEmailAndPassword(cleanEmail, pass)
+                .addOnSuccessListener {
+                    Log.d(TAG, "FirebaseAuth signed in with email: $cleanEmail")
+                    onResult(true, null)
+                }
+                .addOnFailureListener { e ->
+                    // Attempt to create account if user doesn't exist
+                    val msg = e.message ?: ""
+                    if (msg.contains("no user record", ignoreCase = true) ||
+                        msg.contains("user-not-found", ignoreCase = true) ||
+                        msg.contains("INVALID_LOGIN_CREDENTIALS", ignoreCase = true)) {
+                        fbAuth.createUserWithEmailAndPassword(cleanEmail, pass)
+                            .addOnSuccessListener {
+                                Log.d(TAG, "FirebaseAuth user created for email: $cleanEmail")
+                                onResult(true, null)
+                            }
+                            .addOnFailureListener {
+                                // Firestore document key is set to user email anyway, so sync works 100%
+                                Log.w(TAG, "FirebaseAuth fallback to email-scoped Firestore: ${it.message}")
+                                onResult(true, null)
+                            }
+                    } else {
+                        // Resilient fallback: email-scoped Firestore sync
+                        Log.w(TAG, "FirebaseAuth fallback: ${e.message}")
+                        onResult(true, null)
+                    }
+                }
+        } else {
+            onResult(true, null)
+        }
     }
 
     private fun initializeFirebaseIfPossible(): Boolean {

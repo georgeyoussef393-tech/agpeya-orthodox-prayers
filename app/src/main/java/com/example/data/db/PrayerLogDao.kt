@@ -41,4 +41,7 @@ interface PrayerLogDao {
 
     @Query("DELETE FROM prayer_logs WHERE prayerCode = :prayerCode AND dateString = :dateString")
     suspend fun deletePrayerOnDate(prayerCode: String, dateString: String)
+
+    @Query("DELETE FROM prayer_logs")
+    suspend fun clearAllLogs()
 }

@@ -27,13 +27,16 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.AccessTime
@@ -74,6 +77,7 @@ import com.example.data.model.PrayerId
 import com.example.data.sync.SyncStatus
 import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
+import com.example.report.PrayerPdfExporter
 import com.example.ui.components.CopticCrossCanvas
 import com.example.ui.components.SpiritualSoundPickerDialog
 import com.example.ui.components.TimePickerDialog
@@ -97,6 +101,8 @@ fun SettingsScreen(
     val syncKey by viewModel.syncKey.collectAsState()
     val lastSyncTime by viewModel.lastSyncTime.collectAsState()
     val isRealtimeSyncActive by viewModel.isRealtimeSyncActive.collectAsState()
+    val userEmail by viewModel.userEmail.collectAsState()
+    val allLogs by viewModel.allLogs.collectAsState()
 
     val context = LocalContext.current
     var showLinkDialog by remember { mutableStateOf(false) }
@@ -283,6 +289,73 @@ fun SettingsScreen(
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     Spacer(modifier = Modifier.height(14.dp))
 
+                    // Connected Cloud Account
+                    if (userEmail != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(GoldPrimary.copy(alpha = 0.12f))
+                                .padding(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = AgpeyaStrings.accountLinkedTitle(lang),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = userEmail ?: "",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GoldLight
+                                )
+                            }
+                            IconButton(
+                                onClick = { viewModel.openAuthOnboarding() },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.SwapHoriz,
+                                    contentDescription = AgpeyaStrings.switchAccountButton(lang),
+                                    tint = GoldPrimary
+                                )
+                            }
+                        }
+                    } else {
+                        OutlinedButton(
+                            onClick = { viewModel.openAuthOnboarding() },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = AgpeyaStrings.stepAccountSync(lang),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = GoldLight
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    Spacer(modifier = Modifier.height(14.dp))
+
                     // Device Sync Key & Share
                     Text(
                         text = AgpeyaStrings.deviceSyncKey(lang),
@@ -398,6 +471,64 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // PDF Spiritual Progress Report Export Button
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = AgpeyaStrings.exportPdfReport(lang),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = userEmail?.let {
+                                    if (lang == AppLanguage.ARABIC) "مُخصص باسم الحساب: $it" else "Account: $it"
+                                } ?: AgpeyaStrings.exportPdfSubtitle(lang),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                PrayerPdfExporter.generateAndSharePdf(
+                                    context = context,
+                                    userEmail = userEmail,
+                                    userName = userEmail?.substringBefore("@"),
+                                    syncKey = syncKey,
+                                    lang = lang,
+                                    periodName = if (lang == AppLanguage.ARABIC) "تقرير السجل الشامل" else "Full History Report",
+                                    allLogs = allLogs
+                                )
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PictureAsPdf,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "تصدير PDF" else "Export PDF",
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                 }
             }

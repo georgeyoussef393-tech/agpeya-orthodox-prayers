@@ -26,6 +26,27 @@ class AgpeyaRepository(
 
     val syncManager = FirestoreSyncManager(context)
 
+    // Auth & Onboarding state
+    fun isAuthOnboardingCompleted(): Boolean {
+        return prefs.getBoolean("auth_onboarding_completed", false)
+    }
+
+    fun setAuthOnboardingCompleted(completed: Boolean) {
+        prefs.edit().putBoolean("auth_onboarding_completed", completed).apply()
+    }
+
+    fun getUserEmail(): String? {
+        return syncManager.userEmail.value ?: prefs.getString("user_email", null)
+    }
+
+    fun setUserEmail(email: String?, onComplete: () -> Unit = {}) {
+        syncManager.setUserEmail(email, onComplete)
+    }
+
+    suspend fun clearAllLocalLogs() {
+        dao.clearAllLogs()
+    }
+
     // Language
     fun getSavedLanguage(): AppLanguage {
         val code = prefs.getString("app_language_code", null)
@@ -130,8 +151,12 @@ class AgpeyaRepository(
 
     suspend fun performFullSync() {
         val localLogs = dao.getAllLogsList()
+        val localKeys = localLogs.map { "${it.prayerCode}_${it.dateString}" }.toSet()
         syncManager.performFullBidirectionalSync(localLogs) { remoteLogs ->
-            dao.insertLogs(remoteLogs)
+            val toInsert = remoteLogs.filter { "${it.prayerCode}_${it.dateString}" !in localKeys }
+            if (toInsert.isNotEmpty()) {
+                dao.insertLogs(toInsert)
+            }
         }
         syncManager.syncSettings(getSavedLanguage().code, getAllAlarmSettings()) { remoteLangCode, remoteAlarms ->
             if (remoteLangCode.isNotBlank()) {
@@ -146,7 +171,10 @@ class AgpeyaRepository(
     fun startRealtimeSync(scope: CoroutineScope) {
         syncManager.startRealtimeListener { remoteLog ->
             scope.launch(Dispatchers.IO) {
-                dao.insertLog(remoteLog)
+                val exists = dao.getCountForPrayerOnDate(remoteLog.prayerCode, remoteLog.dateString) > 0
+                if (!exists) {
+                    dao.insertLog(remoteLog)
+                }
             }
         }
     }

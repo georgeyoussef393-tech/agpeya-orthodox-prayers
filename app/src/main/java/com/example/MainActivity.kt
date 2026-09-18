@@ -65,6 +65,7 @@ import com.example.data.model.PrayerId
 import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
 import com.example.service.AgpeyaNotificationHelper
+import com.example.ui.screens.AuthOnboardingScreen
 import com.example.ui.screens.PrayersScreen
 import com.example.ui.screens.ReportsScreen
 import com.example.ui.screens.SettingsScreen
@@ -132,9 +133,14 @@ fun AgpeyaApp(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = {
+    val isAuthCompleted by viewModel.isAuthCompleted.collectAsState()
+
+    if (!isAuthCompleted) {
+        AuthOnboardingScreen(viewModel = viewModel)
+    } else {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp,
@@ -283,4 +289,5 @@ fun AgpeyaApp(
             }
         }
     }
+}
 }

@@ -943,4 +943,199 @@ object AgpeyaStrings {
         AppLanguage.JAPANESE -> "すべての時課で音を有効化"
         AppLanguage.KOREAN -> "모든 기도에 소리 활성화"
     }
+
+    fun authWelcomeTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "الأجبية المقدسة - كتاب صلوات السواعي"
+        AppLanguage.COPTIC -> "Ϯⲁ̀ϫⲡⲓⲁ ⲉⲑⲟⲩⲁⲃ - Ⲡⲓϫⲱⲙ ⲛ̀ⲧⲉ ⲛⲓⲁ̀ϫⲡ"
+        AppLanguage.ENGLISH -> "Holy Agpeya - Book of Canonical Hours"
+        AppLanguage.FRENCH -> "Sainte Agpeya - Livre des Heures Canoniales"
+        AppLanguage.SPANISH -> "Santa Agpeya - Libro de las Horas Canónicas"
+        AppLanguage.GERMAN -> "Heilige Agpeya - Stundengebetbuch"
+        AppLanguage.ITALIAN -> "Santa Agpeya - Libro delle Ore Canoniche"
+        AppLanguage.CHINESE -> "科普特东正教圣时课经 (Agpeya)"
+        AppLanguage.JAPANESE -> "コプト正教会 時課の祈り (アグペヤ)"
+        AppLanguage.KOREAN -> "콥트 정교회 아그페야 시간경 기도서"
+    }
+
+    fun authWelcomeSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "صلوات السواعي القبطية الأرثوذكسية والمزامنة السحابية الفورية"
+        AppLanguage.COPTIC -> "Ⲛⲓⲉⲩⲭⲏ ⲉⲑⲟⲩⲁⲃ ⲛ̀ⲧⲉ ϯⲉⲕⲕⲗⲏⲥⲓⲁ ⲛ̀ⲣⲉⲙⲛ̀ⲭⲏⲙⲓ ⲛ̀ⲟⲣⲑⲟⲇⲟⲝⲟⲥ"
+        AppLanguage.ENGLISH -> "Coptic Orthodox Canonical Hours & Instant Cloud Prayer Sync"
+        AppLanguage.FRENCH -> "Prières canoniales coptes orthodoxes et synchronisation cloud instantanée"
+        AppLanguage.SPANISH -> "Oraciones canónicas coptas ortodoxas y sincronización en la nube al instante"
+        AppLanguage.GERMAN -> "Koptisch-orthodoxe Stundengebete und sofortige Cloud-Synchronisierung"
+        AppLanguage.ITALIAN -> "Preghiere canoniche copte ortodosse e sincronizzazione cloud istantanea"
+        AppLanguage.CHINESE -> "科普特东正教七次日课与多设备即时云端祈祷同步"
+        AppLanguage.JAPANESE -> "コプト正教会の日課の祈りとマルチデバイス即時クラウド同期"
+        AppLanguage.KOREAN -> "콥트 정교회 7대 시간경 기도 및 기기 간 실시간 클라우드 동기화"
+    }
+
+    fun stepSelectLanguage(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "الخطوة الأولى: اختر لغة التطبيق"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ ⲁ̅: Ⲥⲱⲧⲡ ⲛ̀ϯⲁⲥⲡⲓ"
+        AppLanguage.ENGLISH -> "Step 1: Choose Your Language"
+        AppLanguage.FRENCH -> "Étape 1 : Choisissez votre langue"
+        AppLanguage.SPANISH -> "Paso 1: Seleccione su idioma"
+        AppLanguage.GERMAN -> "Schritt 1: Sprache auswählen"
+        AppLanguage.ITALIAN -> "Passo 1: Scegli la tua lingua"
+        AppLanguage.CHINESE -> "第一步：选择应用与祷告语言"
+        AppLanguage.JAPANESE -> "ステップ 1：言語を選択してください"
+        AppLanguage.KOREAN -> "1단계: 기도 및 앱 언어 선택"
+    }
+
+    fun stepAccountSync(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "الخطوة الثانية: تسجيل البريد لحفظ الصلوات سحابياً"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ ⲃ̅: Ⲧⲱⲙⲧ ⲙ̀ⲡⲉⲕ-Email ⲉ̀ϯⲡⲉ"
+        AppLanguage.ENGLISH -> "Step 2: Sign In with Email to Sync Prayers Online"
+        AppLanguage.FRENCH -> "Étape 2 : Connectez-vous avec un e-mail pour synchroniser vos prières"
+        AppLanguage.SPANISH -> "Paso 2: Iniciar sesión con correo para sincronizar oraciones"
+        AppLanguage.GERMAN -> "Schritt 2: Mit E-Mail anmelden, um Gebete online zu sichern"
+        AppLanguage.ITALIAN -> "Passo 2: Accedi con l'e-mail per sincronizzare le preghiere online"
+        AppLanguage.CHINESE -> "第二步：输入电子邮箱以在云端保存与同步祷告记录"
+        AppLanguage.JAPANESE -> "ステップ 2：メールでログインし祈りの記録をクラウド同期"
+        AppLanguage.KOREAN -> "2단계: 이메일로 로그인하여 기도 기록을 온라인에 동기화"
+    }
+
+    fun authEmailDescription(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "سجّل بريدك الإلكتروني لحفظ صلواتك على الإنترنت. عند فتح الأجبية من أي هاتف أو جهاز آخر بنفس البريد، ستجد سجل صلواتك ومواعيدك وتقاريرك مسجلة تلقائياً."
+        AppLanguage.COPTIC -> "Ⲥϧⲁⲓ ⲙ̀ⲡⲉⲕ-Email ⲉ̀ⲑⲣⲉ ⲛⲉⲕⲉⲩⲭⲏ ⲙⲟⲩⲛ ⲉ̀ⲃⲟⲗ ϧⲉⲛ ⲛⲓⲙⲁ ⲧⲏⲣⲟⲩ."
+        AppLanguage.ENGLISH -> "Enter your email to save your prayers online. When you open the Agpeya on any other device with this email, your prayer records, alarms, and history sync automatically."
+        AppLanguage.FRENCH -> "Enregistrez votre e-mail pour sauvegarder vos prières en ligne. Si vous ouvrez l'Agpeya sur un autre appareil, vos prières et rapports seront automatiquement restaurés."
+        AppLanguage.SPANISH -> "Ingrese su correo para guardar sus oraciones en la nube. Al abrir la Agpeya desde cualquier otro dispositivo con este correo, sus datos se sincronizan automáticamente."
+        AppLanguage.GERMAN -> "Geben Sie Ihre E-Mail ein, um Gebete online zu speichern. Wenn Sie die Agpeya auf einem anderen Gerät mit derselben E-Mail öffnen, werden alle Gebete automatisch synchronisiert."
+        AppLanguage.ITALIAN -> "Inserisci la tua e-mail per salvare le preghiere online. Aprendo l'Agpeya da qualsiasi altro dispositivo, le tue preghiere e la cronologia si sincronizzeranno automaticamente."
+        AppLanguage.CHINESE -> "输入您的邮箱以在云端同步祷告记录。无论在任何手机、平板或新设备上使用此邮箱登录，您的祈祷历史、闹钟设置和图表都将自动恢复。"
+        AppLanguage.JAPANESE -> "メールアドレスを登録すると祈りの記録がオンラインに保存されます。他のスマートフォンや端末で同じメールで開いても、祈り・アラーム・履歴が自動同期されます。"
+        AppLanguage.KOREAN -> "이메일을 등록하여 기도 기록을 온라인에 저장하세요. 다른 휴대폰이나 기기에서 동일한 이메일로 앱을 열면 기도 기록과 알람 설정이 자동으로 복원됩니다."
+    }
+
+    fun emailAddressLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "البريد الإلكتروني"
+        AppLanguage.COPTIC -> "Ⲡⲓ-Email"
+        AppLanguage.ENGLISH -> "Email Address"
+        AppLanguage.FRENCH -> "Adresse e-mail"
+        AppLanguage.SPANISH -> "Correo electrónico"
+        AppLanguage.GERMAN -> "E-Mail-Adresse"
+        AppLanguage.ITALIAN -> "Indirizzo e-mail"
+        AppLanguage.CHINESE -> "电子邮箱地址"
+        AppLanguage.JAPANESE -> "メールアドレス"
+        AppLanguage.KOREAN -> "이메일 주소"
+    }
+
+    fun passwordOptionalLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "كلمة المرور (اختياري لحماية حسابك)"
+        AppLanguage.COPTIC -> "Ⲡⲓ-Password (ⲕⲁⲧⲁ ⲡⲉⲕⲟⲩⲱϣ)"
+        AppLanguage.ENGLISH -> "Password (Optional / for account protection)"
+        AppLanguage.FRENCH -> "Mot de passe (Facultatif / pour la protection)"
+        AppLanguage.SPANISH -> "Contraseña (Opcional / para protección de la cuenta)"
+        AppLanguage.GERMAN -> "Passwort (Optional / zum Kontoschutz)"
+        AppLanguage.ITALIAN -> "Password (Facoltativa / per proteggere l'account)"
+        AppLanguage.CHINESE -> "密码（可选 / 用于保护您的云端账户）"
+        AppLanguage.JAPANESE -> "パスワード（任意 / アカウント保護用）"
+        AppLanguage.KOREAN -> "비밀번호 (선택사항 / 계정 보호용)"
+    }
+
+    fun signInAndSyncButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "تسجيل الدخول والمزامنة السحابية"
+        AppLanguage.COPTIC -> "Ϣⲱⲡ ⲉ̀ϧⲟⲩⲛ ⲟⲩⲟϩ ⲧⲱⲙⲧ ⲉ̀ϯⲡⲉ"
+        AppLanguage.ENGLISH -> "Sign In & Sync Across Devices"
+        AppLanguage.FRENCH -> "Se connecter et synchroniser sur le Cloud"
+        AppLanguage.SPANISH -> "Iniciar sesión y sincronizar en la nube"
+        AppLanguage.GERMAN -> "Anmelden & Geräte synchronisieren"
+        AppLanguage.ITALIAN -> "Accedi e sincronizza sul Cloud"
+        AppLanguage.CHINESE -> "登录并启用多设备云端同步"
+        AppLanguage.JAPANESE -> "ログインしてクラウド同期を開始"
+        AppLanguage.KOREAN -> "로그인 및 클라우드 동기화 시작"
+    }
+
+    fun continueAsGuestButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "المتابعة كضيف (بدون مزامنة سحابية)"
+        AppLanguage.COPTIC -> "Ⲙⲟϣⲓ ⲙ̀ⲫⲣⲏϯ ⲛ̀ⲟⲩϣⲉⲙⲙⲟ"
+        AppLanguage.ENGLISH -> "Continue as Guest (Offline only)"
+        AppLanguage.FRENCH -> "Continuer comme invité (Mode local)"
+        AppLanguage.SPANISH -> "Continuar como invitado (Sin sincronización)"
+        AppLanguage.GERMAN -> "Als Gast fortfahren (Nur lokal)"
+        AppLanguage.ITALIAN -> "Continua come ospite (Solo locale)"
+        AppLanguage.CHINESE -> "以访客身份继续（仅本地离线）"
+        AppLanguage.JAPANESE -> "ゲストとして続行（ローカルのみ）"
+        AppLanguage.KOREAN -> "게스트로 계속하기 (오프라인 전용)"
+    }
+
+    fun accountLinkedTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "الحساب السحابي المتصل"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲙⲧ ⲉ̀ϯⲡⲉ ⲉⲧⲧⲁϫⲣⲏⲟⲩⲧ"
+        AppLanguage.ENGLISH -> "Connected Cloud Account"
+        AppLanguage.FRENCH -> "Compte Cloud connecté"
+        AppLanguage.SPANISH -> "Cuenta en la nube conectada"
+        AppLanguage.GERMAN -> "Verbundenes Cloud-Konto"
+        AppLanguage.ITALIAN -> "Account Cloud connesso"
+        AppLanguage.CHINESE -> "已连接的云端同步账户"
+        AppLanguage.JAPANESE -> "接続されたクラウド同期アカウント"
+        AppLanguage.KOREAN -> "연결된 클라우드 동기화 계정"
+    }
+
+    fun switchAccountButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "تبديل الحساب أو تغيير البريد"
+        AppLanguage.COPTIC -> "Ϣⲓⲃϯ ⲙ̀ⲡⲓ-Email"
+        AppLanguage.ENGLISH -> "Switch Account / Change Email"
+        AppLanguage.FRENCH -> "Changer de compte / d'e-mail"
+        AppLanguage.SPANISH -> "Cambiar de cuenta / de correo"
+        AppLanguage.GERMAN -> "Konto wechseln / E-Mail ändern"
+        AppLanguage.ITALIAN -> "Cambia account / e-mail"
+        AppLanguage.CHINESE -> "切换账户或更换邮箱"
+        AppLanguage.JAPANESE -> "アカウントの切り替え / メール変更"
+        AppLanguage.KOREAN -> "계정 전환 / 이메일 변경"
+    }
+
+    fun emailRequiredPrompt(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "يرجى إدخال عنوان بريد إلكتروني صالح للمزامنة"
+        AppLanguage.COPTIC -> "Ⲁⲣⲓϩⲙⲟⲧ ⲥϧⲁⲓ ⲟⲩ-Email ⲉϥⲧⲁϫⲣⲏⲟⲩⲧ"
+        AppLanguage.ENGLISH -> "Please enter a valid email address for synchronization"
+        AppLanguage.FRENCH -> "Veuillez entrer une adresse e-mail valide"
+        AppLanguage.SPANISH -> "Por favor ingrese un correo electrónico válido"
+        AppLanguage.GERMAN -> "Bitte geben Sie eine gültige E-Mail-Adresse ein"
+        AppLanguage.ITALIAN -> "Inserisci un indirizzo e-mail valido"
+        AppLanguage.CHINESE -> "请输入有效的电子邮箱地址以进行同步"
+        AppLanguage.JAPANESE -> "同期用の有効なメールアドレスを入力してください"
+        AppLanguage.KOREAN -> "동기화에 사용할 올바른 이메일 주소를 입력해 주세요"
+    }
+
+    fun cloudSyncAccount(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "حساب المزامنة السحابية"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲙⲧ ⲉ̀ϯⲡⲉ"
+        AppLanguage.ENGLISH -> "Cloud Sync Account"
+        AppLanguage.FRENCH -> "Compte de synchronisation Cloud"
+        AppLanguage.SPANISH -> "Cuenta de sincronización en la nube"
+        AppLanguage.GERMAN -> "Cloud-Synchronisationskonto"
+        AppLanguage.ITALIAN -> "Account di sincronizzazione Cloud"
+        AppLanguage.CHINESE -> "云端同步账户"
+        AppLanguage.JAPANESE -> "クラウド同期アカウント"
+        AppLanguage.KOREAN -> "클라우드 동기화 계정"
+    }
+
+    fun exportPdfReport(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "تصدير تقرير التقدم (PDF)"
+        AppLanguage.COPTIC -> "Ⲉⲃⲟⲗ PDF"
+        AppLanguage.ENGLISH -> "Export Progress Report (PDF)"
+        AppLanguage.FRENCH -> "Exporter le rapport de progression (PDF)"
+        AppLanguage.SPANISH -> "Exportar informe de progreso (PDF)"
+        AppLanguage.GERMAN -> "Fortschrittsbericht exportieren (PDF)"
+        AppLanguage.ITALIAN -> "Esporta rapporto di avanzamento (PDF)"
+        AppLanguage.CHINESE -> "导出灵修进度报告 (PDF)"
+        AppLanguage.JAPANESE -> "進行状況レポートをエクスポート (PDF)"
+        AppLanguage.KOREAN -> "진행 보고서 내보내기 (PDF)"
+    }
+
+    fun exportPdfSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "وثيقة رسمية باسم المستخدم وتفاصيل الصلوات ومعدل الإتمام"
+        AppLanguage.COPTIC -> "Ⲡⲓⲥϧⲁⲓ ⲛ̀ⲧⲉ ⲛⲓⲉⲩⲭⲏ ⲙ̀ⲡⲓⲣⲉϥⲧⲱⲃϩ"
+        AppLanguage.ENGLISH -> "Official document with user account name, details & prayer breakdown"
+        AppLanguage.FRENCH -> "Document avec nom de l'utilisateur et détails des prières"
+        AppLanguage.SPANISH -> "Documento con nombre de usuario y detalles de oraciones"
+        AppLanguage.GERMAN -> "Dokument mit Benutzername und Gebetsdetails"
+        AppLanguage.ITALIAN -> "Documento con nome utente e dettagli delle preghiere"
+        AppLanguage.CHINESE -> "包含用户账户名、祷告明细与完成率的正式文件"
+        AppLanguage.JAPANESE -> "ユーザー名、祈りの詳細、達成度を記載した公式レポート"
+        AppLanguage.KOREAN -> "사용자 이름, 기도 세부 내역 및 완료율이 포함된 공식 문서"
+    }
 }

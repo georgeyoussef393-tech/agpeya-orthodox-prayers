@@ -7,8 +7,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [36])
 class ExampleRobolectricTest {
 
@@ -48,6 +50,86 @@ class ExampleRobolectricTest {
     }
     assertEquals(customKey, syncManager.syncKey.value)
     org.junit.Assert.assertTrue("Callback should be invoked on key update", callbackInvoked)
+  }
+
+  @Test
+  fun `verify email sync key normalization`() {
+    val email = "georgeyoussef393@gmail.com"
+    val normalizedKey = com.example.data.sync.FirestoreSyncManager.normalizeEmailToKey(email)
+    assertEquals("usr_georgeyoussef393_at_gmail_com", normalizedKey)
+
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val syncManager = com.example.data.sync.FirestoreSyncManager(context)
+    syncManager.setUserEmail(email)
+    assertEquals(email, syncManager.userEmail.value)
+    assertEquals(normalizedKey, syncManager.syncKey.value)
+  }
+
+  @Test
+  fun `verify full prayer sections structure and completeness`() {
+    for (prayer in com.example.data.model.PrayerId.canonicalPrayers) {
+      val sections = com.example.data.model.AgpeyaHourDetails.getFullPrayerSections(
+        prayer,
+        com.example.localization.AppLanguage.ARABIC
+      )
+      // Must contain at least intro, thanksgiving, psalm 50, psalms, gospel, litanies, trisagion, kyrie, absolution, conclusion
+      org.junit.Assert.assertTrue("Sections should have all parts for ${prayer.name}", sections.size >= 8)
+
+      val hasGospel = sections.any { it.isGospel }
+      org.junit.Assert.assertTrue("Should contain holy gospel for ${prayer.name}", hasGospel)
+
+      val thanksgiving = sections.find { it.id == "thanksgiving" }
+      org.junit.Assert.assertNotNull("Thanksgiving prayer must be present", thanksgiving)
+      org.junit.Assert.assertTrue(thanksgiving!!.contentAr.contains("فلنشكر صانع الخيرات"))
+
+      val psalm50 = sections.find { it.id == "psalm50" }
+      org.junit.Assert.assertNotNull("Psalm 50 must be present", psalm50)
+      org.junit.Assert.assertTrue(psalm50!!.contentAr.contains("ارحمني يا الله كعظيم رحمتك"))
+    }
+  }
+
+  @Test
+  fun `verify pdf generation with user name and prayer details`() {
+    val testEmail = "georgeyoussef393@gmail.com"
+    val testLogs = listOf(
+      com.example.data.model.PrayerLogEntity(
+        id = 1,
+        prayerCode = com.example.data.model.PrayerId.PRIME.code,
+        dateString = "2026-09-18",
+        year = 2026,
+        month = 9,
+        day = 18,
+        hour = 6,
+        minute = 30,
+        timestamp = System.currentTimeMillis()
+      ),
+      com.example.data.model.PrayerLogEntity(
+        id = 2,
+        prayerCode = com.example.data.model.PrayerId.TERCE.code,
+        dateString = "2026-09-18",
+        year = 2026,
+        month = 9,
+        day = 18,
+        hour = 9,
+        minute = 15,
+        timestamp = System.currentTimeMillis()
+      )
+    )
+
+    val summaryText = com.example.report.PrayerPdfExporter.buildReportSummaryText(
+      userEmail = testEmail,
+      userName = "George Youssef",
+      syncKey = "agpeya-sync-test",
+      lang = com.example.localization.AppLanguage.ARABIC,
+      periodName = "يومي",
+      allLogs = testLogs
+    )
+
+    org.junit.Assert.assertNotNull("Summary text should not be null", summaryText)
+    org.junit.Assert.assertTrue("Should contain user email", summaryText.contains(testEmail))
+    org.junit.Assert.assertTrue("Should contain sync key", summaryText.contains("agpeya-sync-test"))
+    org.junit.Assert.assertTrue("Should contain total count 2", summaryText.contains("2"))
+    org.junit.Assert.assertTrue("Should contain canonical hour name", summaryText.contains("باكر"))
   }
 }
 

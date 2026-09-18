@@ -57,16 +57,23 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     // Cloud Sync States
     val syncStatus: StateFlow<SyncStatus>
     val syncKey: StateFlow<String>
+    val userEmail: StateFlow<String?>
     val lastSyncTime: StateFlow<Long>
     val isRealtimeSyncActive: StateFlow<Boolean>
+
+    // Auth / Onboarding
+    private val _isAuthCompleted = MutableStateFlow(false)
+    val isAuthCompleted: StateFlow<Boolean> = _isAuthCompleted.asStateFlow()
 
     init {
         val db = AgpeyaDatabase.getDatabase(application)
         repository = AgpeyaRepository(db.prayerLogDao(), application)
         _currentLanguage.value = repository.getSavedLanguage()
+        _isAuthCompleted.value = repository.isAuthOnboardingCompleted()
 
         syncStatus = repository.syncManager.syncStatus
         syncKey = repository.syncManager.syncKey
+        userEmail = repository.syncManager.userEmail
         lastSyncTime = repository.syncManager.lastSyncTimestamp
         isRealtimeSyncActive = repository.syncManager.isRealtimeSyncActive
 
@@ -87,6 +94,43 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         // Initialize real-time sync listener & trigger background initial sync
         repository.startRealtimeSync(viewModelScope)
         triggerSync()
+    }
+
+    fun signInWithEmail(email: String, password: String? = null, onResult: (Boolean, String?) -> Unit) {
+        val clean = email.trim()
+        if (clean.isBlank()) {
+            onResult(false, "Email required")
+            return
+        }
+        repository.syncManager.authenticateWithEmail(clean, password) { success, error ->
+            if (success) {
+                repository.setAuthOnboardingCompleted(true)
+                _isAuthCompleted.value = true
+                triggerSync()
+                repository.startRealtimeSync(viewModelScope)
+            }
+            onResult(success, error)
+        }
+    }
+
+    fun continueAsGuest() {
+        repository.setAuthOnboardingCompleted(true)
+        _isAuthCompleted.value = true
+    }
+
+    fun signOut(clearLocalHistory: Boolean = false) {
+        viewModelScope.launch {
+            if (clearLocalHistory) {
+                repository.clearAllLocalLogs()
+            }
+            repository.setUserEmail(null)
+            repository.setAuthOnboardingCompleted(false)
+            _isAuthCompleted.value = false
+        }
+    }
+
+    fun openAuthOnboarding() {
+        _isAuthCompleted.value = false
     }
 
     fun triggerSync() {

@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -54,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +67,7 @@ import com.example.data.sync.SyncStatus
 import com.example.data.repository.AgpeyaRepository
 import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
+import com.example.report.PrayerPdfExporter
 import com.example.ui.components.CopticCrossCanvas
 import com.example.ui.components.charts.AreaPoint
 import com.example.ui.components.charts.BarChartItem
@@ -109,6 +112,9 @@ fun ReportsScreen(
     val totalCount by viewModel.totalCount.collectAsState()
     val currentPeriod by viewModel.selectedReportPeriod.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
+    val userEmail by viewModel.userEmail.collectAsState()
+    val syncKey by viewModel.syncKey.collectAsState()
+    val context = LocalContext.current
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabTitles = listOf(
@@ -152,7 +158,7 @@ fun ReportsScreen(
                     }
                 }
 
-                // Total Completed Prayers Counter Badge & Cloud Sync Icon
+                // Total Completed Prayers Counter Badge, PDF Export & Cloud Sync Icon
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
@@ -168,7 +174,37 @@ fun ReportsScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Export PDF Button
+                    IconButton(
+                        onClick = {
+                            val periodLabel = tabTitles[selectedTabIndex]
+                            PrayerPdfExporter.generateAndSharePdf(
+                                context = context,
+                                userEmail = userEmail,
+                                userName = userEmail?.substringBefore("@"),
+                                syncKey = syncKey,
+                                lang = lang,
+                                periodName = periodLabel,
+                                allLogs = allLogs
+                            )
+                        },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(GoldPrimary.copy(alpha = 0.15f))
+                            .testTag("export_pdf_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = AgpeyaStrings.exportPdfReport(lang),
+                            tint = GoldPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
 
                     IconButton(
                         onClick = { viewModel.triggerSync() },
@@ -1127,10 +1163,99 @@ private fun HistoryLogView(
             }
         }
     } else {
+        val userEmail by viewModel.userEmail.collectAsState()
+        val syncKey by viewModel.syncKey.collectAsState()
+        val context = LocalContext.current
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp)
         ) {
+            // PDF Export Banner Card
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 14.dp)
+                        .clickable {
+                            PrayerPdfExporter.generateAndSharePdf(
+                                context = context,
+                                userEmail = userEmail,
+                                userName = userEmail?.substringBefore("@"),
+                                syncKey = syncKey,
+                                lang = lang,
+                                periodName = AgpeyaStrings.prayersLogHistory(lang),
+                                allLogs = allLogs
+                            )
+                        }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(GoldPrimary.copy(alpha = 0.18f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PictureAsPdf,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = AgpeyaStrings.exportPdfReport(lang),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = userEmail?.let {
+                                    if (lang == AppLanguage.ARABIC) "مُخصص باسم الحساب: $it" else "Customized for user: $it"
+                                } ?: AgpeyaStrings.exportPdfSubtitle(lang),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                PrayerPdfExporter.generateAndSharePdf(
+                                    context = context,
+                                    userEmail = userEmail,
+                                    userName = userEmail?.substringBefore("@"),
+                                    syncKey = syncKey,
+                                    lang = lang,
+                                    periodName = AgpeyaStrings.prayersLogHistory(lang),
+                                    allLogs = allLogs
+                                )
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "تصدير PDF" else "Export",
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            }
+
             item {
                 Text(
                     text = AgpeyaStrings.prayersLogHistory(lang),
