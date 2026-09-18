@@ -37,6 +37,24 @@ Lasst uns dem gütigen und barmherzigen Gott danken, dem Vater unseres Herrn, Go
 Preghiera di Ringraziamento:
 Rendiamo grazie al Dio benefico e misericordioso, Padre del nostro Signore, Dio e Salvatore Gesù Cristo, poiché ci ha protetti, aiutati, custoditi, accolti, risparmiati, sostenuti e condotti fino a quest'ora...
         """.trimIndent()
+        AppLanguage.CHINESE -> """
+感恩祷文：
+让我们感谢广行善事、满怀怜悯的上帝，我们主、上帝和救主耶稣基督的父。因为祂庇护了我们，扶助了我们，保守了我们，接纳了我们，垂怜了我们，坚固了我们，并引领我们到达此时此刻。
+让我们也祈求全能者主我们的上帝，在这个神圣的日子以及我们一生的岁月中，赐我们平安与护佑。
+主啊，全能的上帝，我们主、上帝和救主耶稣基督的父，我们在一切境遇中、因着一切事、并在一切事上感谢祢...
+        """.trimIndent()
+        AppLanguage.JAPANESE -> """
+感謝の祈り：
+善を行い、憐れみ深き神、私たちの主、神、救い主イエス・キリストの父に感謝を捧げましょう。神は私たちを覆い、助け、守り、御もとに受け入れ、惜しみ、支え、この時まで導いてくださいました。
+全能の主、私たちの神に、この聖なる日と私たちの生涯のすべての日を、あらゆる平安のうちに守ってくださるよう願い求めましょう。
+全能の主なる神、私たちの主、神、救い主イエス・キリストの父よ、私たちはあらゆる状況において、あらゆることのために、感謝を捧げます...
+        """.trimIndent()
+        AppLanguage.KOREAN -> """
+감사의 기도:
+선하시고 자비로우신 하나님, 우리 주님이시요 하나님이시며 구원자이신 예수 그리스도의 아버지께 감사를 드립시다. 그분은 우리를 덮어주시고, 도와주시고, 지켜주시고, 품어주시고, 불쌍히 여기시고, 붙들어 주시며, 지금까지 이끌어 주셨습니다.
+전능하신 주 우리 하나님께 이 거룩한 날과 우리 평생의 모든 날을 온전한 평강 가운데 지켜주시기를 간구합시다.
+주 하나님, 전능하신 아버지, 우리 주 하나님 구원자 예수 그리스도의 아버지여, 우리는 모든 상황에서, 모든 일로 인해 주께 감사드립니다...
+        """.trimIndent()
     }
 
     fun getPsalm50(lang: AppLanguage): String = when (lang) {
@@ -67,6 +85,18 @@ Gott, sei mir gnädig nach deiner Güte, tilge meine Sünden nach deiner großen
         AppLanguage.ITALIAN -> """
 Salmo 50 (51):
 Pietà di me, o Dio, secondo la tua misericordia; nella tua grande bontà cancella il mio peccato. Lavami da tutte le mie colpe, mondami dal mio peccato... Crea in me, o Dio, un cuore puro, rinnova in me uno spirito saldo. Non cacciarmi lontano dalla tua presenza, non privarmi del tuo santo spirito. Alleluia.
+        """.trimIndent()
+        AppLanguage.CHINESE -> """
+诗篇 51 (50):
+　神啊，求你按你的慈爱怜恤我！按你丰盛的慈悲涂抹我的过犯！求你将我的罪孽洗除净尽，并洁除我的罪！因为，我知道我的过犯；我的罪常在我面前。我向你犯罪，惟独得罪了你；在你眼前行了这恶... 　神啊，求你为我造清洁的心，使我里面重新有正直的灵。不要丢弃我，使我离开你的面；不要从我收回你的圣灵。阿利路亚。
+        """.trimIndent()
+        AppLanguage.JAPANESE -> """
+詩篇 51篇:
+神よ、あなたの慈しみによって私を憐れみ、豊かな憐れみによって私の背きの罪をぬぐい去ってください。私の咎をことごとく洗い流し、罪から清めてください。私は自分の背きを知っており、私の罪は常に私の前にあります... 神よ、私のうちに清い心を造り、私のうちに新しい正しい霊を与えてください。私を御前から投げ捨てず、あなたの聖霊を私から取り去らないでください。ハレルヤ。
+        """.trimIndent()
+        AppLanguage.KOREAN -> """
+시편 51편:
+하나님이여 주의 인자를 따라 내게 은혜를 베푸시며 주의 많은 긍휼을 따라 내 죄악을 지워 주소서. 나의 죄악을 말갛게 씻으시며 나의 죄를 깨끗이 제하소서. 무릇 나는 내 죄과를 아오니 내 죄가 항상 내 앞에 있나이다... 하나님이여 내 속에 정한 마음을 창조하시고 내 안에 정직한 영을 새롭게 하소서. 나를 주 앞에서 쫓아내지 마시며 주의 성령을 내게서 거두지 마소서. 할렐루야.
         """.trimIndent()
     }
 
@@ -224,6 +254,36 @@ Santo Dio, Santo Forte, Santo Immortale, crocifisso per noi, abbi pietà di noi.
 Santo Dio, Santo Forte, Santo Immortale, risorto dai morti e salito al cielo, abbi pietà di noi.
 Signore pietà (Kyrie Eleison) 41 volte...
 Padre nostro che sei nei cieli...
+        """.trimIndent()
+        AppLanguage.CHINESE -> """
+三圣颂与结束祈祷：
+圣哉上帝，圣哉大能者，圣哉永生者，由童贞女所生者，求祢怜悯我们。
+圣哉上帝，圣哉大能者，圣哉永生者，为我们钉十字架者，求祢怜悯我们。
+圣哉上帝，圣哉大能者，圣哉永生者，从死里复活并升天者，求祢怜悯我们。
+荣耀归于父、子、圣灵，从现在直到永远，世世无尽。阿们。
+求主怜悯（求主垂怜）41次。
+圣哉，圣哉，圣哉，万军之主；天地充满祢的荣耀和尊贵。全能的父上帝啊，求祢怜悯我们...
+我们在天上的父...
+        """.trimIndent()
+        AppLanguage.JAPANESE -> """
+三聖誦と終祷：
+聖なる神、聖なる力ある者、聖なる不滅の者、おとめより生まれし者よ、私たちを憐れんでください。
+聖なる神、聖なる力ある者、聖なる不灭の者、私たちのために十字架につけられし者よ、私たちを憐れんでください。
+聖なる神、聖なる力ある者、聖なる不滅の者、死者のうちから復活し、天に昇られた者よ、私たちを憐れんでください。
+栄光は父と子と聖霊にあり、今もいつも世々に至るまで。アーメン。
+主よ憐れんでください（キリエ・エレイソン）41回。
+聖なるかな、聖なるかな、聖なるかな、万軍の主。天と地はあなたの栄光に満ちています。全能の父なる神よ、私たちを憐れんでください...
+天におられる私たちの父よ...
+        """.trimIndent()
+        AppLanguage.KOREAN -> """
+삼성송 및 마침 기도:
+거룩하신 하나님, 거룩하고 전능하신 분, 거룩하고 불멸하시는 분, 동정녀에게서 나신 분이여, 우리를 불쌍히 여기소서.
+거룩하신 하나님, 거룩하고 전능하신 분, 거룩하고 불멸하시는 분, 우리를 위해 십자가에 못 박히신 분이여, 우리를 불쌍히 여기소서.
+거룩하신 하나님, 거룩하고 전능하신 분, 거룩하고 불멸하시는 분, 죽은 자 가운데서 부활하시고 하늘에 오르신 분이여, 우리를 불쌍히 여기소서.
+영광이 성부와 성자와 성령께 이제와 항상 영원히 있나이다. 아멘.
+주여 자비를 베푸소서 (키리에 엘레이손) 41회.
+거룩하시다, 거룩하시다, 거룩하시다, 만군의 주여; 하늘과 땅에 주의 영광이 가득하나이다. 전능하신 아버지 하나님이여, 우리를 불쌍히 여기소서...
+하늘에 계신 우리 아버지...
         """.trimIndent()
     }
 

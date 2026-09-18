@@ -116,6 +116,30 @@ enum class SpiritualSound(
             GOLGOTHA_HYMN_TONE -> "Melodia di Golgota e Preghiera"
             EPECHOIS_HARMONY -> "Arpa e Salmi di Davide"
         }
+        AppLanguage.CHINESE -> when (this) {
+            DEFAULT_CHIME -> "系统默认提示音"
+            CHURCH_BELLS -> "科普特教堂钟声"
+            CYMBALS_TRIANGLE -> "传统圣咏三角铁与钹"
+            MONASTIC_WOODEN_NAQOUS -> "修道院木板梆声 (Semantron)"
+            GOLGOTHA_HYMN_TONE -> "各各他沉思圣乐"
+            EPECHOIS_HARMONY -> "大卫琴与诗篇和声"
+        }
+        AppLanguage.JAPANESE -> when (this) {
+            DEFAULT_CHIME -> "システム既定の通知音"
+            CHURCH_BELLS -> "コプト教会の鐘の音"
+            CYMBALS_TRIANGLE -> "伝統的なシンバルとトライアングル"
+            MONASTIC_WOODEN_NAQOUS -> "修道院の木製セマントロン"
+            GOLGOTHA_HYMN_TONE -> "ゴルゴタの瞑想的な聖歌"
+            EPECHOIS_HARMONY -> "ダビデの竪琴と詩篇の響き"
+        }
+        AppLanguage.KOREAN -> when (this) {
+            DEFAULT_CHIME -> "기본 알림음"
+            CHURCH_BELLS -> "콥트 교회 종소리"
+            CYMBALS_TRIANGLE -> "성가 심벌즈와 트라이앵글"
+            MONASTIC_WOODEN_NAQOUS -> "수도원 목제 세만트론 타종"
+            GOLGOTHA_HYMN_TONE -> "골고다 묵상 성가"
+            EPECHOIS_HARMONY -> "다윗의 하프와 시편 화음"
+        }
     }
 
     fun getDescription(lang: AppLanguage): String = when (lang) {
