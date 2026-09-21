@@ -27,6 +27,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Church
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
@@ -83,10 +84,12 @@ fun AuthOnboardingScreen(
 ) {
     val lang by viewModel.currentLanguage.collectAsState()
     val savedEmail by viewModel.userEmail.collectAsState()
+    val savedChurchName by viewModel.churchName.collectAsState()
     val focusManager = LocalFocusManager.current
 
     var emailInput by remember(savedEmail) { mutableStateOf(savedEmail ?: "") }
     var passwordInput by remember { mutableStateOf("") }
+    var churchNameInput by remember(savedChurchName) { mutableStateOf(savedChurchName ?: "") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -326,6 +329,37 @@ fun AuthOnboardingScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = GoldPrimary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                            focusedLabelColor = GoldPrimary
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("auth_password_input")
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Church / Ministry Field (Optional - requested by user)
+                    OutlinedTextField(
+                        value = churchNameInput,
+                        onValueChange = { churchNameInput = it },
+                        label = { Text(AgpeyaStrings.churchNameOptionalLabel(lang)) },
+                        placeholder = { Text(AgpeyaStrings.churchNamePlaceholder(lang)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Church,
+                                contentDescription = null,
+                                tint = GoldPrimary
+                            )
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
                             imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
@@ -337,7 +371,7 @@ fun AuthOnboardingScreen(
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .testTag("auth_password_input")
+                            .testTag("auth_church_name_input")
                     )
 
                     // Error notice
@@ -381,7 +415,11 @@ fun AuthOnboardingScreen(
                             isLoading = true
                             errorMessage = null
 
-                            viewModel.signInWithEmail(trimmedEmail, passwordInput.ifBlank { null }) { success, err ->
+                            viewModel.signInWithEmail(
+                                email = trimmedEmail,
+                                password = passwordInput.ifBlank { null },
+                                churchName = churchNameInput.ifBlank { null }
+                            ) { success, err ->
                                 isLoading = false
                                 if (!success) {
                                     errorMessage = err ?: "Sign-in error"
@@ -420,7 +458,7 @@ fun AuthOnboardingScreen(
                     // Continue as Guest (Offline)
                     OutlinedButton(
                         onClick = {
-                            viewModel.continueAsGuest()
+                            viewModel.continueAsGuest(churchName = churchNameInput.ifBlank { null })
                         },
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier

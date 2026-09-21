@@ -28,6 +28,7 @@ object PrayerPdfExporter {
     fun buildReportSummaryText(
         userEmail: String?,
         userName: String?,
+        churchName: String? = null,
         syncKey: String?,
         lang: AppLanguage,
         periodName: String,
@@ -39,6 +40,9 @@ object PrayerPdfExporter {
         sb.appendLine(if (lang == AppLanguage.ARABIC) "تقرير الصلوات الأرثوذكسية - صلوات السواعي (الأجبية)" else "Orthodox Agpeya Prayer Spiritual Progress Report")
         sb.appendLine("==================================================")
         sb.appendLine("${if (lang == AppLanguage.ARABIC) "المستخدم المسجل" else "Logged-in User"}: $displayName")
+        if (!churchName.isNullOrBlank()) {
+            sb.appendLine("${if (lang == AppLanguage.ARABIC) "الكنيسة / الخدمة" else "Church / Ministry"}: $churchName")
+        }
         syncKey?.let { sb.appendLine("${if (lang == AppLanguage.ARABIC) "معرف المزامنة" else "Sync Key"}: $it") }
         sb.appendLine("${if (lang == AppLanguage.ARABIC) "نوع التقرير" else "Report Period"}: $periodName")
         sb.appendLine("${if (lang == AppLanguage.ARABIC) "تاريخ الإصدار" else "Generated At"}: ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())}")
@@ -61,6 +65,8 @@ object PrayerPdfExporter {
         context: Context,
         userEmail: String?,
         userName: String?,
+        churchName: String? = null,
+        churchEmblem: String = "coptic_cross",
         syncKey: String?,
         lang: AppLanguage,
         periodName: String,
@@ -77,6 +83,8 @@ object PrayerPdfExporter {
                 canvas = canvas,
                 userEmail = userEmail,
                 userName = userName,
+                churchName = churchName,
+                churchEmblem = churchEmblem,
                 syncKey = syncKey,
                 lang = lang,
                 periodName = periodName,
@@ -107,6 +115,8 @@ object PrayerPdfExporter {
         context: Context,
         userEmail: String?,
         userName: String?,
+        churchName: String? = null,
+        churchEmblem: String = "coptic_cross",
         syncKey: String?,
         lang: AppLanguage,
         periodName: String,
@@ -117,6 +127,8 @@ object PrayerPdfExporter {
             context = context,
             userEmail = userEmail,
             userName = userName,
+            churchName = churchName,
+            churchEmblem = churchEmblem,
             syncKey = syncKey,
             lang = lang,
             periodName = periodName,
@@ -169,6 +181,8 @@ object PrayerPdfExporter {
         canvas: Canvas,
         userEmail: String?,
         userName: String?,
+        churchName: String?,
+        churchEmblem: String = "coptic_cross",
         syncKey: String?,
         lang: AppLanguage,
         periodName: String,
@@ -189,35 +203,38 @@ object PrayerPdfExporter {
         paint.color = android.graphics.Color.rgb(212, 175, 55)
         canvas.drawRect(0f, 88f, 595f, 92f, paint)
 
+        // Draw Church Emblem Badge on top right of banner
+        drawChurchEmblemBadge(canvas, 545f, 45f, churchEmblem)
+
         // Header Title
         paint.color = android.graphics.Color.rgb(255, 255, 255)
-        paint.textSize = 20f
+        paint.textSize = 18f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         val titleText = if (lang == AppLanguage.ARABIC) {
             "✝ كنيسة الإسكندرية القبطية الأرثوذكسية - صلوات الأجبية"
         } else {
             "✝ Coptic Orthodox Church - Agpeya Prayers"
         }
-        canvas.drawText(titleText, 30f, 40f, paint)
+        canvas.drawText(titleText, 25f, 40f, paint)
 
-        paint.textSize = 13f
+        paint.textSize = 11.5f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         paint.color = android.graphics.Color.rgb(240, 220, 160)
-        val subtitle = if (lang == AppLanguage.ARABIC) {
-            "تقرير التقدم الروحي وإتمام صلوات السواعي القانونية"
+        val subtitle = if (!churchName.isNullOrBlank()) {
+            if (lang == AppLanguage.ARABIC) "الكنيسة / الخدمة: $churchName" else "Church / Ministry: $churchName"
         } else {
-            "Spiritual Progress Report & Canonical Hours Completion"
+            if (lang == AppLanguage.ARABIC) "تقرير التقدم الروحي وإتمام صلوات السواعي القانونية" else "Spiritual Progress Report & Canonical Hours Completion"
         }
-        canvas.drawText(subtitle, 30f, 65f, paint)
+        canvas.drawText(subtitle, 25f, 65f, paint)
 
-        // User & Account Details Card Box (y = 110 to 180)
+        // User & Account Details Card Box (y = 102 to 192)
         paint.color = android.graphics.Color.rgb(255, 255, 255)
-        canvas.drawRoundRect(28f, 105f, 567f, 185f, 10f, 10f, paint)
+        canvas.drawRoundRect(28f, 102f, 567f, 192f, 10f, 10f, paint)
 
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1.2f
         paint.color = android.graphics.Color.rgb(212, 175, 55)
-        canvas.drawRoundRect(28f, 105f, 567f, 185f, 10f, 10f, paint)
+        canvas.drawRoundRect(28f, 102f, 567f, 192f, 10f, 10f, paint)
         paint.style = Paint.Style.FILL
 
         // User Info inside Card
@@ -225,26 +242,37 @@ object PrayerPdfExporter {
         val effectiveEmail = userEmail ?: if (lang == AppLanguage.ARABIC) "حساب محلي متصل" else "Local Registered Account"
 
         paint.color = android.graphics.Color.rgb(107, 20, 38)
-        paint.textSize = 12f
+        paint.textSize = 11.5f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
 
         val userLabel = if (lang == AppLanguage.ARABIC) "اسم صاحب الحساب المُسجل:" else "Registered User Name:"
         val emailLabel = if (lang == AppLanguage.ARABIC) "البريد الإلكتروني المُسجل:" else "Registered Account Email:"
+        val churchLabel = if (lang == AppLanguage.ARABIC) "الكنيسة / الخدمة المُسجلة:" else "Registered Church / Ministry:"
         val reportDateLabel = if (lang == AppLanguage.ARABIC) "تاريخ إصدار التقرير:" else "Report Issued On:"
         val periodLabel = if (lang == AppLanguage.ARABIC) "نطاق المتابعة:" else "Reporting Period:"
 
         val nowFormatted = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
 
-        canvas.drawText("$userLabel $displayName", 45f, 130f, paint)
+        canvas.drawText("$userLabel $displayName", 42f, 122f, paint)
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         paint.color = android.graphics.Color.rgb(60, 60, 60)
-        canvas.drawText("$emailLabel $effectiveEmail", 45f, 150f, paint)
+        canvas.drawText("$emailLabel $effectiveEmail", 42f, 139f, paint)
 
-        paint.color = android.graphics.Color.rgb(100, 100, 100)
-        canvas.drawText("$reportDateLabel $nowFormatted", 45f, 170f, paint)
-        canvas.drawText("$periodLabel $periodName", 340f, 130f, paint)
+        if (!churchName.isNullOrBlank()) {
+            paint.color = android.graphics.Color.rgb(107, 20, 38)
+            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            canvas.drawText("$churchLabel $churchName", 42f, 156f, paint)
+            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            paint.color = android.graphics.Color.rgb(100, 100, 100)
+            canvas.drawText("$reportDateLabel $nowFormatted", 42f, 173f, paint)
+        } else {
+            paint.color = android.graphics.Color.rgb(100, 100, 100)
+            canvas.drawText("$reportDateLabel $nowFormatted", 42f, 158f, paint)
+        }
+
+        canvas.drawText("$periodLabel $periodName", 335f, 122f, paint)
         syncKey?.let {
-            canvas.drawText("Sync Cloud Key: ${it.take(12)}...", 340f, 150f, paint)
+            canvas.drawText("Sync Cloud Key: ${it.take(12)}...", 335f, 139f, paint)
         }
 
         // Summary Stats Row (y = 200 to 255)
@@ -426,5 +454,51 @@ object PrayerPdfExporter {
         paint.textSize = 17f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         canvas.drawText(value, x + 10f, y + 43f, paint)
+    }
+
+    private fun drawChurchEmblemBadge(canvas: Canvas, cx: Float, cy: Float, emblemCode: String) {
+        val paint = Paint().apply { isAntiAlias = true }
+        // Outer Gold Ring
+        paint.color = android.graphics.Color.rgb(212, 175, 55)
+        canvas.drawCircle(cx, cy, 26f, paint)
+
+        // Inner Burgundy Circle
+        paint.color = android.graphics.Color.rgb(107, 20, 38)
+        canvas.drawCircle(cx, cy, 23f, paint)
+
+        // Draw Emblem Motif in Gold
+        paint.color = android.graphics.Color.rgb(240, 220, 160)
+        paint.strokeWidth = 2.5f
+        paint.style = Paint.Style.STROKE
+
+        when (emblemCode) {
+            "st_mark_lion" -> {
+                canvas.drawLine(cx, cy - 14f, cx, cy + 14f, paint)
+                canvas.drawLine(cx - 12f, cy - 2f, cx + 12f, cy - 2f, paint)
+                paint.style = Paint.Style.FILL
+                canvas.drawCircle(cx - 6f, cy - 6f, 2.5f, paint)
+                canvas.drawCircle(cx + 6f, cy - 6f, 2.5f, paint)
+            }
+            "st_mary_dove" -> {
+                canvas.drawLine(cx, cy - 14f, cx, cy + 14f, paint)
+                canvas.drawLine(cx - 14f, cy - 4f, cx + 14f, cy - 4f, paint)
+                paint.style = Paint.Style.FILL
+                canvas.drawCircle(cx, cy - 14f, 3f, paint)
+            }
+            "monastic_anchor" -> {
+                canvas.drawLine(cx, cy - 14f, cx, cy + 14f, paint)
+                canvas.drawLine(cx - 10f, cy - 4f, cx + 10f, cy - 4f, paint)
+                canvas.drawArc(cx - 10f, cy + 2f, cx + 10f, cy + 14f, 0f, 180f, false, paint)
+            }
+            else -> { // "coptic_cross"
+                canvas.drawLine(cx, cy - 15f, cx, cy + 15f, paint)
+                canvas.drawLine(cx - 15f, cy, cx + 15f, cy, paint)
+                paint.style = Paint.Style.FILL
+                canvas.drawCircle(cx - 7f, cy - 7f, 2f, paint)
+                canvas.drawCircle(cx + 7f, cy - 7f, 2f, paint)
+                canvas.drawCircle(cx - 7f, cy + 7f, 2f, paint)
+                canvas.drawCircle(cx + 7f, cy + 7f, 2f, paint)
+            }
+        }
     }
 }

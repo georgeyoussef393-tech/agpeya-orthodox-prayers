@@ -43,6 +43,37 @@ class AgpeyaRepository(
         syncManager.setUserEmail(email, onComplete)
     }
 
+    // Church Name (Optional User Ministry / Church)
+    fun getChurchName(): String? {
+        return prefs.getString("user_church_name", null)
+    }
+
+    fun saveChurchName(churchName: String?) {
+        val clean = churchName?.trim()
+        if (clean.isNullOrBlank()) {
+            prefs.edit().remove("user_church_name").apply()
+        } else {
+            prefs.edit().putString("user_church_name", clean).apply()
+        }
+    }
+
+    // Church Emblem / Logo Badge Code (coptic_cross, st_mark_lion, st_mary_dove, monastic_anchor)
+    fun getChurchEmblem(): String {
+        return prefs.getString("user_church_emblem", "coptic_cross") ?: "coptic_cross"
+    }
+
+    fun saveChurchEmblem(emblemCode: String) {
+        prefs.edit().putString("user_church_emblem", emblemCode).apply()
+    }
+
+    suspend fun getAllLogsDirect(): List<PrayerLogEntity> {
+        return dao.getAllLogsList()
+    }
+
+    suspend fun importBackupLogs(logs: List<PrayerLogEntity>) {
+        dao.insertLogs(logs)
+    }
+
     suspend fun clearAllLocalLogs() {
         dao.clearAllLogs()
     }
@@ -63,6 +94,107 @@ class AgpeyaRepository(
         CoroutineScope(Dispatchers.IO).launch {
             syncManager.syncSettings(language.code, getAllAlarmSettings()) { _, _ -> }
         }
+    }
+
+    // Spiritual Background & Reverence Atmosphere
+    fun getSpiritualBackgroundTheme(): com.example.data.model.SpiritualBackgroundTheme {
+        val id = prefs.getString("spiritual_bg_theme_id", com.example.data.model.SpiritualBackgroundTheme.CANDLE_SANCTUARY.id)
+        return com.example.data.model.SpiritualBackgroundTheme.fromId(id)
+    }
+
+    fun saveSpiritualBackgroundTheme(theme: com.example.data.model.SpiritualBackgroundTheme) {
+        prefs.edit().putString("spiritual_bg_theme_id", theme.id).apply()
+    }
+
+    fun getSpiritualBackgroundOpacity(): Float {
+        return prefs.getFloat("spiritual_bg_opacity", 0.22f)
+    }
+
+    fun saveSpiritualBackgroundOpacity(opacity: Float) {
+        prefs.edit().putFloat("spiritual_bg_opacity", opacity).apply()
+    }
+
+    fun isCandleGlowEnabled(): Boolean {
+        return prefs.getBoolean("spiritual_candle_glow_enabled", true)
+    }
+
+    fun setCandleGlowEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("spiritual_candle_glow_enabled", enabled).apply()
+    }
+
+    // Multilingual support preferences
+    fun isBilingualEnabled(): Boolean {
+        return prefs.getBoolean("multilingual_bilingual_enabled", true)
+    }
+
+    fun setBilingualEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("multilingual_bilingual_enabled", enabled).apply()
+    }
+
+    fun getSecondaryLanguage(): AppLanguage {
+        val code = prefs.getString("multilingual_secondary_lang_code", AppLanguage.COPTIC.code) ?: AppLanguage.COPTIC.code
+        return AppLanguage.fromCode(code)
+    }
+
+    fun saveSecondaryLanguage(language: AppLanguage) {
+        prefs.edit().putString("multilingual_secondary_lang_code", language.code).apply()
+    }
+
+    fun isPhoneticGuideEnabled(): Boolean {
+        return prefs.getBoolean("multilingual_phonetic_guide_enabled", true)
+    }
+
+    fun setPhoneticGuideEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("multilingual_phonetic_guide_enabled", enabled).apply()
+    }
+
+    // Timezone & Notification preferences
+    fun isAutoTimezoneSyncEnabled(): Boolean {
+        return prefs.getBoolean("timezone_auto_sync_enabled", true)
+    }
+
+    fun setAutoTimezoneSyncEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("timezone_auto_sync_enabled", enabled).apply()
+    }
+
+    fun getSelectedTimezoneId(): String {
+        return prefs.getString("selected_timezone_id", java.util.TimeZone.getDefault().id) ?: java.util.TimeZone.getDefault().id
+    }
+
+    fun saveSelectedTimezoneId(tzId: String) {
+        prefs.edit().putString("selected_timezone_id", tzId).apply()
+    }
+
+    fun getNotificationLeadTimeMinutes(): Int {
+        return prefs.getInt("notification_lead_time_minutes", 0)
+    }
+
+    fun saveNotificationLeadTimeMinutes(minutes: Int) {
+        prefs.edit().putInt("notification_lead_time_minutes", minutes).apply()
+    }
+
+    fun isQuietHoursEnabled(): Boolean {
+        return prefs.getBoolean("notification_quiet_hours_enabled", false)
+    }
+
+    fun setQuietHoursEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("notification_quiet_hours_enabled", enabled).apply()
+    }
+
+    fun getQuietHoursStartHour(): Int {
+        return prefs.getInt("notification_quiet_hours_start_hour", 23)
+    }
+
+    fun saveQuietHoursStartHour(hour: Int) {
+        prefs.edit().putInt("notification_quiet_hours_start_hour", hour).apply()
+    }
+
+    fun getQuietHoursEndHour(): Int {
+        return prefs.getInt("notification_quiet_hours_end_hour", 5)
+    }
+
+    fun saveQuietHoursEndHour(hour: Int) {
+        prefs.edit().putInt("notification_quiet_hours_end_hour", hour).apply()
     }
 
     // Alarm Settings

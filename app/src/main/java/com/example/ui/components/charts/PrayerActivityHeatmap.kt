@@ -3,6 +3,10 @@ package com.example.ui.components.charts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import java.util.Calendar
+import java.util.Locale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import com.example.localization.AppLanguage
 import com.example.ui.theme.GoldPrimary
 import com.example.ui.theme.PeacefulGreen
-import java.util.Calendar
 
 data class HeatmapDayData(
     val dayOfMonth: Int,
@@ -271,3 +274,308 @@ fun PrayerActivityHeatmap(
         }
     }
 }
+
+/**
+ * GitHub-style 52-Week Annual Coptic Prayer Calendar Heatmap Grid & Streak Metrics.
+ */
+@Composable
+fun AnnualPrayerHeatmap(
+    year: Int,
+    logs: List<com.example.data.model.PrayerLogEntity>,
+    lang: AppLanguage,
+    modifier: Modifier = Modifier
+) {
+    var selectedDayInfo by remember { mutableStateOf<String?>(null) }
+
+    // Map logs to dateString "YYYY-MM-DD" -> count
+    val dailyCounts = remember(logs, year) {
+        val map = mutableMapOf<String, Int>()
+        for (log in logs) {
+            if (log.year == year) {
+                map[log.dateString] = (map[log.dateString] ?: 0) + 1
+            }
+        }
+        map
+    }
+
+    // Streak Calculations
+    val (currentStreak, longestStreak, activeDaysCount, totalDaysElapsed) = remember(dailyCounts, year) {
+        val cal = Calendar.getInstance()
+        val currentYear = cal.get(Calendar.YEAR)
+        val todayJulian = if (year == currentYear) cal.get(Calendar.DAY_OF_YEAR) else if (year < currentYear) 365 else 0
+
+        var current = 0
+        var maxStreak = 0
+        var tempStreak = 0
+        var totalActive = 0
+
+        val tempCal = Calendar.getInstance()
+        val daysInYear = if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) 366 else 365
+
+        // Calculate streaks & active days up to todayJulian
+        for (d in 1..daysInYear) {
+            tempCal.set(Calendar.YEAR, year)
+            tempCal.set(Calendar.DAY_OF_YEAR, d)
+            val y = tempCal.get(Calendar.YEAR)
+            val m = tempCal.get(Calendar.MONTH) + 1
+            val day = tempCal.get(Calendar.DAY_OF_MONTH)
+            val dateStr = String.format(Locale.US, "%04d-%02d-%02d", y, m, day)
+
+            val count = dailyCounts[dateStr] ?: 0
+            if (count > 0) {
+                totalActive++
+                tempStreak++
+                if (tempStreak > maxStreak) maxStreak = tempStreak
+            } else {
+                tempStreak = 0
+            }
+
+            // Check current streak ending today or yesterday
+            if (d == todayJulian || (d == todayJulian - 1 && count > 0)) {
+                current = tempStreak
+            }
+        }
+
+        val elapsed = if (year == currentYear) todayJulian else daysInYear
+        Quadruple(current, maxStreak, totalActive, elapsed.coerceAtLeast(1))
+    }
+
+    val consistencyPercent = remember(activeDaysCount, totalDaysElapsed) {
+        ((activeDaysCount.toFloat() / totalDaysElapsed) * 100).toInt().coerceIn(0, 100)
+    }
+
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("annual_prayer_heatmap")
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Section Title
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    Text(
+                        text = com.example.localization.AgpeyaStrings.annualHeatmapTitle(lang),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "سنة $year - 52 أسبوعًا من الصلوات" else "Year $year - 52 Weeks Grid",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                selectedDayInfo?.let { info ->
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = GoldPrimary.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.5f))
+                    ) {
+                        Text(
+                            text = info,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = GoldPrimary,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Streak & Metrics Cards Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Current Streak
+                Card(
+                    modifier = Modifier.weight(1f),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "🔥 $currentStreak",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = GoldPrimary
+                        )
+                        Text(
+                            text = com.example.localization.AgpeyaStrings.currentStreakTitle(lang),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Longest Streak
+                Card(
+                    modifier = Modifier.weight(1f),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "🏆 $longestStreak",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = GoldPrimary
+                        )
+                        Text(
+                            text = com.example.localization.AgpeyaStrings.longestStreakTitle(lang),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Annual Consistency %
+                Card(
+                    modifier = Modifier.weight(1f),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "📈 $consistencyPercent%",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = PeacefulGreen
+                        )
+                        Text(
+                            text = com.example.localization.AgpeyaStrings.annualConsistencyTitle(lang),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 52-Week Horizontal Scrollable Grid Matrix
+            val scrollState = rememberScrollState()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(scrollState)
+            ) {
+                // 7 Rows for Days of Week (Sun..Sat)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    val daysInYear = if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) 366 else 365
+                    val calendar = Calendar.getInstance()
+
+                    // Build 7 rows (dow 0..6)
+                    for (dow in 0..6) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            // 52 Weeks
+                            for (week in 0..52) {
+                                val dayOfYearIndex = week * 7 + dow + 1
+                                if (dayOfYearIndex <= daysInYear) {
+                                    calendar.set(Calendar.YEAR, year)
+                                    calendar.set(Calendar.DAY_OF_YEAR, dayOfYearIndex)
+
+                                    val y = calendar.get(Calendar.YEAR)
+                                    val m = calendar.get(Calendar.MONTH) + 1
+                                    val d = calendar.get(Calendar.DAY_OF_MONTH)
+                                    val dateStr = String.format(Locale.US, "%04d-%02d-%02d", y, m, d)
+
+                                    val count = dailyCounts[dateStr] ?: 0
+
+                                    val cellColor = when {
+                                        count == 0 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                        count in 1..2 -> GoldPrimary.copy(alpha = 0.35f)
+                                        count in 3..4 -> GoldPrimary.copy(alpha = 0.7f)
+                                        count in 5..6 -> GoldPrimary
+                                        else -> PeacefulGreen
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .size(11.dp)
+                                            .clip(RoundedCornerShape(2.5.dp))
+                                            .background(cellColor)
+                                            .clickable {
+                                                selectedDayInfo = if (lang == AppLanguage.ARABIC) {
+                                                    "$d/$m/$y: $count صلوات"
+                                                } else {
+                                                    "$y-$m-$d: $count prayers"
+                                                }
+                                            }
+                                    )
+                                } else {
+                                    Spacer(modifier = Modifier.size(11.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Grid Legend
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = if (lang == AppLanguage.ARABIC) "أقل" else "Less",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                listOf(
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    GoldPrimary.copy(alpha = 0.35f),
+                    GoldPrimary.copy(alpha = 0.7f),
+                    GoldPrimary,
+                    PeacefulGreen
+                ).forEach { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(color)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                }
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = if (lang == AppLanguage.ARABIC) "أكثر" else "More",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)

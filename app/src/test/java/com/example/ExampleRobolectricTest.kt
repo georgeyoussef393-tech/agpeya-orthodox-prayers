@@ -119,6 +119,7 @@ class ExampleRobolectricTest {
     val summaryText = com.example.report.PrayerPdfExporter.buildReportSummaryText(
       userEmail = testEmail,
       userName = "George Youssef",
+      churchName = "كنيسة مارجرجس والأنبا أنطونيوس",
       syncKey = "agpeya-sync-test",
       lang = com.example.localization.AppLanguage.ARABIC,
       periodName = "يومي",
@@ -127,6 +128,7 @@ class ExampleRobolectricTest {
 
     org.junit.Assert.assertNotNull("Summary text should not be null", summaryText)
     org.junit.Assert.assertTrue("Should contain user email", summaryText.contains(testEmail))
+    org.junit.Assert.assertTrue("Should contain church name", summaryText.contains("كنيسة مارجرجس والأنبا أنطونيوس"))
     org.junit.Assert.assertTrue("Should contain sync key", summaryText.contains("agpeya-sync-test"))
     org.junit.Assert.assertTrue("Should contain total count 2", summaryText.contains("2"))
     org.junit.Assert.assertTrue("Should contain canonical hour name", summaryText.contains("باكر"))

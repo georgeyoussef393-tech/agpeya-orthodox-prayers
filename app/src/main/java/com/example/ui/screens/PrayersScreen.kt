@@ -27,7 +27,10 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Vibration
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -69,6 +72,7 @@ import com.example.localization.AppLanguage
 import com.example.ui.components.CopticCrossCanvas
 import com.example.ui.components.DailyScriptureCard
 import com.example.ui.components.PrayerReadingModal
+import com.example.ui.components.SpiritualAtmosphereBackdrop
 import com.example.ui.components.SpiritualSoundPickerDialog
 import com.example.ui.components.TimePickerDialog
 import com.example.ui.theme.BurgundyDeep
@@ -89,6 +93,9 @@ fun PrayersScreen(
     val alarmSettings by viewModel.alarmSettings.collectAsState()
     val allLogs by viewModel.allLogs.collectAsState()
     val activeReadingPrayer by viewModel.activePrayerForReading.collectAsState()
+    val spiritualTheme by viewModel.spiritualTheme.collectAsState()
+    val spiritualOpacity by viewModel.spiritualOpacity.collectAsState()
+    val isCandleGlowEnabled by viewModel.isCandleGlowEnabled.collectAsState()
 
     val todayString = AgpeyaRepository.getTodayString()
     val todayLogs = remember(allLogs, todayString) {
@@ -110,24 +117,32 @@ fun PrayersScreen(
     val progressFraction = (completedCanonicalCount.toFloat() / totalCanonical.toFloat()).coerceIn(0f, 1f)
     val animatedProgress by animateFloatAsState(targetValue = progressFraction, label = "progress")
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 80.dp)
-    ) {
-        // Hero Banner with Christian Motif
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            ) {
-                // Banner background image
-                Image(
-                    painter = painterResource(id = R.drawable.agpeya_banner),
-                    contentDescription = "Agpeya Banner",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+    Box(modifier = modifier.fillMaxSize()) {
+        // Ambient Spiritual Reverence Backdrop for Whole Screen
+        SpiritualAtmosphereBackdrop(
+            theme = spiritualTheme,
+            opacity = (spiritualOpacity * 0.40f).coerceAtMost(0.16f),
+            enableCandleGlow = isCandleGlowEnabled
+        )
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
+            // Hero Banner with Christian Motif
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                ) {
+                    // Banner background image
+                    Image(
+                        painter = painterResource(id = spiritualTheme.drawableResId ?: R.drawable.agpeya_banner),
+                        contentDescription = "Agpeya Banner",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
 
                 // Dark gradient overlay for text readability
                 Box(
@@ -304,6 +319,12 @@ fun PrayersScreen(
                 onToggleAlarm = { isEnabled ->
                     viewModel.updateAlarmSetting(setting.copy(isEnabled = isEnabled))
                 },
+                onToggleSound = {
+                    viewModel.updateAlarmSetting(setting.copy(soundEnabled = !setting.soundEnabled))
+                },
+                onToggleVibrate = {
+                    viewModel.updateAlarmSetting(setting.copy(vibrateEnabled = !setting.vibrateEnabled))
+                },
                 onEditTime = { prayerToEditTime = prayerId },
                 onEditSound = { prayerToEditSound = prayerId },
                 onOpenReading = { viewModel.openPrayerReading(prayerId) }
@@ -355,6 +376,7 @@ fun PrayersScreen(
             }
         )
     }
+    }
 
     // Prayer Reading Modal
     activeReadingPrayer?.let { prayerId ->
@@ -365,6 +387,10 @@ fun PrayersScreen(
             lang = lang,
             isPrayedToday = isPrayed,
             prayerLog = todayLog,
+            spiritualTheme = spiritualTheme,
+            spiritualOpacity = spiritualOpacity,
+            isCandleGlowEnabled = isCandleGlowEnabled,
+            onSpiritualThemeChange = { viewModel.setSpiritualTheme(it) },
             onAutoMarkPrayed = { viewModel.markPrayerAsPrayedToday(prayerId) },
             onTogglePrayed = { viewModel.togglePrayerToday(prayerId) },
             onDismiss = { viewModel.closePrayerReading() }
@@ -380,6 +406,8 @@ private fun PrayerCardItem(
     isPrayedToday: Boolean,
     onTogglePrayed: () -> Unit,
     onToggleAlarm: (Boolean) -> Unit,
+    onToggleSound: () -> Unit,
+    onToggleVibrate: () -> Unit,
     onEditTime: () -> Unit,
     onEditSound: () -> Unit,
     onOpenReading: () -> Unit
@@ -486,37 +514,95 @@ private fun PrayerCardItem(
                 lineHeight = 18.sp
             )
 
-            // Spiritual Alarm Sound Selector Chip (if alarm is enabled)
+            // Alarm controls (Sound toggle, Melody selector, Vibration toggle)
             if (setting.isEnabled) {
-                Spacer(modifier = Modifier.height(8.dp))
-                val currentSound = SpiritualSound.fromId(setting.soundId)
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(GoldPrimary.copy(alpha = 0.12f))
-                        .clickable { onEditSound() }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                        .testTag("sound_chip_${prayerId.code.lowercase()}")
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Sound toggle chip
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onToggleSound() }
+                            .background(if (setting.soundEnabled) GoldPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(horizontal = 8.dp, vertical = 5.dp)
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.MusicNote,
-                            contentDescription = "Spiritual sound tone",
-                            tint = GoldPrimary,
-                            modifier = Modifier.size(15.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = currentSound.getName(lang),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            imageVector = if (setting.soundEnabled) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                            contentDescription = "Sound toggle",
+                            tint = if (setting.soundEnabled) GoldPrimary else MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "▾",
+                            text = if (lang == AppLanguage.ARABIC) "صوت" else "Sound",
                             style = MaterialTheme.typography.labelSmall,
-                            color = GoldPrimary
+                            fontWeight = if (setting.soundEnabled) FontWeight.Bold else FontWeight.Normal,
+                            color = if (setting.soundEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    if (setting.soundEnabled) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        val currentSound = SpiritualSound.fromId(setting.soundId)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(GoldPrimary.copy(alpha = 0.12f))
+                                .clickable { onEditSound() }
+                                .padding(horizontal = 8.dp, vertical = 5.dp)
+                                .testTag("sound_chip_${prayerId.code.lowercase()}")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MusicNote,
+                                contentDescription = "Spiritual sound tone",
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = currentSound.getName(lang),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = "▾",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = GoldPrimary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Vibration toggle chip
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onToggleVibrate() }
+                            .background(if (setting.vibrateEnabled) GoldPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(horizontal = 8.dp, vertical = 5.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Vibration,
+                            contentDescription = "Vibration toggle",
+                            tint = if (setting.vibrateEnabled) GoldPrimary else MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) "اهتزاز" else "Vibrate",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (setting.vibrateEnabled) FontWeight.Bold else FontWeight.Normal,
+                            color = if (setting.vibrateEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }

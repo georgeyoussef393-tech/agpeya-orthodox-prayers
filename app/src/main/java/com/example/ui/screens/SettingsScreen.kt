@@ -4,7 +4,9 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,9 +26,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Church
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
@@ -38,6 +42,7 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Vibration
@@ -79,6 +84,7 @@ import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
 import com.example.report.PrayerPdfExporter
 import com.example.ui.components.CopticCrossCanvas
+import com.example.ui.components.MultilingualAndNotificationSettings
 import com.example.ui.components.SpiritualSoundPickerDialog
 import com.example.ui.components.TimePickerDialog
 import com.example.ui.theme.BurgundyDeep
@@ -88,6 +94,28 @@ import com.example.ui.viewmodel.AgpeyaViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.aspectRatio
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material.icons.filled.WbIncandescent
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.data.model.SpiritualBackgroundTheme
 
 @Composable
 fun SettingsScreen(
@@ -102,13 +130,42 @@ fun SettingsScreen(
     val lastSyncTime by viewModel.lastSyncTime.collectAsState()
     val isRealtimeSyncActive by viewModel.isRealtimeSyncActive.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
+    val churchName by viewModel.churchName.collectAsState()
+    val churchEmblem by viewModel.churchEmblem.collectAsState()
     val allLogs by viewModel.allLogs.collectAsState()
+    val spiritualTheme by viewModel.spiritualTheme.collectAsState()
+    val spiritualOpacity by viewModel.spiritualOpacity.collectAsState()
+    val isCandleGlowEnabled by viewModel.isCandleGlowEnabled.collectAsState()
 
     val context = LocalContext.current
+    val restoreLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.restoreBackupFromUri(context, it) { result ->
+                result.onSuccess { count ->
+                    Toast.makeText(
+                        context,
+                        AgpeyaStrings.backupRestoreSuccessMsg(count, lang),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }.onFailure { err ->
+                    Toast.makeText(
+                        context,
+                        "Restore Error: ${err.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
     var showLinkDialog by remember { mutableStateOf(false) }
     var inputSyncKey by remember { mutableStateOf("") }
     var prayerToEditTime by remember { mutableStateOf<PrayerId?>(null) }
     var prayerToEditSound by remember { mutableStateOf<PrayerId?>(null) }
+
+    var isEditingChurch by remember { mutableStateOf(false) }
+    var churchInput by remember(churchName) { mutableStateOf(churchName ?: "") }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -146,52 +203,10 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Worldwide Support & Timezone Card
+        // Multilingual Support & Local Timezone Notification Preferences
         item {
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Public,
-                            contentDescription = null,
-                            tint = GoldPrimary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = AgpeyaStrings.timezoneWorldwide(lang),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Text(
-                        text = viewModel.getCurrentTimezoneInfo(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = GoldPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = AgpeyaStrings.worldwideNotice(lang),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 18.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            MultilingualAndNotificationSettings(viewModel = viewModel)
+            Spacer(modifier = Modifier.height(20.dp))
         }
 
         // Cross-Device Cloud Sync Card (Firestore)
@@ -352,6 +367,104 @@ fun SettingsScreen(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Church / Ministry Row (Optional Profile Field)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Church,
+                            contentDescription = null,
+                            tint = GoldPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        
+                        if (isEditingChurch) {
+                            OutlinedTextField(
+                                value = churchInput,
+                                onValueChange = { churchInput = it },
+                                label = { Text(AgpeyaStrings.churchNameOptionalLabel(lang)) },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = {
+                                    viewModel.saveChurchName(churchInput.ifBlank { null })
+                                    isEditingChurch = false
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Save",
+                                    tint = GoldPrimary
+                                )
+                            }
+                        } else {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = AgpeyaStrings.churchNameOptionalLabel(lang),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = if (!churchName.isNullOrBlank()) churchName!! else AgpeyaStrings.churchNamePlaceholder(lang),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (!churchName.isNullOrBlank()) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (!churchName.isNullOrBlank()) GoldLight else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            }
+                            IconButton(
+                                onClick = { isEditingChurch = true },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Church Name",
+                                    tint = GoldPrimary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = AgpeyaStrings.churchEmblemTitle(lang),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val emblems = listOf(
+                            "coptic_cross" to "✝️ صليب",
+                            "st_mark_lion" to "🦁 مارمرقس",
+                            "st_mary_dove" to "🕊️ حمامة",
+                            "monastic_anchor" to "⚓ مرساة"
+                        )
+                        emblems.forEach { (code, label) ->
+                            val isSelected = churchEmblem == code
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { viewModel.saveChurchEmblem(code) },
+                                label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = GoldPrimary.copy(alpha = 0.25f),
+                                    selectedLabelColor = GoldLight
+                                )
+                            )
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(14.dp))
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     Spacer(modifier = Modifier.height(14.dp))
@@ -505,6 +618,8 @@ fun SettingsScreen(
                                     context = context,
                                     userEmail = userEmail,
                                     userName = userEmail?.substringBefore("@"),
+                                    churchName = churchName,
+                                    churchEmblem = churchEmblem,
                                     syncKey = syncKey,
                                     lang = lang,
                                     periodName = if (lang == AppLanguage.ARABIC) "تقرير السجل الشامل" else "Full History Report",
@@ -527,6 +642,103 @@ fun SettingsScreen(
                                 color = Color.Black,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Local Backup & Restore Card (JSON Export & Import)
+        item {
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.3f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Backup,
+                            contentDescription = null,
+                            tint = GoldPrimary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = AgpeyaStrings.backupSectionTitle(lang),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // Export JSON Backup Button
+                        Button(
+                            onClick = {
+                                viewModel.exportBackupJson(context) { file ->
+                                    val contentUri = FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.fileprovider",
+                                        file
+                                    )
+                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                        type = "application/json"
+                                        putExtra(Intent.EXTRA_STREAM, contentUri)
+                                        putExtra(Intent.EXTRA_SUBJECT, "Agpeya Orthodox Backup")
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+                                    context.startActivity(Intent.createChooser(shareIntent, AgpeyaStrings.backupExportButton(lang)))
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FileUpload,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = AgpeyaStrings.backupExportButton(lang),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
+
+                        // Restore JSON Backup Button
+                        OutlinedButton(
+                            onClick = {
+                                restoreLauncher.launch("application/json")
+                            },
+                            modifier = Modifier.weight(1f),
+                            border = BorderStroke(1.dp, GoldPrimary),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FileDownload,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = AgpeyaStrings.backupRestoreButton(lang),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = GoldPrimary
                             )
                         }
                     }
@@ -588,6 +800,236 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        // Spiritual Atmosphere & Reverence Background Themes Section
+        item {
+            Text(
+                text = if (lang == AppLanguage.ARABIC) "الأجواء الروحية والخشوع والتأمل" else "Spiritual Atmosphere & Reverence",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = GoldPrimary,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = if (lang == AppLanguage.ARABIC) "تخصيص خلفيات بصرية مقدسة وإضاءة الشموع لزيادة الخشوع أثناء الصلاة" else "Customize sacred background art and candlelight glow for deep prayer focus",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("spiritual_atmosphere_card")
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Wallpaper,
+                            contentDescription = null,
+                            tint = GoldPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "الخلفية الروحية المختارة" else "Selected Sacred Background",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) spiritualTheme.titleAr else spiritualTheme.titleEn,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = GoldPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Theme options list
+                    SpiritualBackgroundTheme.entries.forEachIndexed { idx, theme ->
+                        val isSelected = theme == spiritualTheme
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSelected) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
+                                .clickable {
+                                    viewModel.setSpiritualTheme(theme)
+                                    viewModel.setSpiritualOpacity(theme.defaultOpacity)
+                                }
+                                .padding(8.dp)
+                        ) {
+                            // Thumbnail Preview
+                            Box(
+                                modifier = Modifier
+                                    .size(54.dp, 44.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF140F0D))
+                                    .border(
+                                        width = if (isSelected) 2.dp else 1.dp,
+                                        color = if (isSelected) GoldPrimary else MaterialTheme.colorScheme.outlineVariant,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (theme.drawableResId != null) {
+                                    Image(
+                                        painter = painterResource(id = theme.drawableResId),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = null,
+                                        tint = Color.Gray,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) theme.titleAr else theme.titleEn,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) GoldPrimary else MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) theme.subtitleAr else theme.subtitleEn,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 14.sp
+                                )
+                            }
+
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = GoldPrimary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+
+                        if (idx < SpiritualBackgroundTheme.entries.size - 1) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Opacity Slider
+                    if (spiritualTheme.drawableResId != null) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "درجة ظهور الخلفية والخشوع" else "Background Presence & Opacity",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${(spiritualOpacity * 100).toInt()}%",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GoldPrimary
+                                )
+                            }
+
+                            Slider(
+                                value = spiritualOpacity,
+                                onValueChange = { viewModel.setSpiritualOpacity(it) },
+                                valueRange = 0.05f..0.55f,
+                                steps = 9,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = GoldPrimary,
+                                    activeTrackColor = GoldPrimary,
+                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Candle Glow Breathing Animation Toggle
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable { viewModel.setCandleGlow(!isCandleGlowEnabled) }
+                                .padding(vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WbIncandescent,
+                                    contentDescription = null,
+                                    tint = if (isCandleGlowEnabled) GoldPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "وهج الشموع الحي (تأثير الخشوع)" else "Living Candlelight Breathing Glow",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "نبض نوراني خافت وهادئ جداً أثناء الصلاة" else "Soft, subtle ambient breathing light during prayer",
+                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Switch(
+                                checked = isCandleGlowEnabled,
+                                onCheckedChange = { viewModel.setCandleGlow(it) },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.Black,
+                                    checkedTrackColor = GoldPrimary,
+                                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
         // Language Switcher Section
@@ -752,17 +1194,26 @@ fun SettingsScreen(
 
         // Alarms Configuration per Canonical Prayer Header & Master Vibration / Sound Controls
         item {
+            val allPrayers = PrayerId.canonicalPrayers
+            val anySoundActive = allPrayers.any { alarmSettings[it.code]?.soundEnabled == true }
+            val anyVibrateActive = allPrayers.any { alarmSettings[it.code]?.vibrateEnabled == true }
+            val allSoundActive = allPrayers.all { alarmSettings[it.code]?.soundEnabled == true }
+            val allVibrateActive = allPrayers.all { alarmSettings[it.code]?.vibrateEnabled == true }
+
             Card(
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 14.dp)
                     .testTag("vibration_sound_card")
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Icon(
                             imageVector = Icons.Outlined.Vibration,
                             contentDescription = null,
@@ -770,65 +1221,209 @@ fun SettingsScreen(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = AgpeyaStrings.vibrationAndSoundTitle(lang),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = AgpeyaStrings.vibrationAndSoundTitle(lang),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "التحكم الشامل في الصوت والاهتزاز لجميع التنبيهات" else "Master sound & vibration controls for all alerts",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Master Switch for Sound & Master Switch for Vibration
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = if (anySoundActive) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                                contentDescription = null,
+                                tint = if (anySoundActive) GoldPrimary else MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "تشغيل الصوت لجميع الصلوات" else "Sound for all prayers",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (allSoundActive) {
+                                        if (lang == AppLanguage.ARABIC) "مفعل لكل الصلوات" else "Enabled for all"
+                                    } else if (anySoundActive) {
+                                        if (lang == AppLanguage.ARABIC) "مفعل لبعض الصلوات" else "Enabled for some"
+                                    } else {
+                                        if (lang == AppLanguage.ARABIC) "مكتوم للكل" else "Muted for all"
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (anySoundActive) GoldPrimary else MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
+
+                        Switch(
+                            checked = anySoundActive,
+                            onCheckedChange = { isChecked ->
+                                viewModel.setSoundForAllPrayersEnabled(isChecked)
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.Black,
+                                checkedTrackColor = GoldPrimary
+                            ),
+                            modifier = Modifier.testTag("master_sound_switch")
                         )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        text = AgpeyaStrings.vibrationAndSoundDescription(lang),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 18.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        OutlinedButton(
-                            onClick = { viewModel.setVibrateForAllPrayers(true) },
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f).testTag("enable_all_vibrate_btn")
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Outlined.Vibration,
                                 contentDescription = null,
-                                tint = GoldPrimary,
-                                modifier = Modifier.size(16.dp)
+                                tint = if (anyVibrateActive) GoldPrimary else MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(20.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = AgpeyaStrings.enableVibrationAll(lang),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "تشغيل الاهتزاز لجميع الصلوات" else "Vibration for all prayers",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (allVibrateActive) {
+                                        if (lang == AppLanguage.ARABIC) "مفعل لكل الصلوات" else "Enabled for all"
+                                    } else if (anyVibrateActive) {
+                                        if (lang == AppLanguage.ARABIC) "مفعل لبعض الصلوات" else "Enabled for some"
+                                    } else {
+                                        if (lang == AppLanguage.ARABIC) "متوقف للكل" else "Disabled for all"
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (anyVibrateActive) GoldPrimary else MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
+
+                        Switch(
+                            checked = anyVibrateActive,
+                            onCheckedChange = { isChecked ->
+                                viewModel.setVibrateForAllPrayers(isChecked)
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.Black,
+                                checkedTrackColor = GoldPrimary
+                            ),
+                            modifier = Modifier.testTag("master_vibrate_switch")
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "أوضاع التنبيه السريعة:" else "Quick Alert Presets:",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = GoldPrimary,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+
+                    // Quick Mode Presets
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { viewModel.setMasterNotificationMode(soundEnabled = true, vibrateEnabled = true) },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                            border = if (allSoundActive && allVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(imageVector = Icons.Default.NotificationsActive, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(16.dp))
+                                Text(
+                                    text = AgpeyaStrings.soundAndVibrationMode(lang),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    maxLines = 1
+                                )
+                            }
                         }
 
                         OutlinedButton(
-                            onClick = { viewModel.setSoundForAllPrayersEnabled(true) },
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f).testTag("enable_all_sound_btn")
+                            onClick = { viewModel.setMasterNotificationMode(soundEnabled = false, vibrateEnabled = true) },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                            border = if (!anySoundActive && allVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.VolumeUp,
-                                contentDescription = null,
-                                tint = GoldPrimary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = AgpeyaStrings.enableSoundAll(lang),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(imageVector = Icons.Outlined.Vibration, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(16.dp))
+                                Text(
+                                    text = AgpeyaStrings.vibrationOnlyMode(lang),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = { viewModel.setMasterNotificationMode(soundEnabled = true, vibrateEnabled = false) },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                            border = if (allSoundActive && !anyVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(imageVector = Icons.Default.VolumeUp, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(16.dp))
+                                Text(
+                                    text = AgpeyaStrings.soundOnlyMode(lang),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = { viewModel.setMasterNotificationMode(soundEnabled = false, vibrateEnabled = false) },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                            border = if (!anySoundActive && !anyVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(imageVector = Icons.Default.VolumeOff, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(16.dp))
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "صامت للكل" else "Mute All",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
                 }

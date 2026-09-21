@@ -113,6 +113,7 @@ fun ReportsScreen(
     val currentPeriod by viewModel.selectedReportPeriod.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
+    val churchName by viewModel.churchName.collectAsState()
     val syncKey by viewModel.syncKey.collectAsState()
     val context = LocalContext.current
 
@@ -184,6 +185,7 @@ fun ReportsScreen(
                                 context = context,
                                 userEmail = userEmail,
                                 userName = userEmail?.substringBefore("@"),
+                                churchName = churchName,
                                 syncKey = syncKey,
                                 lang = lang,
                                 periodName = periodLabel,
@@ -1065,6 +1067,17 @@ private fun YearlyReportView(
             Spacer(modifier = Modifier.height(18.dp))
         }
 
+        // Annual 52-Week Coptic Prayer Heatmap Grid & Streaks
+        item {
+            com.example.ui.components.charts.AnnualPrayerHeatmap(
+                year = selectedYear,
+                logs = allLogs,
+                lang = lang
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+        }
+
         // 1. Recharts/D3 Smooth Area Trajectory Chart
         item {
             PrayerTrendAreaChart(
@@ -1164,6 +1177,7 @@ private fun HistoryLogView(
         }
     } else {
         val userEmail by viewModel.userEmail.collectAsState()
+        val churchName by viewModel.churchName.collectAsState()
         val syncKey by viewModel.syncKey.collectAsState()
         val context = LocalContext.current
 
@@ -1184,6 +1198,7 @@ private fun HistoryLogView(
                                 context = context,
                                 userEmail = userEmail,
                                 userName = userEmail?.substringBefore("@"),
+                                churchName = churchName,
                                 syncKey = syncKey,
                                 lang = lang,
                                 periodName = AgpeyaStrings.prayersLogHistory(lang),
@@ -1235,6 +1250,7 @@ private fun HistoryLogView(
                                     context = context,
                                     userEmail = userEmail,
                                     userName = userEmail?.substringBefore("@"),
+                                    churchName = churchName,
                                     syncKey = syncKey,
                                     lang = lang,
                                     periodName = AgpeyaStrings.prayersLogHistory(lang),

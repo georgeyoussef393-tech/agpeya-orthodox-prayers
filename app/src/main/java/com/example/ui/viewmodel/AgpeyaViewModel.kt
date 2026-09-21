@@ -65,11 +65,72 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     private val _isAuthCompleted = MutableStateFlow(false)
     val isAuthCompleted: StateFlow<Boolean> = _isAuthCompleted.asStateFlow()
 
+    // Optional Church / Ministry Name
+    private val _churchName = MutableStateFlow<String?>(null)
+    val churchName: StateFlow<String?> = _churchName.asStateFlow()
+
+    private val _churchEmblem = MutableStateFlow("coptic_cross")
+    val churchEmblem: StateFlow<String> = _churchEmblem.asStateFlow()
+
+    // Spiritual Atmosphere & Background Themes
+    private val _spiritualTheme = MutableStateFlow(com.example.data.model.SpiritualBackgroundTheme.CANDLE_SANCTUARY)
+    val spiritualTheme: StateFlow<com.example.data.model.SpiritualBackgroundTheme> = _spiritualTheme.asStateFlow()
+
+    private val _spiritualOpacity = MutableStateFlow(0.22f)
+    val spiritualOpacity: StateFlow<Float> = _spiritualOpacity.asStateFlow()
+
+    private val _isCandleGlowEnabled = MutableStateFlow(true)
+    val isCandleGlowEnabled: StateFlow<Boolean> = _isCandleGlowEnabled.asStateFlow()
+
+    // Multilingual & Dual-Language State
+    private val _isBilingualEnabled = MutableStateFlow(true)
+    val isBilingualEnabled: StateFlow<Boolean> = _isBilingualEnabled.asStateFlow()
+
+    private val _secondaryLanguage = MutableStateFlow(AppLanguage.COPTIC)
+    val secondaryLanguage: StateFlow<AppLanguage> = _secondaryLanguage.asStateFlow()
+
+    private val _isPhoneticGuideEnabled = MutableStateFlow(true)
+    val isPhoneticGuideEnabled: StateFlow<Boolean> = _isPhoneticGuideEnabled.asStateFlow()
+
+    // Timezone & Advanced Notification State
+    private val _isAutoTimezoneSyncEnabled = MutableStateFlow(true)
+    val isAutoTimezoneSyncEnabled: StateFlow<Boolean> = _isAutoTimezoneSyncEnabled.asStateFlow()
+
+    private val _selectedTimezoneId = MutableStateFlow(TimeZone.getDefault().id)
+    val selectedTimezoneId: StateFlow<String> = _selectedTimezoneId.asStateFlow()
+
+    private val _notificationLeadTimeMinutes = MutableStateFlow(0)
+    val notificationLeadTimeMinutes: StateFlow<Int> = _notificationLeadTimeMinutes.asStateFlow()
+
+    private val _isQuietHoursEnabled = MutableStateFlow(false)
+    val isQuietHoursEnabled: StateFlow<Boolean> = _isQuietHoursEnabled.asStateFlow()
+
+    private val _quietHoursStartHour = MutableStateFlow(23)
+    val quietHoursStartHour: StateFlow<Int> = _quietHoursStartHour.asStateFlow()
+
+    private val _quietHoursEndHour = MutableStateFlow(5)
+    val quietHoursEndHour: StateFlow<Int> = _quietHoursEndHour.asStateFlow()
+
     init {
         val db = AgpeyaDatabase.getDatabase(application)
         repository = AgpeyaRepository(db.prayerLogDao(), application)
         _currentLanguage.value = repository.getSavedLanguage()
         _isAuthCompleted.value = repository.isAuthOnboardingCompleted()
+        _churchName.value = repository.getChurchName()
+        _churchEmblem.value = repository.getChurchEmblem()
+        _spiritualTheme.value = repository.getSpiritualBackgroundTheme()
+        _spiritualOpacity.value = repository.getSpiritualBackgroundOpacity()
+        _isCandleGlowEnabled.value = repository.isCandleGlowEnabled()
+
+        _isBilingualEnabled.value = repository.isBilingualEnabled()
+        _secondaryLanguage.value = repository.getSecondaryLanguage()
+        _isPhoneticGuideEnabled.value = repository.isPhoneticGuideEnabled()
+        _isAutoTimezoneSyncEnabled.value = repository.isAutoTimezoneSyncEnabled()
+        _selectedTimezoneId.value = repository.getSelectedTimezoneId()
+        _notificationLeadTimeMinutes.value = repository.getNotificationLeadTimeMinutes()
+        _isQuietHoursEnabled.value = repository.isQuietHoursEnabled()
+        _quietHoursStartHour.value = repository.getQuietHoursStartHour()
+        _quietHoursEndHour.value = repository.getQuietHoursEndHour()
 
         syncStatus = repository.syncManager.syncStatus
         syncKey = repository.syncManager.syncKey
@@ -96,11 +157,21 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         triggerSync()
     }
 
-    fun signInWithEmail(email: String, password: String? = null, onResult: (Boolean, String?) -> Unit) {
+    fun saveChurchName(name: String?) {
+        val trimmed = name?.trim()
+        val cleanName = if (trimmed.isNullOrBlank()) null else trimmed
+        _churchName.value = cleanName
+        repository.saveChurchName(cleanName)
+    }
+
+    fun signInWithEmail(email: String, password: String? = null, churchName: String? = null, onResult: (Boolean, String?) -> Unit) {
         val clean = email.trim()
         if (clean.isBlank()) {
             onResult(false, "Email required")
             return
+        }
+        if (!churchName.isNullOrBlank()) {
+            saveChurchName(churchName)
         }
         repository.syncManager.authenticateWithEmail(clean, password) { success, error ->
             if (success) {
@@ -113,7 +184,10 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun continueAsGuest() {
+    fun continueAsGuest(churchName: String? = null) {
+        if (!churchName.isNullOrBlank()) {
+            saveChurchName(churchName)
+        }
         repository.setAuthOnboardingCompleted(true)
         _isAuthCompleted.value = true
     }
@@ -292,6 +366,20 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun setMasterNotificationMode(soundEnabled: Boolean, vibrateEnabled: Boolean) {
+        PrayerId.canonicalPrayers.forEach { prayerId ->
+            val current = _alarmSettings.value[prayerId.code] ?: repository.getAlarmSetting(prayerId)
+            updateAlarmSetting(current.copy(soundEnabled = soundEnabled, vibrateEnabled = vibrateEnabled))
+        }
+    }
+
+    fun toggleAllAlarms(enabled: Boolean) {
+        PrayerId.canonicalPrayers.forEach { prayerId ->
+            val current = _alarmSettings.value[prayerId.code] ?: repository.getAlarmSetting(prayerId)
+            updateAlarmSetting(current.copy(isEnabled = enabled))
+        }
+    }
+
     fun refreshDailyVerse() {
         _dailyVerse.value = com.example.data.model.DailyScriptureProvider.getDailyVerseForCalendar()
     }
@@ -307,6 +395,108 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
 
     fun testNotificationNow() {
         AgpeyaNotificationHelper.showTestNotification(getApplication(), _currentLanguage.value)
+    }
+
+    fun setSpiritualTheme(theme: com.example.data.model.SpiritualBackgroundTheme) {
+        _spiritualTheme.value = theme
+        repository.saveSpiritualBackgroundTheme(theme)
+    }
+
+    fun setSpiritualOpacity(opacity: Float) {
+        val clamped = opacity.coerceIn(0.04f, 0.60f)
+        _spiritualOpacity.value = clamped
+        repository.saveSpiritualBackgroundOpacity(clamped)
+    }
+
+    fun setCandleGlow(enabled: Boolean) {
+        _isCandleGlowEnabled.value = enabled
+        repository.setCandleGlowEnabled(enabled)
+    }
+
+    fun setBilingualEnabled(enabled: Boolean) {
+        _isBilingualEnabled.value = enabled
+        repository.setBilingualEnabled(enabled)
+    }
+
+    fun setSecondaryLanguage(lang: AppLanguage) {
+        _secondaryLanguage.value = lang
+        repository.saveSecondaryLanguage(lang)
+    }
+
+    fun setPhoneticGuideEnabled(enabled: Boolean) {
+        _isPhoneticGuideEnabled.value = enabled
+        repository.setPhoneticGuideEnabled(enabled)
+    }
+
+    fun setAutoTimezoneSyncEnabled(enabled: Boolean) {
+        _isAutoTimezoneSyncEnabled.value = enabled
+        repository.setAutoTimezoneSyncEnabled(enabled)
+        if (enabled) {
+            val defaultTz = TimeZone.getDefault().id
+            _selectedTimezoneId.value = defaultTz
+            repository.saveSelectedTimezoneId(defaultTz)
+        }
+    }
+
+    fun setSelectedTimezoneId(tzId: String) {
+        _selectedTimezoneId.value = tzId
+        repository.saveSelectedTimezoneId(tzId)
+    }
+
+    fun setNotificationLeadTimeMinutes(minutes: Int) {
+        _notificationLeadTimeMinutes.value = minutes
+        repository.saveNotificationLeadTimeMinutes(minutes)
+    }
+
+    fun setQuietHoursEnabled(enabled: Boolean) {
+        _isQuietHoursEnabled.value = enabled
+        repository.setQuietHoursEnabled(enabled)
+    }
+
+    fun setQuietHoursStartHour(hour: Int) {
+        _quietHoursStartHour.value = hour
+        repository.saveQuietHoursStartHour(hour)
+    }
+
+    fun setQuietHoursEndHour(hour: Int) {
+        _quietHoursEndHour.value = hour
+        repository.saveQuietHoursEndHour(hour)
+    }
+
+    fun syncAlarmsWithLocalTimezone() {
+        AgpeyaAlarmScheduler.rescheduleAllActiveAlarms(getApplication())
+    }
+
+    fun saveChurchEmblem(emblemCode: String) {
+        _churchEmblem.value = emblemCode
+        repository.saveChurchEmblem(emblemCode)
+    }
+
+    fun exportBackupJson(context: android.content.Context, onComplete: (java.io.File) -> Unit) {
+        viewModelScope.launch {
+            val file = com.example.data.backup.BackupManager.createBackupJsonFile(context, repository)
+            onComplete(file)
+        }
+    }
+
+    fun restoreBackupFromUri(
+        context: android.content.Context,
+        uri: android.net.Uri,
+        onResult: (Result<Int>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val result = com.example.data.backup.BackupManager.restoreBackupFromUri(context, repository, uri)
+            if (result.isSuccess) {
+                // Refresh ViewModel State
+                _churchName.value = repository.getChurchName()
+                _churchEmblem.value = repository.getChurchEmblem()
+                _currentLanguage.value = repository.getSavedLanguage()
+                _notificationLeadTimeMinutes.value = repository.getNotificationLeadTimeMinutes()
+                loadAlarmSettings()
+                AgpeyaAlarmScheduler.rescheduleAllActiveAlarms(getApplication())
+            }
+            onResult(result)
+        }
     }
 
     fun getCurrentTimezoneInfo(): String {

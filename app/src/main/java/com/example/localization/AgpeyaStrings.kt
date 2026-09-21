@@ -931,6 +931,19 @@ object AgpeyaStrings {
         AppLanguage.KOREAN -> "모든 기도에 진동 활성화"
     }
 
+    fun disableVibrationAll(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "إيقاف الاهتزاز للكل"
+        AppLanguage.COPTIC -> "Ⲱϣⲉⲙ ⲙ̀ⲡⲓⲙⲟⲛⲙⲉⲛ"
+        AppLanguage.ENGLISH -> "Mute Vibration for All"
+        AppLanguage.FRENCH -> "Couper vibration pour tous"
+        AppLanguage.SPANISH -> "Desactivar vibración para todos"
+        AppLanguage.GERMAN -> "Vibration für alle stummschalten"
+        AppLanguage.ITALIAN -> "Disattiva vibrazione per tutti"
+        AppLanguage.CHINESE -> "一键关闭所有时课振动"
+        AppLanguage.JAPANESE -> "すべての時課で振動を無効化"
+        AppLanguage.KOREAN -> "모든 기도에 진동 비활성화"
+    }
+
     fun enableSoundAll(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC -> "تفعيل الصوت للكل"
         AppLanguage.COPTIC -> "Ⲧⲁϩⲟ ⲙ̀ⲡⲓϧⲣⲱⲟⲩ ⲉ̀ⲡⲧⲏⲣϥ"
@@ -942,6 +955,71 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "一键开启所有时课声音"
         AppLanguage.JAPANESE -> "すべての時課で音を有効化"
         AppLanguage.KOREAN -> "모든 기도에 소리 활성화"
+    }
+
+    fun disableSoundAll(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "إيقاف الصوت للكل"
+        AppLanguage.COPTIC -> "Ⲱϣⲉⲙ ⲙ̀ⲡⲓϧⲣⲱⲟⲩ"
+        AppLanguage.ENGLISH -> "Mute Sound for All"
+        AppLanguage.FRENCH -> "Couper le son pour tous"
+        AppLanguage.SPANISH -> "Desactivar sonido para todos"
+        AppLanguage.GERMAN -> "Ton für alle stummschalten"
+        AppLanguage.ITALIAN -> "Disattiva suono per tutti"
+        AppLanguage.CHINESE -> "一键静音所有时课声音"
+        AppLanguage.JAPANESE -> "すべての時課で音をミュート"
+        AppLanguage.KOREAN -> "모든 기도에 소리 음소거"
+    }
+
+    fun soundAndVibrationMode(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "صوت واهتزاز"
+        AppLanguage.COPTIC -> "Ϧⲣⲱⲟⲩ + Ⲙⲟⲛⲙⲉⲛ"
+        AppLanguage.ENGLISH -> "Sound & Vibrate"
+        AppLanguage.FRENCH -> "Son & Vibreur"
+        AppLanguage.SPANISH -> "Sonido y Vibración"
+        AppLanguage.GERMAN -> "Ton & Vibration"
+        AppLanguage.ITALIAN -> "Suono e Vibrazione"
+        AppLanguage.CHINESE -> "声音 + 振动"
+        AppLanguage.JAPANESE -> "音と振動"
+        AppLanguage.KOREAN -> "소리 및 진동"
+    }
+
+    fun vibrationOnlyMode(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "اهتزاز فقط (صامت)"
+        AppLanguage.COPTIC -> "Ⲙⲟⲛⲙⲉⲛ ⲙ̀ⲙⲁⲩⲁⲧϥ"
+        AppLanguage.ENGLISH -> "Vibrate Only (Silent)"
+        AppLanguage.FRENCH -> "Vibreur seul (Silencieux)"
+        AppLanguage.SPANISH -> "Solo vibración (Silencio)"
+        AppLanguage.GERMAN -> "Nur Vibration (Stumm)"
+        AppLanguage.ITALIAN -> "Solo vibrazione (Silenzioso)"
+        AppLanguage.CHINESE -> "仅振动（静音模式）"
+        AppLanguage.JAPANESE -> "バイブレーションのみ（マナー）"
+        AppLanguage.KOREAN -> "진동만 (무음 모드)"
+    }
+
+    fun soundOnlyMode(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "صوت فقط"
+        AppLanguage.COPTIC -> "Ϧⲣⲱⲟⲩ ⲙ̀ⲙⲁⲩⲁⲧϥ"
+        AppLanguage.ENGLISH -> "Sound Only"
+        AppLanguage.FRENCH -> "Son seul"
+        AppLanguage.SPANISH -> "Solo sonido"
+        AppLanguage.GERMAN -> "Nur Ton"
+        AppLanguage.ITALIAN -> "Solo suono"
+        AppLanguage.CHINESE -> "仅声音"
+        AppLanguage.JAPANESE -> "音のみ"
+        AppLanguage.KOREAN -> "소리만"
+    }
+
+    fun completelyMuteMode(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "إشعار صامت بدون صوت أو اهتزاز"
+        AppLanguage.COPTIC -> "Ⲭⲁⲣⲱϥ ⲉ̀ⲡⲧⲏⲣϥ"
+        AppLanguage.ENGLISH -> "Silent Notifications (No Sound/Vibration)"
+        AppLanguage.FRENCH -> "Silencieux (Sans son ni vibration)"
+        AppLanguage.SPANISH -> "Silencioso (Sin sonido ni vibración)"
+        AppLanguage.GERMAN -> "Stumm (Kein Ton/Keine Vibration)"
+        AppLanguage.ITALIAN -> "Silenzioso (Nessun suono né vibrazione)"
+        AppLanguage.CHINESE -> "完全静音（无声音与振动）"
+        AppLanguage.JAPANESE -> "完全サイレント（音・振動なし）"
+        AppLanguage.KOREAN -> "완전 무음 (소리/진동 없음)"
     }
 
     fun authWelcomeTitle(lang: AppLanguage): String = when (lang) {
@@ -1138,4 +1216,190 @@ object AgpeyaStrings {
         AppLanguage.JAPANESE -> "ユーザー名、祈りの詳細、達成度を記載した公式レポート"
         AppLanguage.KOREAN -> "사용자 이름, 기도 세부 내역 및 완료율이 포함된 공식 문서"
     }
+
+    fun churchNameOptionalLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "اسم الكنيسة / الخدمة التي تقدم فيها (اختياري)"
+        AppLanguage.COPTIC -> "Ⲫⲣⲁⲛ ⲛ̀ⲧⲉ ϯⲉⲕⲕⲗⲏⲥⲓⲁ (اختياري)"
+        AppLanguage.ENGLISH -> "Church Name / Ministry Served (Optional)"
+        AppLanguage.FRENCH -> "Nom de l'église / Service (Optionnel)"
+        AppLanguage.SPANISH -> "Nombre de la Iglesia / Servicio (Opcional)"
+        AppLanguage.GERMAN -> "Name der Kirche / Dienst (Optional)"
+        AppLanguage.ITALIAN -> "Nome della Chiesa / Servizio (Opzionale)"
+        AppLanguage.CHINESE -> "所属教堂 / 事工名称 (可选)"
+        AppLanguage.JAPANESE -> "所属教会名 / 奉仕先 (任意)"
+        AppLanguage.KOREAN -> "출석 교회 / 사역지 (선택 사항)"
+    }
+
+    fun churchNamePlaceholder(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "مثال: كنيسة السيدة العذراء مريم"
+        AppLanguage.COPTIC -> "Ϯⲉⲕⲕⲗⲏⲥⲓⲁ ⲛ̀ⲧⲉ ϯⲑⲉⲟⲧⲟⲕⲟⲥ"
+        AppLanguage.ENGLISH -> "e.g., St. Mark Coptic Orthodox Church"
+        AppLanguage.FRENCH -> "ex: Église Copte Orthodoxe Saint Marc"
+        AppLanguage.SPANISH -> "ej: Iglesia Copta Ortodoxa San Marcos"
+        AppLanguage.GERMAN -> "z.B. Koptisch-Orthodoxe St. Markus Kirche"
+        AppLanguage.ITALIAN -> "es: Chiesa Copta Ortodossa San Marco"
+        AppLanguage.CHINESE -> "例如：圣马克科普特正教会"
+        AppLanguage.JAPANESE -> "例：聖マルコ・コプト正教会"
+        AppLanguage.KOREAN -> "예: 성 마르코 콥트 정교회"
+    }
+
+    fun churchEmblemTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "شعار / أيقونة الكنيسة للتقرير"
+        AppLanguage.COPTIC -> "Ⲡⲓⲥⲩⲙⲃⲟⲗⲟⲛ ⲛ̀ⲧⲉ ϯⲉⲕⲕⲗⲏⲥⲓⲁ"
+        AppLanguage.ENGLISH -> "Church Emblem / Badge for PDF Reports"
+        AppLanguage.FRENCH -> "Insigne / Blason de l'église pour PDF"
+        AppLanguage.SPANISH -> "Insignia / Emblema de la Iglesia para PDF"
+        AppLanguage.GERMAN -> "Kirchen-Emblem / Wappen für PDF-Berichte"
+        AppLanguage.ITALIAN -> "Emblema / Stemma della Chiesa per PDF"
+        AppLanguage.CHINESE -> "PDF 报告的教堂徽章"
+        AppLanguage.JAPANESE -> "PDF レポート用の教会エンブレム"
+        AppLanguage.KOREAN -> "PDF 보고서용 교회 엠블럼"
+    }
+
+    fun backupSectionTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "النسخ الاحتياطي والاستعادة المحلّية"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲡ ⲛ̀ⲧⲉ ⲛⲓⲟⲩⲁⲓ"
+        AppLanguage.ENGLISH -> "Local Backup & Data Restore"
+        AppLanguage.FRENCH -> "Sauvegarde et Restauration Locale"
+        AppLanguage.SPANISH -> "Copia de Seguridad y Restauración"
+        AppLanguage.GERMAN -> "Lokale Sicherung und Wiederherstellung"
+        AppLanguage.ITALIAN -> "Backup e Ripristino Locale"
+        AppLanguage.CHINESE -> "本地备份与恢复"
+        AppLanguage.JAPANESE -> "ローカルバックアップと復元"
+        AppLanguage.KOREAN -> "로컬 백업 및 데이터 복원"
+    }
+
+    fun backupExportButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "تصدير نسخة احتياطية (JSON)"
+        AppLanguage.COPTIC -> "Ⲥⲱⲧⲡ ⲛ̀ⲟⲩⲧⲱⲡ (JSON)"
+        AppLanguage.ENGLISH -> "Export Backup File (JSON)"
+        AppLanguage.FRENCH -> "Exporter Sauvegarde (JSON)"
+        AppLanguage.SPANISH -> "Exportar Copia (JSON)"
+        AppLanguage.GERMAN -> "Sicherung exportieren (JSON)"
+        AppLanguage.ITALIAN -> "Esporta Backup (JSON)"
+        AppLanguage.CHINESE -> "导出备份文件 (JSON)"
+        AppLanguage.JAPANESE -> "バックアップの出力 (JSON)"
+        AppLanguage.KOREAN -> "백업 파일 내보내기 (JSON)"
+    }
+
+    fun backupRestoreButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "استعادة نسخة احتياطية"
+        AppLanguage.COPTIC -> "Ⲧⲁⲥⲑⲟ ⲛ̀ⲟⲩⲧⲱⲡ"
+        AppLanguage.ENGLISH -> "Restore from Backup File"
+        AppLanguage.FRENCH -> "Restaurer une Sauvegarde"
+        AppLanguage.SPANISH -> "Restaurar desde Copia"
+        AppLanguage.GERMAN -> "Aus Sicherung wiederherstellen"
+        AppLanguage.ITALIAN -> "Ripristina da Backup"
+        AppLanguage.CHINESE -> "从备份文件恢复"
+        AppLanguage.JAPANESE -> "バックアップから復元"
+        AppLanguage.KOREAN -> "백업 파일에서 복원"
+    }
+
+    fun backupRestoreSuccessMsg(count: Int, lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "تمت استعادة $count سجلاً روحيًا وجميع الإعدادات بنجاح!"
+        AppLanguage.COPTIC -> "Ⲁⲛⲧⲁⲥⲑⲟ $count ⲛ̀ⲉⲩⲭⲏ ⲉⲑⲟⲩⲁⲃ!"
+        AppLanguage.ENGLISH -> "Successfully restored $count prayer records & settings!"
+        AppLanguage.FRENCH -> "Restauration réussie de $count enregistrements et paramètres !"
+        AppLanguage.SPANISH -> "¡Se restauraron $count registros de oración y ajustes!"
+        AppLanguage.GERMAN -> "$count Gebetseinträge und Einstellungen erfolgreich wiederhergestellt!"
+        AppLanguage.ITALIAN -> "Ripristinati con successo $count record di preghiera e impostazioni!"
+        AppLanguage.CHINESE -> "成功恢复了 $count 条祷告记录及配置！"
+        AppLanguage.JAPANESE -> "$count 件の祈りの記録と設定を復元しました！"
+        AppLanguage.KOREAN -> "${count}개의 기도 기록과 설정이 성공적으로 복원되었습니다!"
+    }
+
+    // Candle Sanctuary Mode
+    fun candleSanctuaryTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "محراب الشمعة والتأمل الروحي"
+        AppLanguage.COPTIC -> "Ⲡⲓⲙⲁ ⲛ̀ⲑⲱⲃϣ ⲛ̀ⲧⲉ ⲛⲓⲗⲁⲙⲡⲁⲥ"
+        AppLanguage.ENGLISH -> "Candle Sanctuary Focus Mode"
+        AppLanguage.FRENCH -> "Santuaires des Bougies & Méditation"
+        AppLanguage.SPANISH -> "Santuario de Velas y Reflexión"
+        AppLanguage.GERMAN -> "Kerzen-Sanktuarium Fokussierung"
+        AppLanguage.ITALIAN -> "Santuario delle Candele & Meditazione"
+        AppLanguage.CHINESE -> "烛光沉思专注模式"
+        AppLanguage.JAPANESE -> "ろうそくの聖所・瞑想モード"
+        AppLanguage.KOREAN -> "촛불 성소 묵상 모드"
+    }
+
+    // Annual Heatmap & Streaks
+    fun annualHeatmapTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "التقويم الروحي الحراري السنوي (365 يومًا)"
+        AppLanguage.COPTIC -> "Ⲡⲓⲁⲃⲟⲧ ⲛ̀ⲧⲉ ⲛⲓⲉⲩⲭⲏ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ"
+        AppLanguage.ENGLISH -> "Annual Spiritual Heatmap Grid (365 Days)"
+        AppLanguage.FRENCH -> "Matrice Annuelle de Prières (365 Jours)"
+        AppLanguage.SPANISH -> "Mapa de Calor Anual de Oración (365 Días)"
+        AppLanguage.GERMAN -> "Jahres-Gebets-Heatmap (365 Tage)"
+        AppLanguage.ITALIAN -> "Mappa di Calore Annuale di Preghiera"
+        AppLanguage.CHINESE -> "年度祷告热力图 (365 天)"
+        AppLanguage.JAPANESE -> "年間祈りのヒートマップ (365 日)"
+        AppLanguage.KOREAN -> "연간 기도 히트맵 (365일)"
+    }
+
+    fun currentStreakTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "سلسلة المواظبة الحالية"
+        AppLanguage.COPTIC -> "Ⲧⲙⲏⲧ ⲛ̀ⲧⲉ ⲡⲓⲥⲏⲟⲩ"
+        AppLanguage.ENGLISH -> "Current Prayer Streak"
+        AppLanguage.FRENCH -> "Série Actuelle de Prières"
+        AppLanguage.SPANISH -> "Racha Actual de Oración"
+        AppLanguage.GERMAN -> "Aktuelle Gebetsserie"
+        AppLanguage.ITALIAN -> "Serie Attuale di Preghiera"
+        AppLanguage.CHINESE -> "当前连续祷告"
+        AppLanguage.JAPANESE -> "現在の祈りストリーク"
+        AppLanguage.KOREAN -> "현재 기도 스트릭"
+    }
+
+    fun longestStreakTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "أطول سلسلة مواظبة"
+        AppLanguage.COPTIC -> "ϯⲙⲏⲧ ⲉⲑⲛⲁϣⲱⲥ"
+        AppLanguage.ENGLISH -> "Longest Prayer Streak"
+        AppLanguage.FRENCH -> "Plus Longue Série"
+        AppLanguage.SPANISH -> "Racha Más Larga"
+        AppLanguage.GERMAN -> "Längste Gebetsserie"
+        AppLanguage.ITALIAN -> "Serie Più Lunga"
+        AppLanguage.CHINESE -> "最长连续祷告"
+        AppLanguage.JAPANESE -> "最长ストリーク"
+        AppLanguage.KOREAN -> "최장 기도 스트릭"
+    }
+
+    fun annualConsistencyTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "نسبة الالتزام السنوي"
+        AppLanguage.COPTIC -> "Ⲡⲓϣⲏⲓ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ"
+        AppLanguage.ENGLISH -> "Annual Consistency"
+        AppLanguage.FRENCH -> "Consistance Annuelle"
+        AppLanguage.SPANISH -> "Consistencia Anual"
+        AppLanguage.GERMAN -> "Jahres-Konsistenz"
+        AppLanguage.ITALIAN -> "Costanza Annuale"
+        AppLanguage.CHINESE -> "年度坚持率"
+        AppLanguage.JAPANESE -> "年間継続率"
+        AppLanguage.KOREAN -> "연간 일관성"
+    }
+
+    // Audio Recitation & Chants Player
+    fun audioPlayerTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "الاستماع والتلاوة الروحية"
+        AppLanguage.COPTIC -> "Ⲡⲓⲥⲱⲧⲉⲙ ⲛ̀ⲧⲉ ⲛⲓⲉⲩⲭⲏ"
+        AppLanguage.ENGLISH -> "Audio Recitation & Liturgical Chants"
+        AppLanguage.FRENCH -> "Récitation Audio & Chant Liturgique"
+        AppLanguage.SPANISH -> "Recitación de Audio y Cantos Coptos"
+        AppLanguage.GERMAN -> "Audio-Rezitation & Liturgischer Gesang"
+        AppLanguage.ITALIAN -> "Recitazione Audio e Canti Copti"
+        AppLanguage.CHINESE -> "语音朗读与科普特圣咏"
+        AppLanguage.JAPANESE -> "音声朗読とコプト聖歌"
+        AppLanguage.KOREAN -> "음성 낭독 및 콥트 성가"
+    }
+
+    fun autoScrollSyncTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC -> "مزامنة التمرير التلقائي مع الصوت"
+        AppLanguage.COPTIC -> "Ⲡⲓⲕⲓⲙ ⲛ̀ⲧⲉ ⲛⲓⲥϧⲁⲓ"
+        AppLanguage.ENGLISH -> "Auto-Scroll Sync with Recitation"
+        AppLanguage.FRENCH -> "Défilement Auto Synchro"
+        AppLanguage.SPANISH -> "Sincronización de Desplazamiento"
+        AppLanguage.GERMAN -> "Automatischer Textlauf"
+        AppLanguage.ITALIAN -> "Sincronizzazione Scorrimento Testo"
+        AppLanguage.CHINESE -> "自动滚动与语音同步"
+        AppLanguage.JAPANESE -> "音声連動自動スクロール"
+        AppLanguage.KOREAN -> "음성 동기화 자동 스크롤"
+    }
 }
+
