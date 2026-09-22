@@ -2,16 +2,27 @@ package com.example.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.data.db.AgpeyaDatabase
+import com.example.data.db.MeditationDao
 import com.example.data.db.PrayerLogDao
+import com.example.data.db.PrayerTextDao
+import com.example.data.model.AgpeyaHourDetails
+import com.example.data.model.CachedMeditationEntity
+import com.example.data.model.CachedPrayerSectionEntity
+import com.example.data.model.DailyScriptureProvider
+import com.example.data.model.DailyVerseMeditation
 import com.example.data.model.PrayerAlarmSetting
 import com.example.data.model.PrayerId
 import com.example.data.model.PrayerLogEntity
+import com.example.data.model.PrayerSectionItem
 import com.example.data.sync.FirestoreSyncManager
 import com.example.localization.AppLanguage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -19,7 +30,9 @@ import java.util.Locale
 
 class AgpeyaRepository(
     private val dao: PrayerLogDao,
-    private val context: Context
+    private val context: Context,
+    private val prayerTextDao: PrayerTextDao = AgpeyaDatabase.getDatabase(context).prayerTextDao(),
+    private val meditationDao: MeditationDao = AgpeyaDatabase.getDatabase(context).meditationDao()
 ) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("agpeya_settings_prefs", Context.MODE_PRIVATE)
@@ -310,6 +323,173 @@ class AgpeyaRepository(
             }
         }
     }
+
+    // ==========================================
+    // Room Database Caching: Prayer Texts
+    // ==========================================
+
+    /**
+     * Reactive stream of cached prayer liturgical sections directly from Room Database.
+     */
+    fun getCachedPrayerSectionsFlow(prayerId: PrayerId, lang: AppLanguage): Flow<List<PrayerSectionItem>> {
+        return prayerTextDao.getSectionsForPrayer(prayerId.code, lang.code).map { list ->
+            list.map { it.toPrayerSectionItem() }
+        }
+    }
+
+    /**
+     * Gets prayer liturgical sections from Room database cache. If not cached yet,
+     * reads from liturgical repository, stores into Room DB, and returns the list.
+     */
+    suspend fun getOrCachePrayerSections(prayerId: PrayerId, lang: AppLanguage): List<PrayerSectionItem> = withContext(Dispatchers.IO) {
+        val cached = prayerTextDao.getSectionsForPrayerDirect(prayerId.code, lang.code)
+        if (cached.isNotEmpty()) {
+            return@withContext cached.map { it.toPrayerSectionItem() }
+        }
+
+        // Cache miss: Load authentic liturgical order and store in Room
+        val sections = AgpeyaHourDetails.getFullPrayerSections(prayerId, lang)
+        val entities = sections.mapIndexed { index, section ->
+            CachedPrayerSectionEntity.fromPrayerSectionItem(
+                item = section,
+                prayerCode = prayerId.code,
+                languageCode = lang.code,
+                order = index
+            )
+        }
+        prayerTextDao.insertSections(entities)
+        return@withContext sections
+    }
+
+    /**
+     * Pre-caches all canonical prayer hours across all active languages into Room DB
+     * to guarantee complete offline functionality.
+     */
+    suspend fun preCacheAllPrayerTexts() = withContext(Dispatchers.IO) {
+        val languages = AppLanguage.entries
+        for (lang in languages) {
+            for (prayer in PrayerId.canonicalPrayers) {
+                val count = prayerTextDao.getSectionCount(prayer.code, lang.code)
+                if (count == 0) {
+                    val sections = AgpeyaHourDetails.getFullPrayerSections(prayer, lang)
+                    val entities = sections.mapIndexed { index, section ->
+                        CachedPrayerSectionEntity.fromPrayerSectionItem(
+                            item = section,
+                            prayerCode = prayer.code,
+                            languageCode = lang.code,
+                            order = index
+                        )
+                    }
+                    prayerTextDao.insertSections(entities)
+                }
+            }
+        }
+    }
+
+    fun getTotalCachedPrayerSectionsCount(): Flow<Int> = prayerTextDao.getTotalCachedSectionsCount()
+
+    // ==========================================
+    // Room Database Caching: Daily Meditations & Verses
+    // ==========================================
+
+    /**
+     * Reactive flow of cached daily meditation for a specific day of the year from Room.
+     */
+    fun getDailyMeditationFlow(dayOfYear: Int): Flow<DailyVerseMeditation?> {
+        return meditationDao.getMeditationForDay(dayOfYear).map { it?.toDailyVerseMeditation() }
+    }
+
+    /**
+     * Gets all cached meditations stored in Room DB.
+     */
+    fun getAllCachedMeditationsFlow(): Flow<List<DailyVerseMeditation>> {
+        return meditationDao.getAllMeditations().map { list -> list.map { it.toDailyVerseMeditation() } }
+    }
+
+    /**
+     * Retrieves daily verse meditation for today, reading from Room cache or seeding it into Room.
+     */
+    suspend fun getDailyMeditation(calendar: Calendar = Calendar.getInstance()): DailyVerseMeditation = withContext(Dispatchers.IO) {
+        val dayOfYear = calendar.get(Calendar.DAY_OF_YEAR)
+        val cached = meditationDao.getMeditationForDayDirect(dayOfYear)
+        if (cached != null) {
+            return@withContext cached.toDailyVerseMeditation()
+        }
+
+        // Cache miss: Fetch canonical meditation and persist in Room DB
+        val defaultMeditation = DailyScriptureProvider.getDailyVerseForCalendar(calendar)
+        val entity = CachedMeditationEntity.fromDailyVerseMeditation(
+            meditation = defaultMeditation,
+            id = "day_${dayOfYear}_${defaultMeditation.associatedPrayer.code}",
+            source = "CANONICAL"
+        )
+        meditationDao.insertMeditation(entity)
+        return@withContext defaultMeditation
+    }
+
+    /**
+     * Retrieves meditation mapped to a canonical prayer hour, reading from Room cache or seeding it into Room.
+     */
+    suspend fun getMeditationForPrayer(prayerId: PrayerId): DailyVerseMeditation = withContext(Dispatchers.IO) {
+        val cached = meditationDao.getMeditationForPrayerDirect(prayerId.code)
+        if (cached != null) {
+            return@withContext cached.toDailyVerseMeditation()
+        }
+
+        val defaultMeditation = DailyScriptureProvider.getVerseForPrayer(prayerId)
+        val entity = CachedMeditationEntity.fromDailyVerseMeditation(
+            meditation = defaultMeditation,
+            id = "prayer_${prayerId.code}",
+            source = "CANONICAL"
+        )
+        meditationDao.insertMeditation(entity)
+        return@withContext defaultMeditation
+    }
+
+    /**
+     * Caches custom or previously fetched meditations into Room DB.
+     */
+    suspend fun cacheFetchedMeditation(meditation: DailyVerseMeditation, source: String = "PATRISTIC_ARCHIVE") = withContext(Dispatchers.IO) {
+        val entity = CachedMeditationEntity.fromDailyVerseMeditation(
+            meditation = meditation,
+            id = "custom_${System.currentTimeMillis()}_${meditation.associatedPrayer.code}",
+            isCustomOrFetched = true,
+            source = source
+        )
+        meditationDao.insertMeditation(entity)
+    }
+
+    /**
+     * Pre-caches default canonical meditations into Room DB.
+     */
+    suspend fun preCacheDefaultMeditations() = withContext(Dispatchers.IO) {
+        val count = meditationDao.getTotalMeditationsCountDirect()
+        if (count == 0) {
+            val entities = mutableListOf<CachedMeditationEntity>()
+            for (day in 1..7) {
+                val cal = Calendar.getInstance().apply { set(Calendar.DAY_OF_YEAR, day) }
+                val med = DailyScriptureProvider.getDailyVerseForCalendar(cal)
+                entities.add(
+                    CachedMeditationEntity.fromDailyVerseMeditation(
+                        meditation = med,
+                        id = "day_${day}_${med.associatedPrayer.code}",
+                        source = "CANONICAL"
+                    )
+                )
+            }
+            meditationDao.insertMeditations(entities)
+        }
+    }
+
+    /**
+     * Pre-populates all offline caches (prayer texts and meditations) in Room DB.
+     */
+    suspend fun ensureAllOfflineDataCached() = withContext(Dispatchers.IO) {
+        preCacheDefaultMeditations()
+        preCacheAllPrayerTexts()
+    }
+
+    fun getTotalCachedMeditationsCount(): Flow<Int> = meditationDao.getTotalMeditationsCount()
 
     companion object {
         fun formatDate(date: Date): String {

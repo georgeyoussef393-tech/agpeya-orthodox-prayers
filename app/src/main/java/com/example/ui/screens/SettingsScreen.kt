@@ -58,6 +58,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -136,6 +137,9 @@ fun SettingsScreen(
     val spiritualTheme by viewModel.spiritualTheme.collectAsState()
     val spiritualOpacity by viewModel.spiritualOpacity.collectAsState()
     val isCandleGlowEnabled by viewModel.isCandleGlowEnabled.collectAsState()
+    val totalCachedPrayerSections by viewModel.totalCachedPrayerSections.collectAsState()
+    val totalCachedMeditations by viewModel.totalCachedMeditations.collectAsState()
+    val isPreCachingInProgress by viewModel.isPreCachingInProgress.collectAsState()
 
     val context = LocalContext.current
     val restoreLauncher = rememberLauncherForActivityResult(
@@ -748,7 +752,164 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Test Notification Button Card
+        // Room Database Offline Cache Status & Management Card
+        item {
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.3f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CloudSync,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "قاعدة بيانات روم والتخزين دون إنترنت" else "Room DB Offline Cache",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "نصوص الصلوات والتأملات متاحة 100% دون اتصال" else "100% Offline Prayers & Meditations",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF2E7D32).copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "✓ متصل محلياً" else "✓ Local Active",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF2E7D32),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // Stat 1: Cached Prayer Sections
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "$totalCachedPrayerSections",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BurgundyDeep
+                                )
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "قسم صلوات مخزن" else "Cached Sections",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Stat 2: Cached Meditations
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "$totalCachedMeditations",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GoldPrimary
+                                )
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "تأمل وآية مخزنة" else "Cached Meditations",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Re-cache / Sync All Offline Data Button
+                    Button(
+                        onClick = {
+                            viewModel.preCacheAllOfflineData {
+                                Toast.makeText(
+                                    context,
+                                    if (lang == AppLanguage.ARABIC) "تم تحديث كافة نصوص الأجبية والتأملات بقاعدة البيانات المحلية" else "All prayers & meditations refreshed in Room DB",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+                        enabled = !isPreCachingInProgress,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = BurgundyDeep),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        if (isPreCachingInProgress) {
+                            CircularProgressIndicator(
+                                color = GoldLight,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "جاري ملء التخزين المحلي..." else "Caching in progress...",
+                                color = GoldLight,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Sync,
+                                contentDescription = null,
+                                tint = GoldLight,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "إعادة ملء التخزين المحلي للأجبية (Room DB)" else "Pre-Cache All Hours & Meditations",
+                                color = GoldLight,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
         item {
             Card(
                 shape = RoundedCornerShape(18.dp),

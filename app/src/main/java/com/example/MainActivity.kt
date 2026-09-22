@@ -74,6 +74,11 @@ import com.example.ui.theme.AgpeyaTheme
 import com.example.ui.theme.GoldPrimary
 import com.example.ui.viewmodel.AgpeyaViewModel
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import com.example.ui.components.SubtleCrossWatermark
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -136,10 +141,13 @@ fun AgpeyaApp(
 
     val isAuthCompleted by viewModel.isAuthCompleted.collectAsState()
 
-    if (!isAuthCompleted) {
-        AuthOnboardingScreen(viewModel = viewModel)
-    } else {
-        Scaffold(
+    val layoutDirection = if (lang.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
+
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+        if (!isAuthCompleted) {
+            AuthOnboardingScreen(viewModel = viewModel)
+        } else {
+            Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
             NavigationBar(
@@ -290,5 +298,6 @@ fun AgpeyaApp(
             }
         }
     }
+}
 }
 }

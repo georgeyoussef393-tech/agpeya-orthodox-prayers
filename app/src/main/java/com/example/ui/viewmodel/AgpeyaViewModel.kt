@@ -12,6 +12,7 @@ import com.example.data.repository.AgpeyaRepository
 import com.example.data.sync.SyncStatus
 import com.example.localization.AppLanguage
 import com.example.service.AgpeyaNotificationHelper
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -53,6 +54,12 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
 
     val allLogs: StateFlow<List<PrayerLogEntity>>
     val totalCount: StateFlow<Int>
+
+    // Room Database Caching State
+    val totalCachedPrayerSections: StateFlow<Int>
+    val totalCachedMeditations: StateFlow<Int>
+    private val _isPreCachingInProgress = MutableStateFlow(false)
+    val isPreCachingInProgress: StateFlow<Boolean> = _isPreCachingInProgress.asStateFlow()
 
     // Cloud Sync States
     val syncStatus: StateFlow<SyncStatus>
@@ -151,6 +158,25 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
             SharingStarted.WhileSubscribed(5000),
             0
         )
+
+        totalCachedPrayerSections = repository.getTotalCachedPrayerSectionsCount().stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            0
+        )
+
+        totalCachedMeditations = repository.getTotalCachedMeditationsCount().stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            0
+        )
+
+        // Pre-populate offline Room cache and load daily meditation
+        viewModelScope.launch {
+            repository.ensureAllOfflineDataCached()
+            val meditation = repository.getDailyMeditation()
+            _dailyVerse.value = meditation
+        }
 
         // Initialize real-time sync listener & trigger background initial sync
         repository.startRealtimeSync(viewModelScope)
@@ -381,11 +407,40 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun refreshDailyVerse() {
-        _dailyVerse.value = com.example.data.model.DailyScriptureProvider.getDailyVerseForCalendar()
+        viewModelScope.launch {
+            val meditation = repository.getDailyMeditation()
+            _dailyVerse.value = meditation
+        }
     }
 
     fun setVerseForPrayer(prayerId: PrayerId) {
-        _dailyVerse.value = com.example.data.model.DailyScriptureProvider.getVerseForPrayer(prayerId)
+        viewModelScope.launch {
+            val meditation = repository.getMeditationForPrayer(prayerId)
+            _dailyVerse.value = meditation
+        }
+    }
+
+    fun getCachedPrayerSectionsFlow(prayerId: PrayerId, lang: AppLanguage): Flow<List<com.example.data.model.PrayerSectionItem>> {
+        return repository.getCachedPrayerSectionsFlow(prayerId, lang)
+    }
+
+    suspend fun getOrCachePrayerSections(prayerId: PrayerId, lang: AppLanguage): List<com.example.data.model.PrayerSectionItem> {
+        return repository.getOrCachePrayerSections(prayerId, lang)
+    }
+
+    fun cacheFetchedMeditation(meditation: com.example.data.model.DailyVerseMeditation, source: String = "AI_INSIGHT") {
+        viewModelScope.launch {
+            repository.cacheFetchedMeditation(meditation, source)
+        }
+    }
+
+    fun preCacheAllOfflineData(onComplete: () -> Unit = {}) {
+        viewModelScope.launch {
+            _isPreCachingInProgress.value = true
+            repository.ensureAllOfflineDataCached()
+            _isPreCachingInProgress.value = false
+            onComplete()
+        }
     }
 
     override fun onCleared() {

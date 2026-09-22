@@ -71,9 +71,12 @@ import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
 import com.example.ui.components.CopticCrossCanvas
 import com.example.ui.components.DailyScriptureCard
+import com.example.ui.components.IchthysDivider
+import com.example.ui.components.PeaceDoveBadge
 import com.example.ui.components.PrayerReadingModal
 import com.example.ui.components.SpiritualAtmosphereBackdrop
 import com.example.ui.components.SpiritualSoundPickerDialog
+import com.example.ui.components.SubtleCrossWatermark
 import com.example.ui.components.TimePickerDialog
 import com.example.ui.theme.BurgundyDeep
 import com.example.ui.theme.BurgundyLight
@@ -235,12 +238,18 @@ fun PrayersScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column {
-                            Text(
-                                text = AgpeyaStrings.prayersTodayLabel(lang),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = AgpeyaStrings.prayersTodayLabel(lang),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                PeaceDoveBadge(
+                                    text = if (lang == AppLanguage.ARABIC) "السلام والمواظبة" else "Peace & Discipline"
+                                )
+                            }
                             Text(
                                 text = "$completedCanonicalCount / $totalCanonical " +
                                         if (lang == AppLanguage.ARABIC) "صلوات مكتملة اليوم" else "canonical prayers prayed",
@@ -279,6 +288,11 @@ fun PrayersScreen(
                     )
                 }
             }
+        }
+
+        // Ichthys Fish Section Divider
+        item {
+            IchthysDivider(modifier = Modifier.padding(horizontal = 24.dp))
         }
 
         // Prayer Cards Header

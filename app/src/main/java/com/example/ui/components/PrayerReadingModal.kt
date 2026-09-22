@@ -125,12 +125,25 @@ fun PrayerReadingModal(
     onTogglePrayed: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val fullSections = remember(prayerId, lang) {
-        AgpeyaHourDetails.getFullPrayerSections(prayerId, lang)
-    }
-
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+
+    var fullSections by remember(prayerId, lang) {
+        mutableStateOf(AgpeyaHourDetails.getFullPrayerSections(prayerId, lang))
+    }
+    var isRoomCached by remember { mutableStateOf(false) }
+
+    LaunchedEffect(prayerId, lang) {
+        val repo = com.example.data.repository.AgpeyaRepository(
+            com.example.data.db.AgpeyaDatabase.getDatabase(context).prayerLogDao(),
+            context
+        )
+        val cached = repo.getOrCachePrayerSections(prayerId, lang)
+        if (cached.isNotEmpty()) {
+            fullSections = cached
+            isRoomCached = true
+        }
+    }
 
     // 1. Reader Personalization States
     var fontSizeMultiplier by remember { mutableFloatStateOf(1.0f) }
@@ -251,6 +264,19 @@ fun PrayerReadingModal(
                                         fontWeight = FontWeight.Bold,
                                         color = readingTheme.accentColor,
                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = PeacefulGreen.copy(alpha = 0.18f),
+                                    modifier = Modifier.padding(horizontal = 2.dp)
+                                ) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "✓ أوفلاين" else "✓ Offline",
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                        fontWeight = FontWeight.Bold,
+                                        color = PeacefulGreen,
+                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
                                     )
                                 }
                             }

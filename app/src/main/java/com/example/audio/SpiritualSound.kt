@@ -81,9 +81,17 @@ enum class SpiritualSound(
     );
 
     fun getName(lang: AppLanguage): String = when (lang) {
-        AppLanguage.ARABIC -> arabicName
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> arabicName
         AppLanguage.COPTIC -> copticName
         AppLanguage.ENGLISH -> englishName
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> when (this) {
+            DEFAULT_CHIME -> "Standard-Alarmton"
+            CHURCH_BELLS -> "Koptische Kirchenglocken"
+            CYMBALS_TRIANGLE -> "Koptische Zimbeln und Triangel"
+            MONASTIC_WOODEN_NAQOUS -> "Mönchisches Holz-Semantron"
+            GOLGOTHA_HYMN_TONE -> "Golgotha Besinnungsmelodie"
+            EPECHOIS_HARMONY -> "Harfe und Psalter David"
+        }
         AppLanguage.FRENCH -> when (this) {
             DEFAULT_CHIME -> "Sonnerie par défaut"
             CHURCH_BELLS -> "Cloches d'Église Copte"
@@ -99,14 +107,6 @@ enum class SpiritualSound(
             MONASTIC_WOODEN_NAQOUS -> "Semantrón Monástico de Madera"
             GOLGOTHA_HYMN_TONE -> "Melodía de Gólgota y Oración"
             EPECHOIS_HARMONY -> "Arpa y Salterio de David"
-        }
-        AppLanguage.GERMAN -> when (this) {
-            DEFAULT_CHIME -> "Standard-Alarmton"
-            CHURCH_BELLS -> "Koptische Kirchenglocken"
-            CYMBALS_TRIANGLE -> "Koptische Zimbeln und Triangel"
-            MONASTIC_WOODEN_NAQOUS -> "Mönchisches Holz-Semantron"
-            GOLGOTHA_HYMN_TONE -> "Golgotha Besinnungsmelodie"
-            EPECHOIS_HARMONY -> "Harfe und Psalter David"
         }
         AppLanguage.ITALIAN -> when (this) {
             DEFAULT_CHIME -> "Tono predefinito"
@@ -143,7 +143,7 @@ enum class SpiritualSound(
     }
 
     fun getDescription(lang: AppLanguage): String = when (lang) {
-        AppLanguage.ARABIC -> arabicDescription
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> arabicDescription
         AppLanguage.COPTIC -> arabicDescription // Provide Arabic as practical explanation
         else -> englishDescription
     }
