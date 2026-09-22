@@ -27,7 +27,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -1185,88 +1187,158 @@ private fun HistoryLogView(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp)
         ) {
-            // PDF Export Banner Card
+            // Social Sharing & Export Hub Card (Social Media Streaks + Excel + PDF)
             item {
                 Card(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(18.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 14.dp)
-                        .clickable {
-                            PrayerPdfExporter.generateAndSharePdf(
-                                context = context,
-                                userEmail = userEmail,
-                                userName = userEmail?.substringBefore("@"),
-                                churchName = churchName,
-                                syncKey = syncKey,
-                                lang = lang,
-                                periodName = AgpeyaStrings.prayersLogHistory(lang),
-                                allLogs = allLogs
-                            )
-                        }
+                        .padding(bottom = 16.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(CircleShape)
-                                .background(GoldPrimary.copy(alpha = 0.18f))
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.PictureAsPdf,
-                                contentDescription = null,
-                                tint = GoldPrimary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = AgpeyaStrings.exportPdfReport(lang),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = userEmail?.let {
-                                    if (lang == AppLanguage.ARABIC) "مُخصص باسم الحساب: $it" else "Customized for user: $it"
-                                } ?: AgpeyaStrings.exportPdfSubtitle(lang),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        Button(
-                            onClick = {
-                                PrayerPdfExporter.generateAndSharePdf(
-                                    context = context,
-                                    userEmail = userEmail,
-                                    userName = userEmail?.substringBefore("@"),
-                                    churchName = churchName,
-                                    syncKey = syncKey,
-                                    lang = lang,
-                                    periodName = AgpeyaStrings.prayersLogHistory(lang),
-                                    allLogs = allLogs
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape)
+                                    .background(GoldPrimary.copy(alpha = 0.2f))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = null,
+                                    tint = GoldPrimary,
+                                    modifier = Modifier.size(22.dp)
                                 )
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "مشاركة التقدم الروحي والتصدير الشامل" else "Social Sharing & Export Hub",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "شارك سلاسل الصلوات عبر وسائل التواصل، Excel و PDF" else "Share streaks on social media, Excel & PDF",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Action Buttons Row (Social Share, Excel, PDF)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(
-                                text = if (lang == AppLanguage.ARABIC) "تصدير PDF" else "Export",
-                                color = Color.Black,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
-                            )
+                            // 1. Social Media Streaks Share Button
+                            Button(
+                                onClick = {
+                                    com.example.report.SocialShareHelper.shareToSocialMedia(
+                                        context = context,
+                                        lang = lang,
+                                        allLogs = allLogs
+                                    )
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("social_share_streak_btn"),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "مشاركة" else "Social",
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            // 2. Excel (CSV) Export Button
+                            Button(
+                                onClick = {
+                                    com.example.report.PrayerExcelExporter.generateAndShareCsv(
+                                        context = context,
+                                        userEmail = userEmail,
+                                        userName = userEmail?.substringBefore("@"),
+                                        syncKey = syncKey,
+                                        lang = lang,
+                                        allLogs = allLogs
+                                    )
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("export_excel_button"),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20)),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.TableChart,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "Excel" else "Excel",
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            // 3. PDF Report Export Button
+                            Button(
+                                onClick = {
+                                    PrayerPdfExporter.generateAndSharePdf(
+                                        context = context,
+                                        userEmail = userEmail,
+                                        userName = userEmail?.substringBefore("@"),
+                                        churchName = churchName,
+                                        syncKey = syncKey,
+                                        lang = lang,
+                                        periodName = AgpeyaStrings.prayersLogHistory(lang),
+                                        allLogs = allLogs
+                                    )
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("export_pdf_button"),
+                                colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PictureAsPdf,
+                                    contentDescription = null,
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "PDF" else "PDF",
+                                    color = Color.Black,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
