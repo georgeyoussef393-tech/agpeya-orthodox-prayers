@@ -67,6 +67,58 @@ object AgpeyaStrings {
         AppLanguage.KOREAN -> "알람 및 설정"
     }
 
+    fun tabCalendar(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "السنكسار"
+        AppLanguage.COPTIC -> "Ⲥⲩⲛⲁⲝⲁⲣⲓⲟⲛ"
+        AppLanguage.ENGLISH -> "Calendar"
+        AppLanguage.FRENCH -> "Synaxaire"
+        AppLanguage.SPANISH -> "Sinaxario"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Synaxarion"
+        AppLanguage.ITALIAN -> "Sinassario"
+        AppLanguage.CHINESE -> "科普特历"
+        AppLanguage.JAPANESE -> "聖人伝"
+        AppLanguage.KOREAN -> "시낙사리온"
+    }
+
+    fun tabAmbient(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الخلوة"
+        AppLanguage.COPTIC -> "Ⲕⲩⲣⲓⲉ ⲉⲗⲉⲏⲥⲟⲛ"
+        AppLanguage.ENGLISH -> "Retreat"
+        AppLanguage.FRENCH -> "Retraite"
+        AppLanguage.SPANISH -> "Retiro"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Stille"
+        AppLanguage.ITALIAN -> "Ritiro"
+        AppLanguage.CHINESE -> "静修蜡烛"
+        AppLanguage.JAPANESE -> "黙想"
+        AppLanguage.KOREAN -> "피정"
+    }
+
+    fun tabJournal(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "المفكرة"
+        AppLanguage.COPTIC -> "Ⲉⲝⲟⲙⲟⲗⲟⲅⲏⲥⲓⲥ"
+        AppLanguage.ENGLISH -> "Journal"
+        AppLanguage.FRENCH -> "Journal"
+        AppLanguage.SPANISH -> "Diario"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Tagebuch"
+        AppLanguage.ITALIAN -> "Diario"
+        AppLanguage.CHINESE -> "灵修日志"
+        AppLanguage.JAPANESE -> "霊性日記"
+        AppLanguage.KOREAN -> "영성 일기"
+    }
+
+    fun tabReportsAndSettings(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "التقارير والإعدادات"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲡ ⲛⲉⲙ ⲛⲓⲥⲩⲛⲑⲏⲕⲏ"
+        AppLanguage.ENGLISH -> "Reports & Settings"
+        AppLanguage.FRENCH -> "Rapports & Paramètres"
+        AppLanguage.SPANISH -> "Informes y Ajustes"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Berichte & Einstellungen"
+        AppLanguage.ITALIAN -> "Rapporti e Impostazioni"
+        AppLanguage.CHINESE -> "报告与设置"
+        AppLanguage.JAPANESE -> "記録と設定"
+        AppLanguage.KOREAN -> "보고서 및 설정"
+    }
+
     // Daily / Monthly / Yearly
     fun reportDaily(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "يومي"

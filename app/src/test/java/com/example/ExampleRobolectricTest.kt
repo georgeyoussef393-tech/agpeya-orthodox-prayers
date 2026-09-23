@@ -133,5 +133,31 @@ class ExampleRobolectricTest {
     org.junit.Assert.assertTrue("Should contain total count 2", summaryText.contains("2"))
     org.junit.Assert.assertTrue("Should contain canonical hour name", summaryText.contains("باكر"))
   }
+
+  @Test
+  fun `verify coptic calendar conversion and synaxarium lookups`() {
+    val date = java.util.Calendar.getInstance().apply {
+      set(2026, java.util.Calendar.SEPTEMBER, 22)
+    }.time
+
+    val copticDate = com.example.data.coptic.CopticCalendarHelper.getCopticDate(date)
+    org.junit.Assert.assertTrue("Coptic day should be positive", copticDate.copticDay > 0)
+    org.junit.Assert.assertTrue("Coptic month should be 1..13", copticDate.copticMonth in 1..13)
+    org.junit.Assert.assertTrue("Coptic year should be in 1740s AM", copticDate.copticYear >= 1740)
+
+    val synaxariumList = com.example.data.coptic.CopticCalendarHelper.getSynaxariumEvents(copticDate.copticDay, copticDate.copticMonth)
+    org.junit.Assert.assertTrue("Synaxarium should return commemorations", synaxariumList.isNotEmpty())
+
+    val fastingInfo = com.example.data.coptic.CopticCalendarHelper.getFastingInfo(copticDate, date)
+    org.junit.Assert.assertNotNull("Fasting info must be present", fastingInfo)
+  }
+
+  @Test
+  fun `verify spiritual notes category properties`() {
+    val categories = com.example.data.model.NoteCategory.values()
+    assertEquals(4, categories.size)
+    org.junit.Assert.assertTrue("Must include confession prep", categories.contains(com.example.data.model.NoteCategory.CONFESSION_PREP))
+    org.junit.Assert.assertTrue("Must include personal prayer", categories.contains(com.example.data.model.NoteCategory.PERSONAL_PRAYER))
+  }
 }
 

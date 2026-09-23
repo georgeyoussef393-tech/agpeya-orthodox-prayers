@@ -58,6 +58,7 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     // Room Database Caching State
     val totalCachedPrayerSections: StateFlow<Int>
     val totalCachedMeditations: StateFlow<Int>
+    val allSpiritualNotes: StateFlow<List<com.example.data.model.SpiritualNoteEntity>>
     private val _isPreCachingInProgress = MutableStateFlow(false)
     val isPreCachingInProgress: StateFlow<Boolean> = _isPreCachingInProgress.asStateFlow()
 
@@ -169,6 +170,12 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             0
+        )
+
+        allSpiritualNotes = repository.getAllSpiritualNotesFlow().stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
         )
 
         // Pre-populate offline Room cache and load daily meditation
@@ -560,5 +567,59 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         val offsetHours = tz.rawOffset / (1000 * 60 * 60)
         val sign = if (offsetHours >= 0) "+$offsetHours" else "$offsetHours"
         return "$displayName (UTC$sign)"
+    }
+
+    // Spiritual Journal & Confession Notes
+    fun addSpiritualNote(
+        title: String,
+        content: String,
+        category: com.example.data.model.NoteCategory,
+        dateString: String = AgpeyaRepository.getTodayString(),
+        isPinned: Boolean = false
+    ) {
+        viewModelScope.launch {
+            val note = com.example.data.model.SpiritualNoteEntity(
+                title = title.trim(),
+                content = content.trim(),
+                categoryCode = category.code,
+                dateString = dateString,
+                isPinned = isPinned
+            )
+            repository.insertSpiritualNote(note)
+        }
+    }
+
+    fun toggleNoteCompletion(note: com.example.data.model.SpiritualNoteEntity) {
+        viewModelScope.launch {
+            repository.updateSpiritualNote(
+                note.copy(isCompletedOrConfessed = !note.isCompletedOrConfessed)
+            )
+        }
+    }
+
+    fun toggleNotePin(note: com.example.data.model.SpiritualNoteEntity) {
+        viewModelScope.launch {
+            repository.updateSpiritualNote(
+                note.copy(isPinned = !note.isPinned)
+            )
+        }
+    }
+
+    fun updateSpiritualNote(note: com.example.data.model.SpiritualNoteEntity) {
+        viewModelScope.launch {
+            repository.updateSpiritualNote(note)
+        }
+    }
+
+    fun deleteSpiritualNote(id: Long) {
+        viewModelScope.launch {
+            repository.deleteSpiritualNote(id)
+        }
+    }
+
+    fun clearConfessedNotes() {
+        viewModelScope.launch {
+            repository.clearConfessedSpiritualNotes()
+        }
     }
 }

@@ -32,7 +32,8 @@ class AgpeyaRepository(
     private val dao: PrayerLogDao,
     private val context: Context,
     private val prayerTextDao: PrayerTextDao = AgpeyaDatabase.getDatabase(context).prayerTextDao(),
-    private val meditationDao: MeditationDao = AgpeyaDatabase.getDatabase(context).meditationDao()
+    private val meditationDao: MeditationDao = AgpeyaDatabase.getDatabase(context).meditationDao(),
+    private val spiritualNoteDao: com.example.data.db.SpiritualNoteDao = AgpeyaDatabase.getDatabase(context).spiritualNoteDao()
 ) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("agpeya_settings_prefs", Context.MODE_PRIVATE)
@@ -490,6 +491,29 @@ class AgpeyaRepository(
     }
 
     fun getTotalCachedMeditationsCount(): Flow<Int> = meditationDao.getTotalMeditationsCount()
+
+    // --- Spiritual Journal & Confession Notes Room persistence ---
+    fun getAllSpiritualNotesFlow(): Flow<List<com.example.data.model.SpiritualNoteEntity>> =
+        spiritualNoteDao.getAllNotesFlow()
+
+    fun getSpiritualNotesByCategoryFlow(category: String): Flow<List<com.example.data.model.SpiritualNoteEntity>> =
+        spiritualNoteDao.getNotesByCategoryFlow(category)
+
+    suspend fun insertSpiritualNote(note: com.example.data.model.SpiritualNoteEntity): Long = withContext(Dispatchers.IO) {
+        spiritualNoteDao.insertNote(note)
+    }
+
+    suspend fun updateSpiritualNote(note: com.example.data.model.SpiritualNoteEntity) = withContext(Dispatchers.IO) {
+        spiritualNoteDao.updateNote(note)
+    }
+
+    suspend fun deleteSpiritualNote(id: Long) = withContext(Dispatchers.IO) {
+        spiritualNoteDao.deleteNoteById(id)
+    }
+
+    suspend fun clearConfessedSpiritualNotes() = withContext(Dispatchers.IO) {
+        spiritualNoteDao.clearConfessedNotes()
+    }
 
     companion object {
         fun formatDate(date: Date): String {

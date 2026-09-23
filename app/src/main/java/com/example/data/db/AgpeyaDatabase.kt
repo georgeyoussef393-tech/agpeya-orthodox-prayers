@@ -7,20 +7,23 @@ import androidx.room.RoomDatabase
 import com.example.data.model.CachedMeditationEntity
 import com.example.data.model.CachedPrayerSectionEntity
 import com.example.data.model.PrayerLogEntity
+import com.example.data.model.SpiritualNoteEntity
 
 @Database(
     entities = [
         PrayerLogEntity::class,
         CachedPrayerSectionEntity::class,
-        CachedMeditationEntity::class
+        CachedMeditationEntity::class,
+        SpiritualNoteEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AgpeyaDatabase : RoomDatabase() {
     abstract fun prayerLogDao(): PrayerLogDao
     abstract fun prayerTextDao(): PrayerTextDao
     abstract fun meditationDao(): MeditationDao
+    abstract fun spiritualNoteDao(): SpiritualNoteDao
 
     companion object {
         @Volatile
