@@ -118,12 +118,6 @@ fun SpiritualJournalScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        SpiritualAtmosphereBackdrop(
-            theme = spiritualTheme,
-            opacity = (spiritualOpacity * 0.40f).coerceAtMost(0.16f),
-            enableCandleGlow = isCandleGlowEnabled
-        )
-
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 96.dp)
@@ -145,7 +139,11 @@ fun SpiritualJournalScreen(
                 ) {
                     SubtleCrossWatermark(modifier = Modifier.align(Alignment.CenterEnd))
 
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 20.dp)
+                    ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()

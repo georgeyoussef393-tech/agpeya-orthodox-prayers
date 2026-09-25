@@ -24,13 +24,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -89,6 +92,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -230,15 +234,20 @@ fun PrayerReadingModal(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 20.dp, bottom = 24.dp, start = 8.dp, end = 8.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = activeBgColor,
-            tonalElevation = 6.dp
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .widthIn(max = 840.dp)
+                    .padding(top = 20.dp, bottom = 24.dp, start = 8.dp, end = 8.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = activeBgColor,
+                tonalElevation = 6.dp
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
                 // Top Header with Title & Quick Global Controls
                 Box(
                     modifier = Modifier
@@ -849,6 +858,7 @@ fun PrayerReadingModal(
         }
     }
 }
+}
 
 /**
  * Liturgical Section Card supporting rubrics, subtitles, Coptic references, and custom reading themes.
@@ -1379,43 +1389,52 @@ private fun PrayerAudioPlayerBar(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(
                         text = "🎧 " + com.example.localization.AgpeyaStrings.audioPlayerTitle(lang),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         color = theme.accentColor
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "(${prayerId.getDisplayName(lang)})",
-                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         color = if (theme.textSecondaryColor != Color.Unspecified) theme.textSecondaryColor else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                // Auto-Scroll Sync Toggle Chip
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Auto-Scroll Sync Toggle Chip (Compact)
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(8.dp),
                     color = if (isAutoScrollSyncEnabled) theme.accentColor.copy(alpha = 0.2f) else theme.borderColor.copy(alpha = 0.15f),
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(8.dp))
                         .clickable { isAutoScrollSyncEnabled = !isAutoScrollSyncEnabled }
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                     ) {
                         Icon(
                             imageVector = if (isAutoScrollSyncEnabled) Icons.Default.Check else Icons.Default.Close,
                             contentDescription = null,
                             tint = theme.accentColor,
-                            modifier = Modifier.size(12.dp)
+                            modifier = Modifier.size(10.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(3.dp))
                         Text(
                             text = com.example.localization.AgpeyaStrings.autoScrollSyncTitle(lang),
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                             fontWeight = FontWeight.Bold,
                             color = theme.accentColor
                         )

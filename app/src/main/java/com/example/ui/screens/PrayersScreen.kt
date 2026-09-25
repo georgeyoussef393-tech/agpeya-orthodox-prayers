@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -92,7 +93,6 @@ import com.example.ui.components.DailyScriptureCard
 import com.example.ui.components.IchthysDivider
 import com.example.ui.components.PeaceDoveBadge
 import com.example.ui.components.PrayerReadingModal
-import com.example.ui.components.SpiritualAtmosphereBackdrop
 import com.example.ui.components.SpiritualSoundPickerDialog
 import com.example.ui.components.SubtleCrossWatermark
 import com.example.ui.components.TimePickerDialog
@@ -153,14 +153,14 @@ fun PrayersScreen(
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp)
+            contentPadding = PaddingValues(bottom = 88.dp)
         ) {
             // Hero Banner with Christian Motif
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
+                        .height(240.dp) // Slightly taller
                 ) {
                     // Banner background image
                     Image(
@@ -170,27 +170,28 @@ fun PrayersScreen(
                         contentScale = ContentScale.Crop
                     )
 
-                // Dark gradient overlay for text readability
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 0.35f),
-                                    NavyMidnight.copy(alpha = 0.85f)
+                    // Refined gradient overlay for text readability without being too "dark"
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Black.copy(alpha = 0.20f),
+                                        Color.Black.copy(alpha = 0.70f)
+                                    )
                                 )
                             )
-                        )
-                )
+                    )
 
-                // Banner Content
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(20.dp),
-                    verticalArrangement = Arrangement.Bottom
-                ) {
+                    // Banner Content with status bar padding for immersive edge-to-edge
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .statusBarsPadding()
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.Bottom
+                    ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,

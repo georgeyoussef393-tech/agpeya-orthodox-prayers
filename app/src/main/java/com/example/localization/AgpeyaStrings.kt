@@ -1540,7 +1540,7 @@ object AgpeyaStrings {
     fun audioPlayerTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الاستماع والتلاوة الروحية"
         AppLanguage.COPTIC -> "Ⲡⲓⲥⲱⲧⲉⲙ ⲛ̀ⲧⲉ ⲛⲓⲉⲩⲭⲏ"
-        AppLanguage.ENGLISH -> "Audio Recitation & Liturgical Chants"
+        AppLanguage.ENGLISH -> "Audio Recitation & Chants"
         AppLanguage.FRENCH -> "Récitation Audio & Chant Liturgique"
         AppLanguage.SPANISH -> "Recitación de Audio y Cantos Coptos"
         AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Audio-Rezitation & Liturgischer Gesang"
@@ -1554,7 +1554,7 @@ object AgpeyaStrings {
     fun autoScrollSyncTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مزامنة التمرير التلقائي مع الصوت"
         AppLanguage.COPTIC -> "Ⲡⲓⲕⲓⲙ ⲛ̀ⲧⲉ ⲛⲓⲥϧⲁⲓ"
-        AppLanguage.ENGLISH -> "Auto-Scroll Sync with Recitation"
+        AppLanguage.ENGLISH -> "Auto-Scroll Sync"
         AppLanguage.FRENCH -> "Défilement Auto Synchro"
         AppLanguage.SPANISH -> "Sincronización de Desplazamiento"
         AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Automatischer Textlauf"

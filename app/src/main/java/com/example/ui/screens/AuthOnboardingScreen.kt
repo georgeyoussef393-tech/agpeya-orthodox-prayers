@@ -104,12 +104,12 @@ fun AuthOnboardingScreen(
     }
 
     Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        modifier = modifier,
+        color = Color.Transparent
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.TopCenter
+            contentAlignment = Alignment.Center
         ) {
             Column(
                 modifier = Modifier

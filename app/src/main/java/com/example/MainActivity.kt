@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -181,199 +182,220 @@ fun AgpeyaApp(
     val layoutDirection = if (lang.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
 
     CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
-        if (!isAuthCompleted) {
-            AuthOnboardingScreen(viewModel = viewModel)
-        } else {
-            Row(modifier = Modifier.fillMaxSize()) {
-                if (useNavRail) {
-                    NavigationRail(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        header = {
-                            Spacer(modifier = Modifier.height(20.dp))
-                            CopticCrossCanvas(size = 32.dp)
-                            Spacer(modifier = Modifier.height(20.dp))
-                        },
-                        modifier = Modifier.testTag("side_navigation_rail")
-                    ) {
-                        navItems.forEachIndexed { index, (icon, label, tag) ->
-                            NavigationRailItem(
-                                selected = selectedScreen == index,
-                                onClick = { selectedScreen = index },
-                                icon = { Icon(imageVector = icon, contentDescription = label) },
-                                label = { Text(text = label, fontSize = 10.sp) },
-                                colors = NavigationRailItemDefaults.colors(
-                                    selectedIconColor = Color.Black,
-                                    selectedTextColor = GoldPrimary,
-                                    indicatorColor = GoldPrimary,
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                ),
-                                modifier = Modifier.testTag(tag)
-                            )
-                        }
-                    }
-                }
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Immersive spiritual backdrop that fills the entire background globally
+                SpiritualAtmosphereBackdrop(
+                    theme = spiritualTheme,
+                    opacity = (spiritualOpacity * 0.70f).coerceAtMost(0.24f),
+                    enableCandleGlow = isCandleGlowEnabled,
+                    overlayColor = MaterialTheme.colorScheme.background // Adapt to theme
+                )
 
-                Scaffold(
-                    modifier = Modifier.weight(1f),
-                    bottomBar = {
-                        if (!useNavRail) {
-                            Surface(
-                                color = MaterialTheme.colorScheme.surface,
-                                tonalElevation = 8.dp,
-                                modifier = Modifier.fillMaxWidth()
+                if (!isAuthCompleted) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AuthOnboardingScreen(
+                            viewModel = viewModel,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .widthIn(max = 640.dp)
+                                .statusBarsPadding()
+                                .windowInsetsPadding(WindowInsets.navigationBars)
+                        )
+                    }
+                } else {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        if (useNavRail) {
+                            NavigationRail(
+                                containerColor = Color.Transparent, // Let the backdrop show through
+                                header = {
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                    CopticCrossCanvas(size = 32.dp)
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                },
+                                modifier = Modifier.testTag("side_navigation_rail")
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .windowInsetsPadding(NavigationBarDefaults.windowInsets)
-                                        .padding(top = 4.dp, bottom = 14.dp)
-                                ) {
-                                    NavigationBar(
-                                        containerColor = Color.Transparent,
-                                        tonalElevation = 0.dp,
-                                        windowInsets = WindowInsets(0, 0, 0, 0),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .testTag("bottom_navigation_bar")
+                                navItems.forEachIndexed { index, (icon, label, tag) ->
+                                    NavigationRailItem(
+                                        selected = selectedScreen == index,
+                                        onClick = { selectedScreen = index },
+                                        icon = { Icon(imageVector = icon, contentDescription = label) },
+                                        label = { Text(text = label, fontSize = 10.sp) },
+                                        colors = NavigationRailItemDefaults.colors(
+                                            selectedIconColor = Color.Black,
+                                            selectedTextColor = GoldPrimary,
+                                            indicatorColor = GoldPrimary,
+                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                        ),
+                                        modifier = Modifier.testTag(tag)
+                                    )
+                                }
+                            }
+                        }
+
+                        Scaffold(
+                            modifier = Modifier.weight(1f),
+                            containerColor = Color.Transparent, // Essential for backdrop visibility
+                            bottomBar = {
+                                if (!useNavRail) {
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                                        tonalElevation = 8.dp,
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        navItems.forEachIndexed { index, (icon, label, tag) ->
-                                            NavigationBarItem(
-                                                selected = selectedScreen == index,
-                                                onClick = { selectedScreen = index },
-                                                icon = { Icon(imageVector = icon, contentDescription = label) },
-                                                label = {
-                                                    Text(
-                                                        text = label,
-                                                        fontWeight = if (selectedScreen == index) FontWeight.Bold else FontWeight.Normal,
-                                                        fontSize = 10.sp,
-                                                        maxLines = 1
+                                        Box(
+                                            modifier = Modifier
+                                                .windowInsetsPadding(NavigationBarDefaults.windowInsets)
+                                                .padding(top = 4.dp, bottom = 14.dp)
+                                        ) {
+                                            NavigationBar(
+                                                containerColor = Color.Transparent,
+                                                tonalElevation = 0.dp,
+                                                windowInsets = WindowInsets(0, 0, 0, 0),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .testTag("bottom_navigation_bar")
+                                            ) {
+                                                navItems.forEachIndexed { index, (icon, label, tag) ->
+                                                    NavigationBarItem(
+                                                        selected = selectedScreen == index,
+                                                        onClick = { selectedScreen = index },
+                                                        icon = { Icon(imageVector = icon, contentDescription = label) },
+                                                        label = {
+                                                            Text(
+                                                                text = label,
+                                                                fontWeight = if (selectedScreen == index) FontWeight.Bold else FontWeight.Normal,
+                                                                fontSize = 10.sp,
+                                                                maxLines = 1
+                                                            )
+                                                        },
+                                                        colors = NavigationBarItemDefaults.colors(
+                                                            selectedIconColor = Color.Black,
+                                                            selectedTextColor = GoldPrimary,
+                                                            indicatorColor = GoldPrimary,
+                                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        ),
+                                                        modifier = Modifier.testTag(tag)
                                                     )
-                                                },
-                                                colors = NavigationBarItemDefaults.colors(
-                                                    selectedIconColor = Color.Black,
-                                                    selectedTextColor = GoldPrimary,
-                                                    indicatorColor = GoldPrimary,
-                                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                                ),
-                                                modifier = Modifier.testTag(tag)
-                                            )
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                    }
-                ) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                    ) {
-                        // Permission request banner if permission is denied on Android 13+
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
-                            Card(
-                                shape = RoundedCornerShape(0.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                                ),
-                                modifier = Modifier.fillMaxWidth()
+                        ) { innerPadding ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(innerPadding)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 10.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.NotificationsActive,
-                                        contentDescription = null,
-                                        tint = GoldPrimary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(
-                                        text = AgpeyaStrings.notificationPermissionRequired(lang),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.weight(1f),
-                                        lineHeight = 16.sp
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Button(
-                                        onClick = {
-                                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                                        },
-                                        colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
-                                        shape = RoundedCornerShape(10.dp),
-                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                // Permission request banner if permission is denied on Android 13+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
+                                    Card(
+                                        shape = RoundedCornerShape(0.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text(
-                                            text = AgpeyaStrings.allowPermission(lang),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.Black
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.NotificationsActive,
+                                                contentDescription = null,
+                                                tint = GoldPrimary,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Text(
+                                                text = AgpeyaStrings.notificationPermissionRequired(lang),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                modifier = Modifier.weight(1f),
+                                                lineHeight = 16.sp
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Button(
+                                                onClick = {
+                                                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                                },
+                                                colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                                                shape = RoundedCornerShape(10.dp),
+                                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                            ) {
+                                                Text(
+                                                    text = AgpeyaStrings.allowPermission(lang),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color.Black
+                                                )
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                        }
 
-                        // Screen switcher with smooth, consistent spring-based transitions
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            // Immersive spiritual backdrop that fills the entire background
-                            SpiritualAtmosphereBackdrop(
-                                theme = spiritualTheme,
-                                opacity = (spiritualOpacity * 0.40f).coerceAtMost(0.16f),
-                                enableCandleGlow = isCandleGlowEnabled
-                            )
+                                // Screen switcher with smooth, consistent spring-based transitions
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    AnimatedContent(
+                                        targetState = selectedScreen,
+                                        transitionSpec = {
+                                            val isForward = if (lang.isRtl) (targetState < initialState) else (targetState > initialState)
+                                            AgpeyaMotion.directionalSlide(forward = isForward)
+                                        },
+                                        label = "main_screen_transition",
+                                        modifier = Modifier.fillMaxSize()
+                                    ) { screen ->
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.TopCenter
+                                        ) {
+                                            // Constrain width on tablets/foldables for better readability
+                                            val screenModifier = if (useNavRail) {
+                                                Modifier.fillMaxWidth().widthIn(max = 840.dp)
+                                            } else {
+                                                Modifier.fillMaxSize()
+                                            }
 
-                            AnimatedContent(
-                                targetState = selectedScreen,
-                                transitionSpec = {
-                                    val isForward = if (lang.isRtl) (targetState < initialState) else (targetState > initialState)
-                                    AgpeyaMotion.directionalSlide(forward = isForward)
-                                },
-                                label = "main_screen_transition",
-                                modifier = Modifier.fillMaxSize()
-                            ) { screen ->
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.TopCenter
-                                ) {
-                                    // Constrain width on tablets/foldables for better readability
-                                    val screenModifier = if (useNavRail) {
-                                        Modifier.fillMaxWidth().widthIn(max = 840.dp)
-                                    } else {
-                                        Modifier.fillMaxSize()
-                                    }
-
-                                    when (screen) {
-                                        0 -> PrayersScreen(
-                                            viewModel = viewModel,
-                                            onNavigateToCalendar = { selectedScreen = 1 },
-                                            onNavigateToAmbient = { selectedScreen = 2 },
-                                            onNavigateToJournal = { selectedScreen = 3 },
-                                            onNavigateToSettings = { selectedScreen = 4 },
-                                            modifier = screenModifier
-                                        )
-                                        1 -> CopticCalendarScreen(
-                                            viewModel = viewModel,
-                                            onNavigateToPrayers = { selectedScreen = 0 },
-                                            modifier = screenModifier
-                                        )
-                                        2 -> AmbientPrayerScreen(
-                                            viewModel = viewModel,
-                                            modifier = screenModifier
-                                        )
-                                        3 -> ReportsAndSettingsHostScreen(
-                                            viewModel = viewModel,
-                                            modifier = screenModifier
-                                        )
-                                        4 -> SettingsScreen(
-                                            viewModel = viewModel,
-                                            modifier = screenModifier
-                                        )
+                                            when (screen) {
+                                                0 -> PrayersScreen(
+                                                    viewModel = viewModel,
+                                                    onNavigateToCalendar = { selectedScreen = 1 },
+                                                    onNavigateToAmbient = { selectedScreen = 2 },
+                                                    onNavigateToJournal = { selectedScreen = 3 },
+                                                    onNavigateToSettings = { selectedScreen = 4 },
+                                                    modifier = screenModifier
+                                                )
+                                                1 -> CopticCalendarScreen(
+                                                    viewModel = viewModel,
+                                                    onNavigateToPrayers = { selectedScreen = 0 },
+                                                    modifier = screenModifier
+                                                )
+                                                2 -> AmbientPrayerScreen(
+                                                    viewModel = viewModel,
+                                                    modifier = screenModifier
+                                                )
+                                                3 -> ReportsAndSettingsHostScreen(
+                                                    viewModel = viewModel,
+                                                    modifier = screenModifier
+                                                )
+                                                4 -> SettingsScreen(
+                                                    viewModel = viewModel,
+                                                    modifier = screenModifier
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }

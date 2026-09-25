@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Edit
@@ -45,7 +46,11 @@ fun ReportsAndSettingsHostScreen(
     val lang by viewModel.currentLanguage.collectAsState()
     var selectedSubTab by rememberSaveable { mutableIntStateOf(0) }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+    ) {
         TabRow(
             selectedTabIndex = selectedSubTab,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -94,8 +99,8 @@ fun ReportsAndSettingsHostScreen(
             modifier = Modifier.fillMaxSize()
         ) { tab ->
             when (tab) {
-                0 -> ReportsScreen(viewModel = viewModel)
-                1 -> SpiritualJournalScreen(viewModel = viewModel)
+                0 -> ReportsScreen(viewModel = viewModel, modifier = Modifier.fillMaxSize())
+                1 -> SpiritualJournalScreen(viewModel = viewModel, modifier = Modifier.fillMaxSize())
             }
         }
     }
