@@ -218,7 +218,7 @@ fun AuthOnboardingScreen(
                                         Spacer(modifier = Modifier.width(6.dp))
                                     }
                                     Text(
-                                        text = languageOption.displayName,
+                                        text = "${languageOption.flagEmoji}  ${languageOption.nativeName}",
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                         color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface

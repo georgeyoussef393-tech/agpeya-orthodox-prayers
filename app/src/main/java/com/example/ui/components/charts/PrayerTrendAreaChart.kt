@@ -1,5 +1,6 @@
 package com.example.ui.components.charts
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -80,7 +81,7 @@ fun PrayerTrendAreaChart(
 
     val animatedProgress by animateFloatAsState(
         targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = tween(durationMillis = 850),
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "area_chart_anim"
     )
 

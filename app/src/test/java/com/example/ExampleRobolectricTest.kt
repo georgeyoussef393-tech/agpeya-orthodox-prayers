@@ -136,20 +136,16 @@ class ExampleRobolectricTest {
 
   @Test
   fun `verify coptic calendar conversion and synaxarium lookups`() {
-    val date = java.util.Calendar.getInstance().apply {
+    val calendar = java.util.Calendar.getInstance().apply {
       set(2026, java.util.Calendar.SEPTEMBER, 22)
-    }.time
+    }
 
-    val copticDate = com.example.data.coptic.CopticCalendarHelper.getCopticDate(date)
-    org.junit.Assert.assertTrue("Coptic day should be positive", copticDate.copticDay > 0)
-    org.junit.Assert.assertTrue("Coptic month should be 1..13", copticDate.copticMonth in 1..13)
-    org.junit.Assert.assertTrue("Coptic year should be in 1740s AM", copticDate.copticYear >= 1740)
-
-    val synaxariumList = com.example.data.coptic.CopticCalendarHelper.getSynaxariumEvents(copticDate.copticDay, copticDate.copticMonth)
-    org.junit.Assert.assertTrue("Synaxarium should return commemorations", synaxariumList.isNotEmpty())
-
-    val fastingInfo = com.example.data.coptic.CopticCalendarHelper.getFastingInfo(copticDate, date)
-    org.junit.Assert.assertNotNull("Fasting info must be present", fastingInfo)
+    val copticDate = com.example.data.coptic.CopticCalendarHelper.getCopticDate(calendar)
+    org.junit.Assert.assertTrue("Coptic day should be positive", copticDate.day > 0)
+    org.junit.Assert.assertTrue("Coptic month should be 1..13", copticDate.monthIndex in 1..13)
+    org.junit.Assert.assertTrue("Coptic year should be in 1740s AM", copticDate.yearAM >= 1740)
+    org.junit.Assert.assertTrue("Synaxarium summary should not be empty", copticDate.synaxariumSummaryAr.isNotEmpty())
+    org.junit.Assert.assertNotNull("Fasting type must be present", copticDate.fastingType)
   }
 
   @Test

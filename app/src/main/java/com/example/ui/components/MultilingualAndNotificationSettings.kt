@@ -180,7 +180,7 @@ fun MultilingualAndNotificationSettings(
                                 .testTag("lang_chip_${appLang.code}")
                         ) {
                             Text(
-                                text = appLang.nativeName,
+                                text = "${appLang.flagEmoji}  ${appLang.nativeName}",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                 color = if (isSelected) GoldPrimary else MaterialTheme.colorScheme.onSurface
@@ -268,15 +268,26 @@ fun MultilingualAndNotificationSettings(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Row(
+                        FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            listOf(AppLanguage.COPTIC, AppLanguage.ENGLISH, AppLanguage.ARABIC, AppLanguage.FRENCH).forEach { secLang ->
+                            listOf(
+                                AppLanguage.COPTIC,
+                                AppLanguage.ENGLISH,
+                                AppLanguage.ARABIC,
+                                AppLanguage.GERMAN,
+                                AppLanguage.AUSTRIAN_GERMAN,
+                                AppLanguage.SPANISH,
+                                AppLanguage.HINDI,
+                                AppLanguage.CHINESE,
+                                AppLanguage.ITALIAN,
+                                AppLanguage.FRENCH
+                            ).forEach { secLang ->
                                 val isSecSelected = secLang == secondaryLang
                                 Box(
                                     modifier = Modifier
-                                        .weight(1f)
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(if (isSecSelected) GoldPrimary else MaterialTheme.colorScheme.surface)
                                         .border(
@@ -285,11 +296,11 @@ fun MultilingualAndNotificationSettings(
                                             shape = RoundedCornerShape(10.dp)
                                         )
                                         .clickable { viewModel.setSecondaryLanguage(secLang) }
-                                        .padding(vertical = 8.dp),
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = secLang.nativeName,
+                                        text = "${secLang.flagEmoji}  ${secLang.nativeName}",
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isSecSelected) Color.Black else MaterialTheme.colorScheme.onSurface

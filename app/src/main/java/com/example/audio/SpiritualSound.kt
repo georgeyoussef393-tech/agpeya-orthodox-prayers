@@ -140,6 +140,14 @@ enum class SpiritualSound(
             GOLGOTHA_HYMN_TONE -> "골고다 묵상 성가"
             EPECHOIS_HARMONY -> "다윗의 하프와 시편 화음"
         }
+        AppLanguage.HINDI -> when (this) {
+            DEFAULT_CHIME -> "डिफ़ॉल्ट अलार्म टोन"
+            CHURCH_BELLS -> "कॉप्टिक चर्च की घंटियाँ"
+            CYMBALS_TRIANGLE -> "झांझ और त्रिकोण (कॉप्टिक भजन)"
+            MONASTIC_WOODEN_NAQOUS -> "रेगिस्तानी मठ की लकड़ी की घंटी (सेमंतरोन)"
+            GOLGOTHA_HYMN_TONE -> "गोलगोथा ध्यान धुन"
+            EPECHOIS_HARMONY -> "दाऊद की वीणा और भजन"
+        }
     }
 
     fun getDescription(lang: AppLanguage): String = when (lang) {

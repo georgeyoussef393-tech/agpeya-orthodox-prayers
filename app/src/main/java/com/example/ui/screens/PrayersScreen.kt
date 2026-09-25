@@ -1,7 +1,9 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -105,6 +107,8 @@ fun PrayersScreen(
     val spiritualTheme by viewModel.spiritualTheme.collectAsState()
     val spiritualOpacity by viewModel.spiritualOpacity.collectAsState()
     val isCandleGlowEnabled by viewModel.isCandleGlowEnabled.collectAsState()
+    val isBilingual by viewModel.isBilingualEnabled.collectAsState()
+    val secondaryLang by viewModel.secondaryLanguage.collectAsState()
 
     val todayString = AgpeyaRepository.getTodayString()
     val todayLogs = remember(allLogs, todayString) {
@@ -124,7 +128,11 @@ fun PrayersScreen(
     val totalCanonical = 7 // Prime, Terce, Sext, None, Vespers, Compline, Midnight
     val completedCanonicalCount = canonicalList.count { it != PrayerId.VEIL && prayedCodesToday.contains(it.code) }
     val progressFraction = (completedCanonicalCount.toFloat() / totalCanonical.toFloat()).coerceIn(0f, 1f)
-    val animatedProgress by animateFloatAsState(targetValue = progressFraction, label = "progress")
+    val animatedProgress by animateFloatAsState(
+        targetValue = progressFraction,
+        animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing),
+        label = "progress"
+    )
 
     Box(modifier = modifier.fillMaxSize()) {
         // Ambient Spiritual Reverence Backdrop for Whole Screen
@@ -513,6 +521,9 @@ fun PrayersScreen(
             spiritualTheme = spiritualTheme,
             spiritualOpacity = spiritualOpacity,
             isCandleGlowEnabled = isCandleGlowEnabled,
+            isBilingual = isBilingual,
+            secondaryLang = secondaryLang,
+            onLanguageChange = { viewModel.setLanguage(it) },
             onSpiritualThemeChange = { viewModel.setSpiritualTheme(it) },
             onAutoMarkPrayed = { viewModel.markPrayerAsPrayedToday(prayerId) },
             onTogglePrayed = { viewModel.togglePrayerToday(prayerId) },

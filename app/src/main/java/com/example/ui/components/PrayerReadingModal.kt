@@ -51,6 +51,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.WbIncandescent
 import androidx.compose.material.icons.outlined.WbIncandescent
@@ -120,6 +121,9 @@ fun PrayerReadingModal(
     spiritualTheme: SpiritualBackgroundTheme = SpiritualBackgroundTheme.CANDLE_SANCTUARY,
     spiritualOpacity: Float = 0.22f,
     isCandleGlowEnabled: Boolean = true,
+    isBilingual: Boolean = false,
+    secondaryLang: AppLanguage = AppLanguage.COPTIC,
+    onLanguageChange: (AppLanguage) -> Unit = {},
     onSpiritualThemeChange: (SpiritualBackgroundTheme) -> Unit = {},
     onAutoMarkPrayed: () -> Unit,
     onTogglePrayed: () -> Unit,
@@ -156,6 +160,7 @@ fun PrayerReadingModal(
     var showThemeMenu by remember { mutableStateOf(false) }
     var showAtmosphereMenu by remember { mutableStateOf(false) }
     var showSpeedMenu by remember { mutableStateOf(false) }
+    var showLanguageMenu by remember { mutableStateOf(false) }
 
     // Coordinates of Gospel section to trigger automatic recorded prayer
     var gospelOffsetY by remember { mutableStateOf<Float?>(null) }
@@ -174,9 +179,10 @@ fun PrayerReadingModal(
         }
     }
 
-    // 3. Auto-Scroll Loop Engine
+    // 3. Auto-Scroll Loop Engine (Fluid, responsive, smooth scrolling)
     LaunchedEffect(isAutoScrolling, scrollSpeedMultiplier) {
         if (isAutoScrolling) {
+            val stepDuration = 80
             while (isActive && isAutoScrolling) {
                 val currentScroll = scrollState.value
                 val maxScroll = scrollState.maxValue
@@ -184,12 +190,12 @@ fun PrayerReadingModal(
                     isAutoScrolling = false
                     break
                 }
-                val scrollDelta = 32f * scrollSpeedMultiplier
+                val scrollDelta = 8f * scrollSpeedMultiplier
                 scrollState.animateScrollBy(
                     value = scrollDelta,
-                    animationSpec = tween(durationMillis = 600, easing = LinearEasing)
+                    animationSpec = tween(durationMillis = stepDuration, easing = LinearEasing)
                 )
-                delay(600)
+                delay(stepDuration.toLong())
             }
         }
     }
@@ -225,7 +231,7 @@ fun PrayerReadingModal(
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 24.dp, bottom = 12.dp, start = 8.dp, end = 8.dp),
+                .padding(top = 20.dp, bottom = 24.dp, start = 8.dp, end = 8.dp),
             shape = RoundedCornerShape(24.dp),
             color = activeBgColor,
             tonalElevation = 6.dp
@@ -569,6 +575,58 @@ fun PrayerReadingModal(
                                     modifier = Modifier.size(17.dp)
                                 )
                             }
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            // 6. Language Quick Switcher
+                            Box {
+                                IconButton(
+                                    onClick = { showLanguageMenu = true },
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(activeBgColor)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Translate,
+                                        contentDescription = "Language",
+                                        tint = readingTheme.accentColor,
+                                        modifier = Modifier.size(17.dp)
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = showLanguageMenu,
+                                    onDismissRequest = { showLanguageMenu = false }
+                                ) {
+                                    AppLanguage.entries.forEach { appLang ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Text(
+                                                        text = "${appLang.flagEmoji}  ${appLang.nativeName}",
+                                                        fontWeight = if (lang == appLang) FontWeight.Bold else FontWeight.Normal,
+                                                        color = if (lang == appLang) readingTheme.accentColor else MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                    if (lang == appLang) {
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Icon(
+                                                            imageVector = Icons.Default.Check,
+                                                            contentDescription = "Selected",
+                                                            tint = readingTheme.accentColor,
+                                                            modifier = Modifier.size(16.dp)
+                                                        )
+                                                    }
+                                                }
+                                            },
+                                            onClick = {
+                                                onLanguageChange(appLang)
+                                                showLanguageMenu = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -677,7 +735,9 @@ fun PrayerReadingModal(
                                     section = section,
                                     lang = lang,
                                     multiplier = fontSizeMultiplier,
-                                    theme = readingTheme
+                                    theme = readingTheme,
+                                    isBilingual = isBilingual,
+                                    secondaryLang = secondaryLang
                                 )
                             }
 
@@ -698,7 +758,9 @@ fun PrayerReadingModal(
                                 lang = lang,
                                 stepNumber = index + 1,
                                 multiplier = fontSizeMultiplier,
-                                theme = readingTheme
+                                theme = readingTheme,
+                                isBilingual = isBilingual,
+                                secondaryLang = secondaryLang
                             )
                         }
 
@@ -719,58 +781,63 @@ fun PrayerReadingModal(
 
                 // Bottom Action Bar
                 Surface(
-                    tonalElevation = 8.dp,
+                    tonalElevation = 10.dp,
                     color = activeSurfaceColor,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+                            .navigationBarsPadding()
+                            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 32.dp)
                     ) {
-                        Button(
-                            onClick = onTogglePrayed,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isPrayedToday) PeacefulGreen else readingTheme.accentColor
-                            ),
-                            shape = RoundedCornerShape(14.dp),
-                            modifier = Modifier
-                                .weight(1f)
-                                .testTag("bottom_toggle_prayed_btn")
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(
-                                imageVector = if (isPrayedToday) Icons.Default.CheckCircle else Icons.Default.Check,
-                                contentDescription = null,
-                                tint = if (isPrayedToday) Color.White else Color.Black
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (isPrayedToday) {
-                                    AgpeyaStrings.prayerRecordedSuccess(lang)
-                                } else {
-                                    AgpeyaStrings.markPrayed(lang)
-                                },
-                                color = if (isPrayedToday) Color.White else Color.Black,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.5.sp
-                            )
-                        }
+                            Button(
+                                onClick = onTogglePrayed,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isPrayedToday) PeacefulGreen else readingTheme.accentColor
+                                ),
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(52.dp)
+                                    .testTag("bottom_toggle_prayed_btn")
+                            ) {
+                                Icon(
+                                    imageVector = if (isPrayedToday) Icons.Default.CheckCircle else Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = if (isPrayedToday) Color.White else Color.Black
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (isPrayedToday) {
+                                        AgpeyaStrings.prayerRecordedSuccess(lang)
+                                    } else {
+                                        AgpeyaStrings.markPrayed(lang)
+                                    },
+                                    color = if (isPrayedToday) Color.White else Color.Black,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                            }
 
-                        Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
 
-                        OutlinedButton(
-                            onClick = onDismiss,
-                            shape = RoundedCornerShape(14.dp)
-                        ) {
-                            Text(
-                                text = if (lang == AppLanguage.ARABIC) "إغلاق" else "Close",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface
-                            )
+                            OutlinedButton(
+                                onClick = onDismiss,
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.height(52.dp)
+                            ) {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "إغلاق" else "Close",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 }
@@ -788,7 +855,9 @@ private fun DetailedPrayerSectionCard(
     lang: AppLanguage,
     stepNumber: Int,
     multiplier: Float,
-    theme: PrayerReadingTheme
+    theme: PrayerReadingTheme,
+    isBilingual: Boolean = false,
+    secondaryLang: AppLanguage = AppLanguage.COPTIC
 ) {
     val cardColor = if (theme.surfaceColor != Color.Unspecified) {
         theme.surfaceColor
@@ -895,6 +964,28 @@ private fun DetailedPrayerSectionCard(
                 ),
                 color = textColor
             )
+
+            // Parallel Bilingual Text display when enabled
+            if (isBilingual && secondaryLang != lang) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = theme.accentColor.copy(alpha = 0.25f))
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "${secondaryLang.flagEmoji}  ${secondaryLang.nativeName}",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = theme.accentColor
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = section.getContent(secondaryLang),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 14.sp * multiplier,
+                        lineHeight = 23.sp * multiplier
+                    ),
+                    color = textColor.copy(alpha = 0.88f)
+                )
+            }
         }
     }
 }
@@ -907,7 +998,9 @@ private fun DetailedGospelBlock(
     section: PrayerSectionItem,
     lang: AppLanguage,
     multiplier: Float,
-    theme: PrayerReadingTheme
+    theme: PrayerReadingTheme,
+    isBilingual: Boolean = false,
+    secondaryLang: AppLanguage = AppLanguage.COPTIC
 ) {
     val cardColor = if (theme.surfaceColor != Color.Unspecified) {
         theme.surfaceColor
@@ -1001,6 +1094,28 @@ private fun DetailedGospelBlock(
                 ),
                 color = textColor
             )
+
+            // Parallel Bilingual Text display when enabled
+            if (isBilingual && secondaryLang != lang) {
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = theme.accentColor.copy(alpha = 0.35f))
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "${secondaryLang.flagEmoji}  ${secondaryLang.nativeName}",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = theme.accentColor
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = section.getContent(secondaryLang),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp * multiplier,
+                        lineHeight = 25.sp * multiplier
+                    ),
+                    color = textColor.copy(alpha = 0.9f)
+                )
+            }
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -1187,14 +1302,19 @@ private fun GospelCompletionTrackerCard(
 private fun formatLogDateTime(timestamp: Long, lang: AppLanguage): String {
     val date = Date(timestamp)
     val locale = when (lang) {
-        AppLanguage.ARABIC -> Locale("ar")
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> Locale("ar")
         AppLanguage.FRENCH -> Locale.FRENCH
         AppLanguage.SPANISH -> Locale("es")
-        AppLanguage.GERMAN -> Locale.GERMAN
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> Locale.GERMAN
         AppLanguage.ITALIAN -> Locale.ITALIAN
+        AppLanguage.HINDI -> Locale("hi")
+        AppLanguage.CHINESE -> Locale.SIMPLIFIED_CHINESE
+        AppLanguage.JAPANESE -> Locale.JAPANESE
+        AppLanguage.KOREAN -> Locale.KOREAN
         else -> Locale.ENGLISH
     }
-    val sdf = SimpleDateFormat("EEEE، d MMMM yyyy • hh:mm a", locale)
+    val pattern = if (lang.isRtl) "EEEE، d MMMM yyyy • hh:mm a" else "EEEE, d MMMM yyyy • hh:mm a"
+    val sdf = SimpleDateFormat(pattern, locale)
     return sdf.format(date)
 }
 
@@ -1232,7 +1352,7 @@ private fun PrayerAudioPlayerBar(
 
                 if (isAutoScrollSyncEnabled && scrollState.maxValue > 0) {
                     val targetScroll = (scrollState.maxValue * audioProgress).toInt()
-                    scrollState.animateScrollTo(targetScroll, animationSpec = tween(durationMillis = 800, easing = LinearEasing))
+                    scrollState.animateScrollTo(targetScroll, animationSpec = tween(durationMillis = 250, easing = LinearEasing))
                 }
             }
             if (audioProgress >= 1f) {

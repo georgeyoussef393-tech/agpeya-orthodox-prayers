@@ -41,13 +41,13 @@ fun SpiritualAtmosphereBackdrop(
         return
     }
 
-    // Gentle candle flicker / breathing animation for deep reverence
+    // Gentle candle flicker / breathing animation for deep reverence (optimized and responsive)
     val infiniteTransition = rememberInfiniteTransition(label = "candle_glow")
     val glowAlpha by infiniteTransition.animateFloat(
         initialValue = 0.92f,
         targetValue = 1.08f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3200, easing = FastOutSlowInEasing),
+            animation = tween(durationMillis = 1600, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "glow_alpha"
@@ -98,7 +98,7 @@ fun SpiritualAtmosphereBackdrop(
                 initialValue = 180f,
                 targetValue = 240f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 2400, easing = FastOutSlowInEasing),
+                    animation = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
                     repeatMode = RepeatMode.Reverse
                 ),
                 label = "candle_radius"
@@ -108,7 +108,7 @@ fun SpiritualAtmosphereBackdrop(
                 initialValue = 0f,
                 targetValue = -120f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 4000, easing = androidx.compose.animation.core.LinearEasing),
+                    animation = tween(durationMillis = 2000, easing = androidx.compose.animation.core.LinearEasing),
                     repeatMode = RepeatMode.Restart
                 ),
                 label = "smoke_offset"

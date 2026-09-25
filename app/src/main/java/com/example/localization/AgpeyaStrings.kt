@@ -12,6 +12,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "日课经祷文 (Agpeya)"
         AppLanguage.JAPANESE -> "アグペヤの祈り (時課の祈り)"
         AppLanguage.KOREAN -> "아그페야 기도서 (성무일도)"
+        AppLanguage.HINDI -> "अग्पेया प्रार्थनाएँ (Agpeya Prayers)"
     }
 
     fun appSubtitle(lang: AppLanguage): String = when (lang) {
@@ -25,6 +26,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "科普特正教会日课经 (Canonical Hours)"
         AppLanguage.JAPANESE -> "コプト正教会 時課の祈りの書"
         AppLanguage.KOREAN -> "콥트 정교회 시간경 기도서"
+        AppLanguage.HINDI -> "कॉप्टिक रूढ़िवादी घंटों की प्रार्थना पुस्तक (Canonical Hours)"
     }
 
     // Navigation Tabs
@@ -39,6 +41,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "祷文"
         AppLanguage.JAPANESE -> "祈り"
         AppLanguage.KOREAN -> "기도"
+        AppLanguage.HINDI -> "प्रार्थनाएँ"
     }
 
     fun tabReports(lang: AppLanguage): String = when (lang) {
@@ -52,6 +55,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "报告"
         AppLanguage.JAPANESE -> "記録と統計"
         AppLanguage.KOREAN -> "보고서"
+        AppLanguage.HINDI -> "सांख्यिकी व रिपोर्ट"
     }
 
     fun tabSettings(lang: AppLanguage): String = when (lang) {
@@ -65,6 +69,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "闹钟与设置"
         AppLanguage.JAPANESE -> "通知と設定"
         AppLanguage.KOREAN -> "알람 및 설정"
+        AppLanguage.HINDI -> "अलार्म व सेटिंग्स"
     }
 
     fun tabCalendar(lang: AppLanguage): String = when (lang) {
@@ -78,6 +83,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "科普特历"
         AppLanguage.JAPANESE -> "聖人伝"
         AppLanguage.KOREAN -> "시낙사리온"
+        AppLanguage.HINDI -> "सिनैक्सारियन (कैलेंडर)"
     }
 
     fun tabAmbient(lang: AppLanguage): String = when (lang) {
@@ -91,6 +97,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "静修蜡烛"
         AppLanguage.JAPANESE -> "黙想"
         AppLanguage.KOREAN -> "피정"
+        AppLanguage.HINDI -> "خلوة"
     }
 
     fun tabJournal(lang: AppLanguage): String = when (lang) {
@@ -104,6 +111,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "灵修日志"
         AppLanguage.JAPANESE -> "霊性日記"
         AppLanguage.KOREAN -> "영성 일기"
+        AppLanguage.HINDI -> "المفكرة"
     }
 
     fun tabReportsAndSettings(lang: AppLanguage): String = when (lang) {
@@ -117,6 +125,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "报告与设置"
         AppLanguage.JAPANESE -> "記録と設定"
         AppLanguage.KOREAN -> "보고서 및 설정"
+        AppLanguage.HINDI -> "التقارير والإعدادات"
     }
 
     // Daily / Monthly / Yearly
@@ -131,6 +140,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "日视图"
         AppLanguage.JAPANESE -> "日別"
         AppLanguage.KOREAN -> "일간"
+        AppLanguage.HINDI -> "दैनिक"
     }
 
     fun reportMonthly(lang: AppLanguage): String = when (lang) {
@@ -144,6 +154,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "月视图"
         AppLanguage.JAPANESE -> "月別"
         AppLanguage.KOREAN -> "월간"
+        AppLanguage.HINDI -> "मासिक"
     }
 
     fun reportYearly(lang: AppLanguage): String = when (lang) {
@@ -157,6 +168,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "年视图"
         AppLanguage.JAPANESE -> "年別"
         AppLanguage.KOREAN -> "연간"
+        AppLanguage.HINDI -> "वार्षिक"
     }
 
     // Action strings
@@ -171,6 +183,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "已完成此时课祈祷"
         AppLanguage.JAPANESE -> "この時課を祈りました"
         AppLanguage.KOREAN -> "이 시간 기도 완료"
+        AppLanguage.HINDI -> "प्रार्थना पूर्ण दर्ज करें"
     }
 
     fun alreadyPrayed(lang: AppLanguage): String = when (lang) {
@@ -184,6 +197,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "今日已祈祷"
         AppLanguage.JAPANESE -> "本日祈祷済み"
         AppLanguage.KOREAN -> "오늘 기도함"
+        AppLanguage.HINDI -> "✓ प्रार्थना संपन्न"
     }
 
     fun readPrayer(lang: AppLanguage): String = when (lang) {
@@ -197,6 +211,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "阅读祷文与默想"
         AppLanguage.JAPANESE -> "祈りと黙想を読む"
         AppLanguage.KOREAN -> "기도문 읽기 및 묵상"
+        AppLanguage.HINDI -> "प्रार्थना पढ़ें"
     }
 
     fun testAlert(lang: AppLanguage): String = when (lang) {
@@ -210,6 +225,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "测试提示音与振动"
         AppLanguage.JAPANESE -> "通知と振動をテスト"
         AppLanguage.KOREAN -> "지금 알림 테스트"
+        AppLanguage.HINDI -> "परीक्षण अलर्ट"
     }
 
     fun timezoneWorldwide(lang: AppLanguage): String = when (lang) {
@@ -223,6 +239,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "当前本地时区"
         AppLanguage.JAPANESE -> "現在の現地タイムゾーン"
         AppLanguage.KOREAN -> "현재 현지 표준시"
+        AppLanguage.HINDI -> "विश्वव्यापी समय क्षेत्र"
     }
 
     fun alarmNotificationTitle(prayerName: String, lang: AppLanguage): String = when (lang) {
@@ -236,6 +253,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "已到${prayerName}祷告时间"
         AppLanguage.JAPANESE -> "${prayerName}の祈りの時間です"
         AppLanguage.KOREAN -> "${prayerName} 기도 시간입니다"
+        AppLanguage.HINDI -> "حان وقت صلاة  / प्रार्थना समय: "
     }
 
     fun alarmNotificationBody(lang: AppLanguage): String = when (lang) {
@@ -249,6 +267,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "“我因你公义的典章一天七次赞美你。” —— 来吧，让我们向我们的君王基督敬拜跪拜。"
         AppLanguage.JAPANESE -> "「私はあなたの一日に七度、あなたの正しい裁きのためにあなたを賛美します。」— 来たりて王なるキリストを拝みましょう。"
         AppLanguage.KOREAN -> "“내가 주의 의로운 규례들로 말미암아 하루 일곱 번씩 주를 찬양하나이다.” — 오라 우리가 우리 왕이신 그리스도께 엎드려 경배하자."
+        AppLanguage.HINDI -> "«हे प्रभु, अपने दास की प्रार्थना सुन» - अब प्रार्थना का समय है।"
     }
 
     // Reports Headers & Stats
@@ -263,6 +282,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "已完成祷告总数"
         AppLanguage.JAPANESE -> "完了した祈りの総数"
         AppLanguage.KOREAN -> "총 완료된 기도"
+        AppLanguage.HINDI -> "कुल प्रार्थनाएँ"
     }
 
     fun prayersTodayLabel(lang: AppLanguage): String = when (lang) {
@@ -276,6 +296,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "今日祷告"
         AppLanguage.JAPANESE -> "今日の祈り"
         AppLanguage.KOREAN -> "오늘의 기도"
+        AppLanguage.HINDI -> "आज की प्रार्थनाएँ"
     }
 
     fun monthlyBreakdown(lang: AppLanguage): String = when (lang) {
@@ -289,6 +310,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "当月祷告分布"
         AppLanguage.JAPANESE -> "月間祈祷内訳"
         AppLanguage.KOREAN -> "월별 기도 분석"
+        AppLanguage.HINDI -> "मासिक विवरण"
     }
 
     fun yearlySummary(lang: AppLanguage): String = when (lang) {
@@ -302,6 +324,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "年度总结与月度走势"
         AppLanguage.JAPANESE -> "年間総括と月別推移"
         AppLanguage.KOREAN -> "연간 요약 및 월간 추이"
+        AppLanguage.HINDI -> "वार्षिक सारांश"
     }
 
     fun prayersLogHistory(lang: AppLanguage): String = when (lang) {
@@ -315,6 +338,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "带日期时间的祷告记录历史"
         AppLanguage.JAPANESE -> "日時付き祈祷履歴ログ"
         AppLanguage.KOREAN -> "일시별 기도 기록 히스토리"
+        AppLanguage.HINDI -> "प्रार्थना इतिहास"
     }
 
     fun noLogsYet(lang: AppLanguage): String = when (lang) {
@@ -328,6 +352,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "此期间尚无祈祷记录。点击任一时课卡片即可记录。"
         AppLanguage.JAPANESE -> "この期間の祈りの記録はまだありません。祈りカードをタップして記録できます。"
         AppLanguage.KOREAN -> "이 기간에 기록된 기도가 아직 없습니다. 기도 카드를 눌러 기록하세요."
+        AppLanguage.HINDI -> "अभी तक कोई प्रार्थना दर्ज नहीं हुई"
     }
 
     fun verseSevenTimes(lang: AppLanguage): String = when (lang) {
@@ -341,6 +366,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "“我因你公义的典章一天七次赞美你。”（诗篇 119:164）"
         AppLanguage.JAPANESE -> "「私はあなたの一日に七度、あなたの正しい裁きのためにあなたを賛美します。」(詩篇 119:164)"
         AppLanguage.KOREAN -> "“내가 주의 의로운 규례들로 말미암아 하루 일곱 번씩 주를 찬양하나이다” (시편 119:164)"
+        AppLanguage.HINDI -> "«मैं दिन में सात बार तेरी स्तुति करता हूँ» (भजन 119:164)"
     }
 
     fun languageSelection(lang: AppLanguage): String = when (lang) {
@@ -354,6 +380,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "应用语言"
         AppLanguage.JAPANESE -> "言語設定"
         AppLanguage.KOREAN -> "앱 언어"
+        AppLanguage.HINDI -> "اختر اللغة / भाषा चुनें (Language)"
     }
 
     fun alarmTime(lang: AppLanguage): String = when (lang) {
@@ -367,6 +394,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "提醒时间"
         AppLanguage.JAPANESE -> "アラーム時刻"
         AppLanguage.KOREAN -> "알람 시간"
+        AppLanguage.HINDI -> "अलार्म समय"
     }
 
     fun soundAlert(lang: AppLanguage): String = when (lang) {
@@ -380,6 +408,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "声音与振动"
         AppLanguage.JAPANESE -> "音とバイブレーション"
         AppLanguage.KOREAN -> "소리 및 진동"
+        AppLanguage.HINDI -> "ध्वनि चेतावनी"
     }
 
     fun worldwideNotice(lang: AppLanguage): String = when (lang) {
@@ -393,6 +422,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "基于您设备的本地时区，全球皆可使用。您可以随心调整每个时课的提醒时间。"
         AppLanguage.JAPANESE -> "端末の現地タイムゾーンに基づき世界中で機能します。各時課のアラーム時刻は自由に設定可能です。"
         AppLanguage.KOREAN -> "기기의 현지 표준시에 맞춰 전 세계 어디서나 동작합니다. 각 시간경 알람 시간을 자유롭게 설정할 수 있습니다."
+        AppLanguage.HINDI -> "अंतरराष्ट्रीय समय क्षेत्र समर्थन"
     }
 
     fun close(lang: AppLanguage): String = when (lang) {
@@ -406,6 +436,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "关闭"
         AppLanguage.JAPANESE -> "閉じる"
         AppLanguage.KOREAN -> "닫기"
+        AppLanguage.HINDI -> "बंद करें"
     }
 
     fun save(lang: AppLanguage): String = when (lang) {
@@ -419,6 +450,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "保存"
         AppLanguage.JAPANESE -> "保存"
         AppLanguage.KOREAN -> "저장"
+        AppLanguage.HINDI -> "सहेजें"
     }
 
     fun deleteConfirm(lang: AppLanguage): String = when (lang) {
@@ -432,6 +464,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "删除此记录？"
         AppLanguage.JAPANESE -> "この記録を削除しますか？"
         AppLanguage.KOREAN -> "이 기록을 삭제하시겠습니까?"
+        AppLanguage.HINDI -> "क्या आप वाकई हटाना चाहते हैं?"
     }
 
     fun notificationPermissionRequired(lang: AppLanguage): String = when (lang) {
@@ -445,6 +478,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "请开启通知权限，以便应用在祷告时间提醒您。"
         AppLanguage.JAPANESE -> "祈りの時間に通知を受け取れるよう、通知権限を許可してください。"
         AppLanguage.KOREAN -> "기도 시간에 알림을 받을 수 있도록 알림 권한을 허용해 주세요."
+        AppLanguage.HINDI -> "प्रार्थना अलर्ट के लिए सूचना अनुमति आवश्यक है"
     }
 
     fun allowPermission(lang: AppLanguage): String = when (lang) {
@@ -458,6 +492,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "启用通知"
         AppLanguage.JAPANESE -> "通知を有効にする"
         AppLanguage.KOREAN -> "알림 활성화"
+        AppLanguage.HINDI -> "अनुमति दें"
     }
 
     // Daily Verse & Meditation
@@ -472,6 +507,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "今日金句与灵修默想"
         AppLanguage.JAPANESE -> "今日のみ言葉と黙想"
         AppLanguage.KOREAN -> "오늘의 말씀과 묵상"
+        AppLanguage.HINDI -> "दैनिक पवित्र वचन"
     }
 
     fun orthodoxBibleEgypt(lang: AppLanguage): String = when (lang) {
@@ -485,6 +521,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "正教圣经权威译本"
         AppLanguage.JAPANESE -> "正教会公認聖書"
         AppLanguage.KOREAN -> "정교회 성경 권위역"
+        AppLanguage.HINDI -> "कॉप्टिक रूढ़िवादी चर्च"
     }
 
     fun spiritualExplanation(lang: AppLanguage): String = when (lang) {
@@ -498,6 +535,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "教父注疏与灵修启发"
         AppLanguage.JAPANESE -> "教父の註解と省察"
         AppLanguage.KOREAN -> "교부 주석 및 묵상"
+        AppLanguage.HINDI -> "आध्यात्मिक मनन"
     }
 
     fun spiritualSoundsTitle(lang: AppLanguage): String = when (lang) {
@@ -511,6 +549,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "传统教会圣乐与灵修提示音"
         AppLanguage.JAPANESE -> "教会の聖なる音色とアラーム"
         AppLanguage.KOREAN -> "영적 성음 및 교회 성가 알람"
+        AppLanguage.HINDI -> "पवित्र ध्वनियाँ व घंटियाँ"
     }
 
     fun previewSound(lang: AppLanguage): String = when (lang) {
@@ -524,6 +563,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "试听音效"
         AppLanguage.JAPANESE -> "音をプレビュー"
         AppLanguage.KOREAN -> "소리 미리듣기"
+        AppLanguage.HINDI -> "सुनें"
     }
 
     fun stopSound(lang: AppLanguage): String = when (lang) {
@@ -537,6 +577,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "停止"
         AppLanguage.JAPANESE -> "停止"
         AppLanguage.KOREAN -> "정지"
+        AppLanguage.HINDI -> "रोकें"
     }
 
     fun selectAlarmTone(lang: AppLanguage): String = when (lang) {
@@ -550,6 +591,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "选择圣乐提醒铃声"
         AppLanguage.JAPANESE -> "アラーム音を選択"
         AppLanguage.KOREAN -> "영적 알람음 선택"
+        AppLanguage.HINDI -> "अलार्म टोन चुनें"
     }
 
     fun spiritualSoundsSubtitle(lang: AppLanguage): String = when (lang) {
@@ -563,6 +605,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "试听科普特钟声、钹、三角铁与修道院木板声，为各时课选择铃声："
         AppLanguage.JAPANESE -> "コプト教会の鐘、シンバル、トライアングル、修道院の木板音を試聴して祈りごとに設定できます："
         AppLanguage.KOREAN -> "콥트 교회 종소리, 심벌즈, 트라이앵글, 수도원 목제 타종음을 미리듣고 설정하세요:"
+        AppLanguage.HINDI -> "कॉप्टिक घंटियाँ और पवित्र धुनें"
     }
 
     fun cancel(lang: AppLanguage): String = when (lang) {
@@ -576,6 +619,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "取消"
         AppLanguage.JAPANESE -> "キャンセル"
         AppLanguage.KOREAN -> "취소"
+        AppLanguage.HINDI -> "रद्द करें"
     }
 
     fun holyGospel(lang: AppLanguage): String = when (lang) {
@@ -589,6 +633,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "神圣福音"
         AppLanguage.JAPANESE -> "聖福音"
         AppLanguage.KOREAN -> "거룩한 복음"
+        AppLanguage.HINDI -> "पवित्र सुसमाचार"
     }
 
     fun holyGospelStand(lang: AppLanguage): String = when (lang) {
@@ -602,6 +647,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "以敬畏神的心站立，恭听神圣福音"
         AppLanguage.JAPANESE -> "神を畏れ敬いて立ち、聖福音を聴きましょう"
         AppLanguage.KOREAN -> "하나님을 경외함으로 일어서서 거룩한 복음을 들읍시다"
+        AppLanguage.HINDI -> "✝ परमेश्वर के भय में खड़े हों, पवित्र सुसमाचार सुनें"
     }
 
     fun gloryToGodForever(lang: AppLanguage): String = when (lang) {
@@ -615,6 +661,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "荣耀归于上帝，直到永远。阿们。"
         AppLanguage.JAPANESE -> "神に栄光あれ、世々限りなく。アーメン。"
         AppLanguage.KOREAN -> "영원토록 하나님께 영광을. 아멘."
+        AppLanguage.HINDI -> "परमेश्वर की महिमा सदा सर्वदा हो, आमीन।"
     }
 
     fun gospelFinishedPrompt(lang: AppLanguage): String = when (lang) {
@@ -628,6 +675,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "我已读完神圣福音"
         AppLanguage.JAPANESE -> "聖福音の朗読を終えました"
         AppLanguage.KOREAN -> "거룩한 복음 읽기를 마쳤습니다"
+        AppLanguage.HINDI -> "क्या आपने प्रार्थना पूरी कर ली है?"
     }
 
     fun recordPrayerNow(lang: AppLanguage): String = when (lang) {
@@ -641,6 +689,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "立即自动记录此祈祷"
         AppLanguage.JAPANESE -> "今すぐ祈りを自動記録する"
         AppLanguage.KOREAN -> "지금 자동으로 기도 기록하기"
+        AppLanguage.HINDI -> "प्रार्थना दर्ज करें"
     }
 
     fun autoRecordedNotice(lang: AppLanguage): String = when (lang) {
@@ -654,6 +703,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "当您阅读完神圣福音时，应用会自动记录您已准时完成祷告，并记录确切的日期和时间。"
         AppLanguage.JAPANESE -> "聖福音を朗読すると、アプリが時間通りの祈祷を自動認識し、正確な日時を記録します。"
         AppLanguage.KOREAN -> "거룩한 복음을 읽으면 앱이 정시 기도를 자동으로 인식하여 정확한 날짜와 시간을 기록합니다."
+        AppLanguage.HINDI -> "प्रार्थना सफलतापूर्वक दर्ज हो गई"
     }
 
     fun prayerRecordedSuccess(lang: AppLanguage): String = when (lang) {
@@ -667,6 +717,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "✓ 阅读福音后已自动记录祈祷"
         AppLanguage.JAPANESE -> "✓ 福音朗読により祈りが自動記録されました"
         AppLanguage.KOREAN -> "✓ 복음 묵상 후 기도가 자동으로 기록되었습니다"
+        AppLanguage.HINDI -> "प्रार्थना सहेजी गई"
     }
 
     fun unmarkPrayerPrompt(lang: AppLanguage): String = when (lang) {
@@ -680,6 +731,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "取消标记（未祈祷）"
         AppLanguage.JAPANESE -> "取り消す（祈っていません）"
         AppLanguage.KOREAN -> "기록 취소 (기도하지 않음)"
+        AppLanguage.HINDI -> "चिह्न हटाएँ"
     }
 
     // Visual Reports & Interactive Charts
@@ -694,6 +746,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "视觉报表与图表"
         AppLanguage.JAPANESE -> "ビジュアル統計ダッシュボード"
         AppLanguage.KOREAN -> "시각적 대시보드 및 차트"
+        AppLanguage.HINDI -> "आध्यात्मिक डैशबोर्ड"
     }
 
     fun prayerFrequency(lang: AppLanguage): String = when (lang) {
@@ -707,6 +760,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "祷告频次"
         AppLanguage.JAPANESE -> "祈祷頻度"
         AppLanguage.KOREAN -> "기도 빈도"
+        AppLanguage.HINDI -> "प्रार्थना आवृत्ति"
     }
 
     fun dailyProgressChart(lang: AppLanguage): String = when (lang) {
@@ -720,6 +774,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "每日时课与24小时时间轴"
         AppLanguage.JAPANESE -> "時課と24時間タイムライン"
         AppLanguage.KOREAN -> "일일 시간경 및 24시간 타임라인"
+        AppLanguage.HINDI -> "दैनिक प्रगति चार्ट"
     }
 
     fun monthlyProgressChart(lang: AppLanguage): String = when (lang) {
@@ -733,6 +788,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "每日祷告频率柱状图"
         AppLanguage.JAPANESE -> "日別祈祷頻度バーチャート"
         AppLanguage.KOREAN -> "일일 기도 빈도 막대 그래프"
+        AppLanguage.HINDI -> "मासिक प्रगति चार्ट"
     }
 
     fun yearlyProgressChart(lang: AppLanguage): String = when (lang) {
@@ -746,6 +802,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "12个月年度祈祷趋势走势图"
         AppLanguage.JAPANESE -> "12ヶ月の年間祈祷推移グラフ"
         AppLanguage.KOREAN -> "12개월 연간 기도 진행 추이"
+        AppLanguage.HINDI -> "वार्षिक प्रगति चार्ट"
     }
 
     fun calendarActivityHeatmap(lang: AppLanguage): String = when (lang) {
@@ -759,6 +816,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "月度活跃度热力图"
         AppLanguage.JAPANESE -> "月間活動ヒートマップ"
         AppLanguage.KOREAN -> "월간 활동 히트맵"
+        AppLanguage.HINDI -> "प्रार्थना गतिविधि हीटमैप"
     }
 
     fun prayerDistribution(lang: AppLanguage): String = when (lang) {
@@ -772,6 +830,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "各时课祷告比例分布"
         AppLanguage.JAPANESE -> "時課ごとの祈り分布"
         AppLanguage.KOREAN -> "기도별 비율 분포도"
+        AppLanguage.HINDI -> "प्रार्थना वितरण"
     }
 
     fun consistencyScore(lang: AppLanguage): String = when (lang) {
@@ -785,6 +844,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "坚持度评分"
         AppLanguage.JAPANESE -> "継続達成度"
         AppLanguage.KOREAN -> "꾸준함 지수"
+        AppLanguage.HINDI -> "निरंतरता स्कोर"
     }
 
     fun dailyAverage(lang: AppLanguage): String = when (lang) {
@@ -798,6 +858,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "日均祈祷次数"
         AppLanguage.JAPANESE -> "1日の平均祈祷回数"
         AppLanguage.KOREAN -> "일일 평균"
+        AppLanguage.HINDI -> "दैनिक औसत"
     }
 
     // Cloud Sync & Firestore
@@ -812,6 +873,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "跨设备云端同步 (Cloud Sync)"
         AppLanguage.JAPANESE -> "マルチデバイス・クラウド同期"
         AppLanguage.KOREAN -> "기기 간 클라우드 동기화"
+        AppLanguage.HINDI -> "क्लाउड बैकअप व सिंक"
     }
 
     fun cloudSyncSubtitle(lang: AppLanguage): String = when (lang) {
@@ -825,6 +887,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "通过 Firestore 自动在您的所有设备间同步祷告历史和个性化设置"
         AppLanguage.JAPANESE -> "Firestoreにより、すべての端末で祈りの履歴と設定を自動同期します"
         AppLanguage.KOREAN -> "Firestore를 통해 모든 기기에서 기도 기록 및 설정을 자동으로 동기화합니다"
+        AppLanguage.HINDI -> "सभी उपकरणों पर प्रार्थना डेटा सुरक्षित रखें"
     }
 
     fun syncStatusSynced(lang: AppLanguage): String = when (lang) {
@@ -838,6 +901,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "已全部云同步 (Firestore)"
         AppLanguage.JAPANESE -> "クラウド同期完了 (Firestore)"
         AppLanguage.KOREAN -> "클라우드 동기화 완료 (Firestore)"
+        AppLanguage.HINDI -> "सिंक पूर्ण (समकालिक)"
     }
 
     fun syncStatusSyncing(lang: AppLanguage): String = when (lang) {
@@ -851,6 +915,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "正在同步至云端..."
         AppLanguage.JAPANESE -> "クラウドと同期中..."
         AppLanguage.KOREAN -> "클라우드 동기화 중..."
+        AppLanguage.HINDI -> "सिंक हो रहा है..."
     }
 
     fun syncStatusOffline(lang: AppLanguage): String = when (lang) {
@@ -864,6 +929,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "本地存储模式（保存在本机）"
         AppLanguage.JAPANESE -> "ローカル保存モード"
         AppLanguage.KOREAN -> "로컬 저장 모드 (이 기기에 저장)"
+        AppLanguage.HINDI -> "ऑफ़लाइन मोड"
     }
 
     fun syncNow(lang: AppLanguage): String = when (lang) {
@@ -877,6 +943,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "立即同步"
         AppLanguage.JAPANESE -> "今すぐ同期"
         AppLanguage.KOREAN -> "지금 동기화"
+        AppLanguage.HINDI -> "अभी सिंक करें"
     }
 
     fun deviceSyncKey(lang: AppLanguage): String = when (lang) {
@@ -890,6 +957,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "设备同步密钥 (Sync Key)"
         AppLanguage.JAPANESE -> "デバイス同期キー"
         AppLanguage.KOREAN -> "기기 동기화 키 (Sync Key)"
+        AppLanguage.HINDI -> "डिवाइस सिंक कुंजी"
     }
 
     fun syncKeyDescription(lang: AppLanguage): String = when (lang) {
@@ -903,6 +971,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "在您的其他手机或平板电脑上使用此相同密钥，即可自动关联同步祈祷历史。"
         AppLanguage.JAPANESE -> "他のスマートフォンやタブレットで同じキーを使用すると、祈りの履歴が自動的に連携されます。"
         AppLanguage.KOREAN -> "다른 스마트폰이나 태블릿에서 이 키를 입력하면 기도 기록이 자동으로 연동됩니다."
+        AppLanguage.HINDI -> "दूसरे डिवाइस को जोड़ने के लिए इस कुंजी का उपयोग करें"
     }
 
     fun linkAnotherDevice(lang: AppLanguage): String = when (lang) {
@@ -916,6 +985,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "通过密钥关联其他设备"
         AppLanguage.JAPANESE -> "別のデバイスキーと連携"
         AppLanguage.KOREAN -> "다른 기기 키와 연동하기"
+        AppLanguage.HINDI -> "अन्य डिवाइस जोड़ें"
     }
 
     fun enterSyncKeyPrompt(lang: AppLanguage): String = when (lang) {
@@ -929,6 +999,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "输入另一台设备的同步密钥以同步并共享祈祷历史："
         AppLanguage.JAPANESE -> "同期して履歴を共有するため、別の端末の同期キーを入力してください："
         AppLanguage.KOREAN -> "다른 기기의 동기화 키를 입력하여 기도 기록을 연결하고 공유하세요:"
+        AppLanguage.HINDI -> "सिंक कुंजी दर्ज करें"
     }
 
     fun saveAndSync(lang: AppLanguage): String = when (lang) {
@@ -942,6 +1013,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "保存并同步"
         AppLanguage.JAPANESE -> "保存して同期"
         AppLanguage.KOREAN -> "저장 및 동기화"
+        AppLanguage.HINDI -> "सहेजें और सिंक करें"
     }
 
     fun vibrationAndSoundTitle(lang: AppLanguage): String = when (lang) {
@@ -955,6 +1027,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "振动与声音同步提醒"
         AppLanguage.JAPANESE -> "バイブレーションと音による同時アラーム"
         AppLanguage.KOREAN -> "진동 및 소리 동시 알림"
+        AppLanguage.HINDI -> "ध्वनि और कंपन"
     }
 
     fun vibrationAndSoundDescription(lang: AppLanguage): String = when (lang) {
@@ -968,6 +1041,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "富有韵律的振动脉冲与神圣铃声协同生效，确保您在静音或喧闹环境中都不会错过时课祷告。"
         AppLanguage.JAPANESE -> "聖なるチャイムとリズミカルな振動が連携し、マナーモード時でも祈りの時間を確実に通知します。"
         AppLanguage.KOREAN -> "영적인 성음과 리드미컬한 진동이 함께 작동하여 무음 모드에서도 시간경 기도를 놓치지 않도록 알려줍니다."
+        AppLanguage.HINDI -> "अलार्म के समय ध्वनि और कंपन प्रबंधित करें"
     }
 
     fun enableVibrationAll(lang: AppLanguage): String = when (lang) {
@@ -981,6 +1055,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "一键开启所有时课振动"
         AppLanguage.JAPANESE -> "すべての時課で振動を有効化"
         AppLanguage.KOREAN -> "모든 기도에 진동 활성화"
+        AppLanguage.HINDI -> "सभी के लिए कंपन सक्षम करें"
     }
 
     fun disableVibrationAll(lang: AppLanguage): String = when (lang) {
@@ -994,6 +1069,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "一键关闭所有时课振动"
         AppLanguage.JAPANESE -> "すべての時課で振動を無効化"
         AppLanguage.KOREAN -> "모든 기도에 진동 비활성화"
+        AppLanguage.HINDI -> "सभी के लिए कंपन अक्षम करें"
     }
 
     fun enableSoundAll(lang: AppLanguage): String = when (lang) {
@@ -1007,6 +1083,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "一键开启所有时课声音"
         AppLanguage.JAPANESE -> "すべての時課で音を有効化"
         AppLanguage.KOREAN -> "모든 기도에 소리 활성화"
+        AppLanguage.HINDI -> "सभी ध्वनियाँ चालू करें"
     }
 
     fun disableSoundAll(lang: AppLanguage): String = when (lang) {
@@ -1020,6 +1097,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "一键静音所有时课声音"
         AppLanguage.JAPANESE -> "すべての時課で音をミュート"
         AppLanguage.KOREAN -> "모든 기도에 소리 음소거"
+        AppLanguage.HINDI -> "सभी ध्वनियाँ म्यूट करें"
     }
 
     fun soundAndVibrationMode(lang: AppLanguage): String = when (lang) {
@@ -1033,6 +1111,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "声音 + 振动"
         AppLanguage.JAPANESE -> "音と振動"
         AppLanguage.KOREAN -> "소리 및 진동"
+        AppLanguage.HINDI -> "ध्वनि + कंपन"
     }
 
     fun vibrationOnlyMode(lang: AppLanguage): String = when (lang) {
@@ -1046,6 +1125,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "仅振动（静音模式）"
         AppLanguage.JAPANESE -> "バイブレーションのみ（マナー）"
         AppLanguage.KOREAN -> "진동만 (무음 모드)"
+        AppLanguage.HINDI -> "केवल कंपन"
     }
 
     fun soundOnlyMode(lang: AppLanguage): String = when (lang) {
@@ -1059,6 +1139,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "仅声音"
         AppLanguage.JAPANESE -> "音のみ"
         AppLanguage.KOREAN -> "소리만"
+        AppLanguage.HINDI -> "केवल ध्वनि"
     }
 
     fun completelyMuteMode(lang: AppLanguage): String = when (lang) {
@@ -1072,6 +1153,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "完全静音（无声音与振动）"
         AppLanguage.JAPANESE -> "完全サイレント（音・振動なし）"
         AppLanguage.KOREAN -> "완전 무음 (소리/진동 없음)"
+        AppLanguage.HINDI -> "मूक (साइलेंट)"
     }
 
     fun authWelcomeTitle(lang: AppLanguage): String = when (lang) {
@@ -1085,6 +1167,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "科普特东正教圣时课经 (Agpeya)"
         AppLanguage.JAPANESE -> "コプト正教会 時課の祈り (アグペヤ)"
         AppLanguage.KOREAN -> "콥트 정교회 아그페야 시간경 기도서"
+        AppLanguage.HINDI -> "अग्पेया प्रार्थना ऐप में आपका स्वागत है"
     }
 
     fun authWelcomeSubtitle(lang: AppLanguage): String = when (lang) {
@@ -1098,6 +1181,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "科普特东正教七次日课与多设备即时云端祈祷同步"
         AppLanguage.JAPANESE -> "コプト正教会の日課の祈りとマルチデバイス即時クラウド同期"
         AppLanguage.KOREAN -> "콥트 정교회 7대 시간경 기도 및 기기 간 실시간 클라우드 동기화"
+        AppLanguage.HINDI -> "दैनिक प्रार्थनाओं का पवित्र साथी"
     }
 
     fun stepSelectLanguage(lang: AppLanguage): String = when (lang) {
@@ -1111,6 +1195,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "第一步：选择应用与祷告语言"
         AppLanguage.JAPANESE -> "ステップ 1：言語を選択してください"
         AppLanguage.KOREAN -> "1단계: 기도 및 앱 언어 선택"
+        AppLanguage.HINDI -> "1. अपनी पसंदीदा भाषा चुनें"
     }
 
     fun stepAccountSync(lang: AppLanguage): String = when (lang) {
@@ -1124,6 +1209,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "第二步：输入电子邮箱以在云端保存与同步祷告记录"
         AppLanguage.JAPANESE -> "ステップ 2：メールでログインし祈りの記録をクラウド同期"
         AppLanguage.KOREAN -> "2단계: 이메일로 로그인하여 기도 기록을 온라인에 동기화"
+        AppLanguage.HINDI -> "2. क्लाउड बैकअप खाता (वैकल्पिक)"
     }
 
     fun authEmailDescription(lang: AppLanguage): String = when (lang) {
@@ -1137,6 +1223,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "输入您的邮箱以在云端同步祷告记录。无论在任何手机、平板或新设备上使用此邮箱登录，您的祈祷历史、闹钟设置和图表都将自动恢复。"
         AppLanguage.JAPANESE -> "メールアドレスを登録すると祈りの記録がオンラインに保存されます。他のスマートフォンや端末で同じメールで開いても、祈り・アラーム・履歴が自動同期されます。"
         AppLanguage.KOREAN -> "이메일을 등록하여 기도 기록을 온라인에 저장하세요. 다른 휴대폰이나 기기에서 동일한 이메일로 앱을 열면 기도 기록과 알람 설정이 자동으로 복원됩니다."
+        AppLanguage.HINDI -> "अपने डेटा को सिंक और सुरक्षित करने के लिए ईमेल दर्ज करें"
     }
 
     fun emailAddressLabel(lang: AppLanguage): String = when (lang) {
@@ -1150,6 +1237,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "电子邮箱地址"
         AppLanguage.JAPANESE -> "メールアドレス"
         AppLanguage.KOREAN -> "이메일 주소"
+        AppLanguage.HINDI -> "ईमेल पता"
     }
 
     fun passwordOptionalLabel(lang: AppLanguage): String = when (lang) {
@@ -1163,6 +1251,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "密码（可选 / 用于保护您的云端账户）"
         AppLanguage.JAPANESE -> "パスワード（任意 / アカウント保護用）"
         AppLanguage.KOREAN -> "비밀번호 (선택사항 / 계정 보호용)"
+        AppLanguage.HINDI -> "पासवर्ड (वैकल्पिक)"
     }
 
     fun signInAndSyncButton(lang: AppLanguage): String = when (lang) {
@@ -1176,6 +1265,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "登录并启用多设备云端同步"
         AppLanguage.JAPANESE -> "ログインしてクラウド同期を開始"
         AppLanguage.KOREAN -> "로그인 및 클라우드 동기화 시작"
+        AppLanguage.HINDI -> "साइन इन और सिंक करें"
     }
 
     fun continueAsGuestButton(lang: AppLanguage): String = when (lang) {
@@ -1189,6 +1279,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "以访客身份继续（仅本地离线）"
         AppLanguage.JAPANESE -> "ゲストとして続行（ローカルのみ）"
         AppLanguage.KOREAN -> "게스트로 계속하기 (오프라인 전용)"
+        AppLanguage.HINDI -> "अतिथि के रूप में जारी रखें"
     }
 
     fun accountLinkedTitle(lang: AppLanguage): String = when (lang) {
@@ -1202,6 +1293,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "已连接的云端同步账户"
         AppLanguage.JAPANESE -> "接続されたクラウド同期アカウント"
         AppLanguage.KOREAN -> "연결된 클라우드 동기화 계정"
+        AppLanguage.HINDI -> "खाता सफलतापूर्वक लिंक किया गया"
     }
 
     fun switchAccountButton(lang: AppLanguage): String = when (lang) {
@@ -1215,6 +1307,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "切换账户或更换邮箱"
         AppLanguage.JAPANESE -> "アカウントの切り替え / メール変更"
         AppLanguage.KOREAN -> "계정 전환 / 이메일 변경"
+        AppLanguage.HINDI -> "खाता बदलें"
     }
 
     fun emailRequiredPrompt(lang: AppLanguage): String = when (lang) {
@@ -1228,6 +1321,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "请输入有效的电子邮箱地址以进行同步"
         AppLanguage.JAPANESE -> "同期用の有効なメールアドレスを入力してください"
         AppLanguage.KOREAN -> "동기화에 사용할 올바른 이메일 주소를 입력해 주세요"
+        AppLanguage.HINDI -> "कृपया एक वैध ईमेल पता दर्ज करें"
     }
 
     fun cloudSyncAccount(lang: AppLanguage): String = when (lang) {
@@ -1241,6 +1335,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "云端同步账户"
         AppLanguage.JAPANESE -> "クラウド同期アカウント"
         AppLanguage.KOREAN -> "클라우드 동기화 계정"
+        AppLanguage.HINDI -> "क्लाउड सिंक खाता"
     }
 
     fun exportPdfReport(lang: AppLanguage): String = when (lang) {
@@ -1254,6 +1349,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "导出灵修进度报告 (PDF)"
         AppLanguage.JAPANESE -> "進行状況レポートをエクスポート (PDF)"
         AppLanguage.KOREAN -> "진행 보고서 내보내기 (PDF)"
+        AppLanguage.HINDI -> "PDF आध्यात्मिक रिपोर्ट निर्यात करें"
     }
 
     fun exportPdfSubtitle(lang: AppLanguage): String = when (lang) {
@@ -1267,6 +1363,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "包含用户账户名、祷告明细与完成率的正式文件"
         AppLanguage.JAPANESE -> "ユーザー名、祈りの詳細、達成度を記載した公式レポート"
         AppLanguage.KOREAN -> "사용자 이름, 기도 세부 내역 및 완료율이 포함된 공식 문서"
+        AppLanguage.HINDI -> "प्रार्थना इतिहास का सुंदर दस्तावेज डाउनलोड करें"
     }
 
     fun churchNameOptionalLabel(lang: AppLanguage): String = when (lang) {
@@ -1280,6 +1377,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "所属教堂 / 事工名称 (可选)"
         AppLanguage.JAPANESE -> "所属教会名 / 奉仕先 (任意)"
         AppLanguage.KOREAN -> "출석 교회 / 사역지 (선택 사항)"
+        AppLanguage.HINDI -> "चर्च का नाम (वैकल्पिक)"
     }
 
     fun churchNamePlaceholder(lang: AppLanguage): String = when (lang) {
@@ -1293,6 +1391,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "例如：圣马克科普特正教会"
         AppLanguage.JAPANESE -> "例：聖マルコ・コプト正教会"
         AppLanguage.KOREAN -> "예: 성 마르코 콥트 정교회"
+        AppLanguage.HINDI -> "उदा. सेंट मार्क कॉप्टिक चर्च"
     }
 
     fun churchEmblemTitle(lang: AppLanguage): String = when (lang) {
@@ -1306,6 +1405,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "PDF 报告的教堂徽章"
         AppLanguage.JAPANESE -> "PDF レポート用の教会エンブレム"
         AppLanguage.KOREAN -> "PDF 보고서용 교회 엠블럼"
+        AppLanguage.HINDI -> "चर्च का प्रतीक चिह्न"
     }
 
     fun backupSectionTitle(lang: AppLanguage): String = when (lang) {
@@ -1319,6 +1419,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "本地备份与恢复"
         AppLanguage.JAPANESE -> "ローカルバックアップと復元"
         AppLanguage.KOREAN -> "로컬 백업 및 데이터 복원"
+        AppLanguage.HINDI -> "डेटा बैकअप और पुनर्स्थापना"
     }
 
     fun backupExportButton(lang: AppLanguage): String = when (lang) {
@@ -1332,6 +1433,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "导出备份文件 (JSON)"
         AppLanguage.JAPANESE -> "バックアップの出力 (JSON)"
         AppLanguage.KOREAN -> "백업 파일 내보내기 (JSON)"
+        AppLanguage.HINDI -> "JSON बैकअप निर्यात करें"
     }
 
     fun backupRestoreButton(lang: AppLanguage): String = when (lang) {
@@ -1345,6 +1447,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "从备份文件恢复"
         AppLanguage.JAPANESE -> "バックアップから復元"
         AppLanguage.KOREAN -> "백업 파일에서 복원"
+        AppLanguage.HINDI -> "बैकअप फ़ाइल पुनर्स्थापित करें"
     }
 
     fun backupRestoreSuccessMsg(count: Int, lang: AppLanguage): String = when (lang) {
@@ -1358,6 +1461,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "成功恢复了 $count 条祷告记录及配置！"
         AppLanguage.JAPANESE -> "$count 件の祈りの記録と設定を復元しました！"
         AppLanguage.KOREAN -> "${count}개의 기도 기록과 설정이 성공적으로 복원되었습니다!"
+        AppLanguage.HINDI -> " प्रार्थना रिकॉर्ड सफलतापूर्वक पुनर्स्थापित किए गए!"
     }
 
     // Candle Sanctuary Mode
@@ -1372,6 +1476,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "烛光沉思专注模式"
         AppLanguage.JAPANESE -> "ろうそくの聖所・瞑想モード"
         AppLanguage.KOREAN -> "촛불 성소 묵상 모드"
+        AppLanguage.HINDI -> "خلوة"
     }
 
     // Annual Heatmap & Streaks
@@ -1386,6 +1491,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "年度祷告热力图 (365 天)"
         AppLanguage.JAPANESE -> "年間祈りのヒートマップ (365 日)"
         AppLanguage.KOREAN -> "연간 기도 히트맵 (365일)"
+        AppLanguage.HINDI -> "वार्षिक प्रार्थना हीटमैप (365 दिन)"
     }
 
     fun currentStreakTitle(lang: AppLanguage): String = when (lang) {
@@ -1399,6 +1505,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "当前连续祷告"
         AppLanguage.JAPANESE -> "現在の祈りストリーク"
         AppLanguage.KOREAN -> "현재 기도 스트릭"
+        AppLanguage.HINDI -> "वर्तमान निरंतरता"
     }
 
     fun longestStreakTitle(lang: AppLanguage): String = when (lang) {
@@ -1412,6 +1519,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "最长连续祷告"
         AppLanguage.JAPANESE -> "最长ストリーク"
         AppLanguage.KOREAN -> "최장 기도 스트릭"
+        AppLanguage.HINDI -> "सर्वश्रेष्ठ निरंतरता"
     }
 
     fun annualConsistencyTitle(lang: AppLanguage): String = when (lang) {
@@ -1425,6 +1533,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "年度坚持率"
         AppLanguage.JAPANESE -> "年間継続率"
         AppLanguage.KOREAN -> "연간 일관성"
+        AppLanguage.HINDI -> "वार्षिक निष्ठा"
     }
 
     // Audio Recitation & Chants Player
@@ -1439,6 +1548,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "语音朗读与科普特圣咏"
         AppLanguage.JAPANESE -> "音声朗読とコプト聖歌"
         AppLanguage.KOREAN -> "음성 낭독 및 콥트 성가"
+        AppLanguage.HINDI -> "ऑडियो पाठ और पवित्र भजन"
     }
 
     fun autoScrollSyncTitle(lang: AppLanguage): String = when (lang) {
@@ -1452,6 +1562,7 @@ object AgpeyaStrings {
         AppLanguage.CHINESE -> "自动滚动与语音同步"
         AppLanguage.JAPANESE -> "音声連動自動スクロール"
         AppLanguage.KOREAN -> "음성 동기화 자동 스크롤"
+        AppLanguage.HINDI -> "ऑटो-स्क्रॉल और ध्वनि सिंक"
     }
 }
 

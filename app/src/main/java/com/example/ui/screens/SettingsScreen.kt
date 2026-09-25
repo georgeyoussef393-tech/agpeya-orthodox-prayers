@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MusicNote
@@ -170,6 +171,7 @@ fun SettingsScreen(
 
     var isEditingChurch by remember { mutableStateOf(false) }
     var churchInput by remember(churchName) { mutableStateOf(churchName ?: "") }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -1221,7 +1223,7 @@ fun SettingsScreen(
                                 .padding(horizontal = 14.dp, vertical = 12.dp)
                         ) {
                             Text(
-                                text = appLang.nativeName,
+                                text = "${appLang.flagEmoji}  ${appLang.nativeName}",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                 color = if (isSelected) GoldPrimary else MaterialTheme.colorScheme.onSurface,
@@ -1777,6 +1779,51 @@ fun SettingsScreen(
                 }
             }
         }
+
+        // About & Google Play Privacy Policy Section
+        item {
+            Spacer(modifier = Modifier.height(20.dp))
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showPrivacyDialog = true }
+                    .testTag("privacy_policy_card")
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "Privacy Policy",
+                        tint = GoldPrimary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) "سياسة الخصوصية ومعلومات التطبيق" else "Privacy Policy & App Info",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) "الإصدار 1.0.0 • حماية كاملة للبيانات والصلوات محلياً" else "v1.0.0 • 100% Offline Local Data Privacy",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        text = "❯",
+                        color = GoldPrimary,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(30.dp))
+        }
     }
 
     // Spiritual Sound Picker Dialog
@@ -1871,6 +1918,95 @@ fun SettingsScreen(
             dismissButton = {
                 OutlinedButton(onClick = { showLinkDialog = false }) {
                     Text(text = if (lang == AppLanguage.ARABIC) "إلغاء" else "Cancel")
+                }
+            }
+        )
+    }
+
+    // Google Play Store Compliance Privacy Policy Dialog
+    if (showPrivacyDialog) {
+        AlertDialog(
+            onDismissRequest = { showPrivacyDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = GoldPrimary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "سياسة الخصوصية وأمان البيانات" else "Privacy Policy & Data Safety",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            },
+            text = {
+                LazyColumn(modifier = Modifier.height(320.dp)) {
+                    item {
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) {
+                                """
+                                تطبيق الأجبية الأرثوذكسية (Agpeya Prayers)
+                                الإصدار: 1.0.0 (Release)
+                                
+                                1. الخصوصية وحفظ البيانات:
+                                • جميع سجلات الصلوات، الملاحظات الروحية، ومذكرات سر الاعتراف يتم حفظها حصرياً داخل جهازك في قاعدة بيانات محلية مشفرة وآمنة (Room Database).
+                                • التطبيق لا يشارك أياً من نصوصك أو صلواتك مع أي طرف ثالث أو خوادم خارجية إطلاقاً.
+                                
+                                2. التزامن السحابي الاختياري:
+                                • المزامنة السحابية هي ميزة اختيارية تماماً، وتتم فقط عند تفعيلك لها لحفظ نسخة احتياطية من سجلات الصلوات عبر مفتاح التزامن الخاص بك.
+                                
+                                3. الأذونات المستخدمة:
+                                • الإشعارات (POST_NOTIFICATIONS): لتنبيهك بمواعيد الساعات القانونية للصلوات.
+                                • المنبه الدقيق (USE_EXACT_ALARM): لضمان دقة مواعيد التنبيهات في وقتها المحدد حتى عند إغلاق التطبيق.
+                                • الاهتزاز (VIBRATE): لإصدار اهتزاز لمسي هادئ عند الصلاة وأثناء التسبيح.
+                                
+                                4. الدعم الفني والتواصل:
+                                • البريد الإلكتروني للمطور: georgeyoussef393@gmail.com
+                                • التطبيق مجاني وخالٍ تماماً من أي إعلانات تجارية.
+                                """.trimIndent()
+                            } else {
+                                """
+                                Agpeya Orthodox Prayers
+                                Version: 1.0.0 (Release)
+                                
+                                1. Privacy & Local Data Storage:
+                                • All prayer logs, spiritual journal entries, and confession notes are stored locally on your device in a secure Room database.
+                                • No personal prayers or confession notes are ever shared with third parties.
+                                
+                                2. Optional Cloud Synchronization:
+                                • Cloud sync is 100% optional and only functions when you authenticate or share your personal sync key to backup prayer logs across your devices.
+                                
+                                3. Permissions Used:
+                                • Notifications: To alert you at canonical prayer hours.
+                                • Exact Alarms: To ensure canonical hour bells ring precisely on time.
+                                • Vibration: For gentle haptic feedback during prayer beads and alarms.
+                                
+                                4. Developer & Support:
+                                • Developer Contact: georgeyoussef393@gmail.com
+                                • The application is free and completely ad-free.
+                                """.trimIndent()
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            lineHeight = 20.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showPrivacyDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary)
+                ) {
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "فهمت وموافق" else "Close",
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         )

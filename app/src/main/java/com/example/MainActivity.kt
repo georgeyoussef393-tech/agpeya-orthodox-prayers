@@ -9,6 +9,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +47,7 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -155,14 +159,26 @@ fun AgpeyaApp(
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 bottomBar = {
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface,
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
                         tonalElevation = 8.dp,
-                        windowInsets = NavigationBarDefaults.windowInsets,
-                        modifier = Modifier.testTag("bottom_navigation_bar")
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        // 0: Prayers
-                        NavigationBarItem(
+                        Box(
+                            modifier = Modifier
+                                .windowInsetsPadding(NavigationBarDefaults.windowInsets)
+                                .padding(top = 4.dp, bottom = 14.dp)
+                        ) {
+                            NavigationBar(
+                                containerColor = Color.Transparent,
+                                tonalElevation = 0.dp,
+                                windowInsets = WindowInsets(0, 0, 0, 0),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("bottom_navigation_bar")
+                            ) {
+                                // 0: Prayers
+                                NavigationBarItem(
                             selected = selectedScreen == 0,
                             onClick = { selectedScreen = 0 },
                             icon = {
@@ -302,7 +318,9 @@ fun AgpeyaApp(
                         )
                     }
                 }
-            ) { innerPadding ->
+            }
+        }
+    ) { innerPadding ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -357,27 +375,33 @@ fun AgpeyaApp(
                         }
                     }
 
-                    // Screen switcher
-                    when (selectedScreen) {
-                        0 -> PrayersScreen(
-                            viewModel = viewModel,
-                            onNavigateToCalendar = { selectedScreen = 1 },
-                            onNavigateToAmbient = { selectedScreen = 2 },
-                            onNavigateToJournal = { selectedScreen = 3 }
-                        )
-                        1 -> CopticCalendarScreen(
-                            viewModel = viewModel,
-                            onNavigateToPrayers = { selectedScreen = 0 }
-                        )
-                        2 -> AmbientPrayerScreen(
-                            viewModel = viewModel
-                        )
-                        3 -> SpiritualJournalScreen(
-                            viewModel = viewModel
-                        )
-                        4 -> ReportsAndSettingsHostScreen(
-                            viewModel = viewModel
-                        )
+                    // Screen switcher with smooth and responsive transition
+                    Crossfade(
+                        targetState = selectedScreen,
+                        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+                        label = "screen_crossfade"
+                    ) { screen ->
+                        when (screen) {
+                            0 -> PrayersScreen(
+                                viewModel = viewModel,
+                                onNavigateToCalendar = { selectedScreen = 1 },
+                                onNavigateToAmbient = { selectedScreen = 2 },
+                                onNavigateToJournal = { selectedScreen = 3 }
+                            )
+                            1 -> CopticCalendarScreen(
+                                viewModel = viewModel,
+                                onNavigateToPrayers = { selectedScreen = 0 }
+                            )
+                            2 -> AmbientPrayerScreen(
+                                viewModel = viewModel
+                            )
+                            3 -> SpiritualJournalScreen(
+                                viewModel = viewModel
+                            )
+                            4 -> ReportsAndSettingsHostScreen(
+                                viewModel = viewModel
+                            )
+                        }
                     }
                 }
             }

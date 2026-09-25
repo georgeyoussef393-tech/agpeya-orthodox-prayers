@@ -1,5 +1,6 @@
 package com.example.ui.components.charts
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -71,7 +72,7 @@ fun DailyTimelineChart(
     val progressFraction = (completedCanonicalCount.toFloat() / totalCanonical.toFloat()).coerceIn(0f, 1f)
     val animatedRadialProgress by animateFloatAsState(
         targetValue = if (animationPlayed) progressFraction else 0f,
-        animationSpec = tween(durationMillis = 800),
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "daily_radial_anim"
     )
 

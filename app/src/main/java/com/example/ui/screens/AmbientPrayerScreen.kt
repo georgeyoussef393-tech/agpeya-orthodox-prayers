@@ -148,13 +148,13 @@ fun AmbientPrayerScreen(
         }
     }
 
-    // Animated Candle Flame Transitions
+    // Animated Candle Flame Transitions (Responsive and lively)
     val infiniteTransition = rememberInfiniteTransition(label = "CandleFlame")
     val flameFlickerScaleY by infiniteTransition.animateFloat(
         initialValue = 0.92f,
         targetValue = 1.08f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = FastOutSlowInEasing),
+            animation = tween(550, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "FlameScaleY"
@@ -163,7 +163,7 @@ fun AmbientPrayerScreen(
         initialValue = -3f,
         targetValue = 3f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = LinearEasing),
+            animation = tween(650, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "FlameSwayX"
@@ -172,7 +172,7 @@ fun AmbientPrayerScreen(
         initialValue = 0.65f,
         targetValue = 0.95f,
         animationSpec = infiniteRepeatable(
-            animation = tween(900, easing = FastOutSlowInEasing),
+            animation = tween(400, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "FlameGlowAlpha"
@@ -206,7 +206,7 @@ fun AmbientPrayerScreen(
                     CopticCrossCanvas(color = GoldPrimary, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = if (lang == AppLanguage.ARABIC) "مخدع الصلاة الهادئ وإضاءة الشمعة" else "Ambient Prayer Sanctuary",
+                        text = if (lang == AppLanguage.ARABIC) "خلوة" else "Retreat",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = GoldLight

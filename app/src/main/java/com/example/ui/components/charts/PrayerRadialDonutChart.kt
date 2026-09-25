@@ -1,5 +1,6 @@
 package com.example.ui.components.charts
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -76,7 +77,7 @@ fun PrayerRadialDonutChart(
 
     val animatedProgress by animateFloatAsState(
         targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = tween(durationMillis = 800),
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "donut_anim"
     )
 

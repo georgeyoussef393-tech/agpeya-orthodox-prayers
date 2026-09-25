@@ -7,20 +7,21 @@ enum class AppLanguage(
     val flagEmoji: String = "",
     val isRtl: Boolean = false
 ) {
-    ARABIC("ar", "Arabic", "العربية", "🇪🇬", isRtl = true),
-    SYRIAN_ARABIC("ar-SY", "Syrian Arabic", "العربية (سوريا وبلاد الشام)", "🇸🇾", isRtl = true),
-    SYRIAC("syc", "Syriac (Aramaic)", "ܠܫܢܐ ܣܘܪܝܝܐ (السريانية)", "✝️", isRtl = true),
-    GERMAN("de", "German (Germany)", "Deutsch (Deutschland)", "🇩🇪", isRtl = false),
-    AUSTRIAN_GERMAN("de-AT", "Austrian German", "Deutsch (Österreich)", "🇦🇹", isRtl = false),
-    SWISS_GERMAN("de-CH", "Swiss German", "Schwiizerdütsch (Schweiz)", "🇨🇭", isRtl = false),
-    ENGLISH("en", "English", "English", "🇬🇧", isRtl = false),
-    COPTIC("cop", "Coptic", "Ϯⲁⲥⲡⲓ ⲛ̀ⲣⲉⲙⲛ̀ⲭⲏⲙⲓ", "☦️", isRtl = false),
-    FRENCH("fr", "French", "Français", "🇫🇷", isRtl = false),
-    SPANISH("es", "Spanish", "Español", "🇪🇸", isRtl = false),
-    ITALIAN("it", "Italian", "Italiano", "🇮🇹", isRtl = false),
-    CHINESE("zh", "Chinese", "中文 (简体)", "🇨🇳", isRtl = false),
-    JAPANESE("ja", "Japanese", "日本語", "🇯🇵", isRtl = false),
-    KOREAN("ko", "Korean", "한국어", "🇰🇷", isRtl = false);
+    ARABIC("ar", "العربية", "العربية (المصرية)", "🇪🇬", isRtl = true),
+    ENGLISH("en", "الإنجليزية", "English (الإنجليزية)", "🇬🇧", isRtl = false),
+    COPTIC("cop", "القبطية", "Ϯⲁⲥⲡⲓ ⲛ̀ⲣⲉⲙⲛ̀ⲭⲏⲙⲓ (القبطية)", "☦️", isRtl = false),
+    GERMAN("de", "الألمانية", "Deutsch (الألمانية)", "🇩🇪", isRtl = false),
+    AUSTRIAN_GERMAN("de-AT", "النمساوية", "Deutsch - Österreich (النمساوية)", "🇦🇹", isRtl = false),
+    SPANISH("es", "الإسبانية", "Español (الإسبانية)", "🇪🇸", isRtl = false),
+    HINDI("hi", "الهندية", "हिन्दी (الهندية)", "🇮🇳", isRtl = false),
+    CHINESE("zh", "الصينية", "中文 (الصينية)", "🇨🇳", isRtl = false),
+    ITALIAN("it", "الإيطالية", "Italiano (الإيطالية)", "🇮🇹", isRtl = false),
+    FRENCH("fr", "الفرنسية", "Français (الفرنسية)", "🇫🇷", isRtl = false),
+    SYRIAN_ARABIC("ar-SY", "العربية (سوريا)", "العربية (سوريا وبلاد الشام)", "🇸🇾", isRtl = true),
+    SYRIAC("syc", "السريانية الآرامية", "ܠܫܢܐ ܣܘܪܝܝܐ (السريانية)", "✝️", isRtl = true),
+    SWISS_GERMAN("de-CH", "السويسرية", "Schwiizerdütsch (السويسرية)", "🇨🇭", isRtl = false),
+    JAPANESE("ja", "اليابانية", "日本語 (اليابانية)", "🇯🇵", isRtl = false),
+    KOREAN("ko", "الكورية", "한국어 (الكورية)", "🇰🇷", isRtl = false);
 
     companion object {
         fun fromCode(code: String): AppLanguage {
