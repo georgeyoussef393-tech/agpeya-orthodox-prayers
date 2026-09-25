@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
+import com.example.ui.animation.AgpeyaMotion
 import com.example.ui.theme.BurgundyDeep
 import com.example.ui.theme.GoldPrimary
 import com.example.ui.viewmodel.AgpeyaViewModel
@@ -73,7 +76,7 @@ fun ReportsAndSettingsHostScreen(
                 onClick = { selectedSubTab = 1 },
                 text = {
                     Text(
-                        text = if (lang == AppLanguage.ARABIC) "🔔 التنبيهات والإعدادات" else "🔔 Alarms & Settings",
+                        text = if (lang == AppLanguage.ARABIC) "✍️ المفكرة والاعتراف" else "✍️ Journal Notes",
                         fontWeight = if (selectedSubTab == 1) FontWeight.Bold else FontWeight.Normal,
                         fontSize = 13.sp
                     )
@@ -81,9 +84,19 @@ fun ReportsAndSettingsHostScreen(
             )
         }
 
-        when (selectedSubTab) {
-            0 -> ReportsScreen(viewModel = viewModel)
-            1 -> SettingsScreen(viewModel = viewModel)
+        AnimatedContent(
+            targetState = selectedSubTab,
+            transitionSpec = {
+                val isForward = if (lang.isRtl) (targetState < initialState) else (targetState > initialState)
+                AgpeyaMotion.directionalSlide(forward = isForward)
+            },
+            label = "reports_host_tab_transition",
+            modifier = Modifier.fillMaxSize()
+        ) { tab ->
+            when (tab) {
+                0 -> ReportsScreen(viewModel = viewModel)
+                1 -> SpiritualJournalScreen(viewModel = viewModel)
+            }
         }
     }
 }

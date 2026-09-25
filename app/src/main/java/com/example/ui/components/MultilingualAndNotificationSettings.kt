@@ -1,6 +1,8 @@
 package com.example.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import com.example.ui.animation.AgpeyaMotion
+import com.example.ui.animation.pressBounce
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -114,14 +116,14 @@ fun MultilingualAndNotificationSettings(
         // 1. MULTILINGUAL SUPPORT & DUAL-LANGUAGE CARD
         // ==========================================
         Text(
-            text = if (isArabic) "الدعم متعدد اللغات وإعدادات الترجمة" else "Multilingual Support & Translations",
+            text = if (isArabic) "التحكم في لغة التطبيق بالكامل والدعم متعدد اللغات" else "Global App Language & Multilingual Control",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = GoldPrimary,
             modifier = Modifier.padding(bottom = 4.dp)
         )
         Text(
-            text = if (isArabic) "اختر لغة التطبيق الرئيسية وعرض النصوص بلغتين متوازيتين أثناء القراءة" else "Select primary app language and configure parallel dual-language prayer reading",
+            text = if (isArabic) "التحكم في لغة البرنامج بالكامل: الواجهات، نصوص الصلوات، المزامير، القراءات الإنجيلية، والتبويبات. اختر اللغة الأساسية وعرض النصوص بلغتين متوازيتين" else "Control language for the entire app: UI, prayers, psalms, gospels, and tabs. Choose primary language and configure parallel dual-language reading",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 12.dp)
@@ -150,7 +152,7 @@ fun MultilingualAndNotificationSettings(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = if (isArabic) "اللغة الرئيسية للتطبيق" else "Primary App Language",
+                        text = if (isArabic) "اللغة الرئيسية للتطبيق بالكامل" else "Primary App-Wide Language",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -250,7 +252,11 @@ fun MultilingualAndNotificationSettings(
                 }
 
                 // Secondary Language Dropdown when Bilingual is Enabled
-                AnimatedVisibility(visible = isBilingual) {
+                AnimatedVisibility(
+                    visible = isBilingual,
+                    enter = AgpeyaMotion.expandSpring(),
+                    exit = AgpeyaMotion.shrinkSpring()
+                ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -273,18 +279,7 @@ fun MultilingualAndNotificationSettings(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            listOf(
-                                AppLanguage.COPTIC,
-                                AppLanguage.ENGLISH,
-                                AppLanguage.ARABIC,
-                                AppLanguage.GERMAN,
-                                AppLanguage.AUSTRIAN_GERMAN,
-                                AppLanguage.SPANISH,
-                                AppLanguage.HINDI,
-                                AppLanguage.CHINESE,
-                                AppLanguage.ITALIAN,
-                                AppLanguage.FRENCH
-                            ).forEach { secLang ->
+                            AppLanguage.entries.forEach { secLang ->
                                 val isSecSelected = secLang == secondaryLang
                                 Box(
                                     modifier = Modifier
@@ -481,7 +476,11 @@ fun MultilingualAndNotificationSettings(
                 }
 
                 // Custom Timezone Override Selector Dropdown
-                AnimatedVisibility(visible = !isAutoTimezone) {
+                AnimatedVisibility(
+                    visible = !isAutoTimezone,
+                    enter = AgpeyaMotion.expandSpring(),
+                    exit = AgpeyaMotion.shrinkSpring()
+                ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

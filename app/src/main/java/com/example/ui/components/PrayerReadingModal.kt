@@ -123,6 +123,8 @@ fun PrayerReadingModal(
     isCandleGlowEnabled: Boolean = true,
     isBilingual: Boolean = false,
     secondaryLang: AppLanguage = AppLanguage.COPTIC,
+    fontSizeMultiplier: Float = 1.0f,
+    onFontSizeMultiplierChange: (Float) -> Unit = {},
     onLanguageChange: (AppLanguage) -> Unit = {},
     onSpiritualThemeChange: (SpiritualBackgroundTheme) -> Unit = {},
     onAutoMarkPrayed: () -> Unit,
@@ -150,7 +152,7 @@ fun PrayerReadingModal(
     }
 
     // 1. Reader Personalization States
-    var fontSizeMultiplier by remember { mutableFloatStateOf(1.0f) }
+    var currentFontSizeMultiplier by remember(fontSizeMultiplier) { mutableFloatStateOf(fontSizeMultiplier) }
     var readingTheme by remember { mutableStateOf(PrayerReadingTheme.DEFAULT) }
     var currentSpiritualTheme by remember { mutableStateOf(spiritualTheme) }
     var isCandleModeActive by remember { mutableStateOf(isCandleGlowEnabled) }
@@ -557,11 +559,13 @@ fun PrayerReadingModal(
                             // 5. Font Size Zoom Toggle
                             IconButton(
                                 onClick = {
-                                    fontSizeMultiplier = when {
-                                        fontSizeMultiplier < 1.1f -> 1.25f
-                                        fontSizeMultiplier < 1.35f -> 1.45f
+                                    val nextMultiplier = when {
+                                        currentFontSizeMultiplier < 1.15f -> 1.30f
+                                        currentFontSizeMultiplier < 1.45f -> 1.60f
                                         else -> 1.0f
                                     }
+                                    currentFontSizeMultiplier = nextMultiplier
+                                    onFontSizeMultiplierChange(nextMultiplier)
                                 },
                                 modifier = Modifier
                                     .size(32.dp)
@@ -700,8 +704,8 @@ fun PrayerReadingModal(
                             Text(
                                 text = "✝ " + prayerId.getSpiritualTheme(lang),
                                 style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontSize = 14.sp * fontSizeMultiplier,
-                                    lineHeight = 22.sp * fontSizeMultiplier
+                                    fontSize = 14.sp * currentFontSizeMultiplier,
+                                    lineHeight = 22.sp * currentFontSizeMultiplier
                                 ),
                                 fontWeight = FontWeight.Medium,
                                 color = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onPrimaryContainer
@@ -710,7 +714,7 @@ fun PrayerReadingModal(
                             Text(
                                 text = prayerId.getKeyVerse(lang),
                                 style = MaterialTheme.typography.bodySmall.copy(
-                                    fontSize = 12.5.sp * fontSizeMultiplier
+                                    fontSize = 12.5.sp * currentFontSizeMultiplier
                                 ),
                                 color = readingTheme.accentColor,
                                 fontWeight = FontWeight.Bold
@@ -734,7 +738,7 @@ fun PrayerReadingModal(
                                 DetailedGospelBlock(
                                     section = section,
                                     lang = lang,
-                                    multiplier = fontSizeMultiplier,
+                                    multiplier = currentFontSizeMultiplier,
                                     theme = readingTheme,
                                     isBilingual = isBilingual,
                                     secondaryLang = secondaryLang
@@ -757,7 +761,7 @@ fun PrayerReadingModal(
                                 section = section,
                                 lang = lang,
                                 stepNumber = index + 1,
-                                multiplier = fontSizeMultiplier,
+                                multiplier = currentFontSizeMultiplier,
                                 theme = readingTheme,
                                 isBilingual = isBilingual,
                                 secondaryLang = secondaryLang

@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -46,9 +48,15 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -77,12 +85,16 @@ import com.example.data.model.PrayerId
 import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
 import com.example.service.AgpeyaNotificationHelper
+import com.example.ui.animation.AgpeyaMotion
+import com.example.ui.components.CopticCrossCanvas
+import com.example.ui.components.SpiritualAtmosphereBackdrop
 import com.example.ui.components.SubtleCrossWatermark
 import com.example.ui.screens.AmbientPrayerScreen
 import com.example.ui.screens.AuthOnboardingScreen
 import com.example.ui.screens.CopticCalendarScreen
 import com.example.ui.screens.PrayersScreen
 import com.example.ui.screens.ReportsAndSettingsHostScreen
+import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.SpiritualJournalScreen
 import com.example.ui.theme.AgpeyaTheme
 import com.example.ui.theme.GoldPrimary
@@ -109,14 +121,27 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun AgpeyaApp(
     initialPrayerCode: String? = null,
     viewModel: AgpeyaViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val windowSizeClass = calculateWindowSizeClass(activity = context as ComponentActivity)
+    val useNavRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
+
     val lang by viewModel.currentLanguage.collectAsState()
     var selectedScreen by rememberSaveable { mutableIntStateOf(0) }
+
+    // Navigation Items Data
+    val navItems = listOf(
+        Triple(Icons.Default.MenuBook, AgpeyaStrings.tabPrayers(lang), "nav_tab_prayers"),
+        Triple(Icons.Default.DateRange, AgpeyaStrings.tabCalendar(lang), "nav_tab_calendar"),
+        Triple(Icons.Default.WbSunny, AgpeyaStrings.tabAmbient(lang), "nav_tab_ambient"),
+        Triple(Icons.Default.BarChart, if (lang == AppLanguage.ARABIC) "التقارير والمفكرة" else "Reports & Notes", "nav_tab_reports_journal"),
+        Triple(Icons.Default.Settings, if (lang == AppLanguage.ARABIC) "الإعدادات" else "Settings", "nav_tab_settings")
+    )
 
     // Notification permission handling for Android 13+
     var hasNotificationPermission by remember {
@@ -149,6 +174,9 @@ fun AgpeyaApp(
     }
 
     val isAuthCompleted by viewModel.isAuthCompleted.collectAsState()
+    val spiritualTheme by viewModel.spiritualTheme.collectAsState()
+    val spiritualOpacity by viewModel.spiritualOpacity.collectAsState()
+    val isCandleGlowEnabled by viewModel.isCandleGlowEnabled.collectAsState()
 
     val layoutDirection = if (lang.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
 
@@ -156,251 +184,199 @@ fun AgpeyaApp(
         if (!isAuthCompleted) {
             AuthOnboardingScreen(viewModel = viewModel)
         } else {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                bottomBar = {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 8.dp,
-                        modifier = Modifier.fillMaxWidth()
+            Row(modifier = Modifier.fillMaxSize()) {
+                if (useNavRail) {
+                    NavigationRail(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        header = {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            CopticCrossCanvas(size = 32.dp)
+                            Spacer(modifier = Modifier.height(20.dp))
+                        },
+                        modifier = Modifier.testTag("side_navigation_rail")
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .windowInsetsPadding(NavigationBarDefaults.windowInsets)
-                                .padding(top = 4.dp, bottom = 14.dp)
-                        ) {
-                            NavigationBar(
-                                containerColor = Color.Transparent,
-                                tonalElevation = 0.dp,
-                                windowInsets = WindowInsets(0, 0, 0, 0),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .testTag("bottom_navigation_bar")
-                            ) {
-                                // 0: Prayers
-                                NavigationBarItem(
-                            selected = selectedScreen == 0,
-                            onClick = { selectedScreen = 0 },
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Default.MenuBook,
-                                    contentDescription = AgpeyaStrings.tabPrayers(lang)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = AgpeyaStrings.tabPrayers(lang),
-                                    fontWeight = if (selectedScreen == 0) FontWeight.Bold else FontWeight.Normal,
-                                    fontSize = 11.sp,
-                                    maxLines = 1
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.Black,
-                                selectedTextColor = GoldPrimary,
-                                indicatorColor = GoldPrimary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            modifier = Modifier.testTag("nav_tab_prayers")
-                        )
-
-                        // 1: Coptic Calendar & Synaxarium
-                        NavigationBarItem(
-                            selected = selectedScreen == 1,
-                            onClick = { selectedScreen = 1 },
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Default.DateRange,
-                                    contentDescription = AgpeyaStrings.tabCalendar(lang)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = AgpeyaStrings.tabCalendar(lang),
-                                    fontWeight = if (selectedScreen == 1) FontWeight.Bold else FontWeight.Normal,
-                                    fontSize = 11.sp,
-                                    maxLines = 1
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.Black,
-                                selectedTextColor = GoldPrimary,
-                                indicatorColor = GoldPrimary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            modifier = Modifier.testTag("nav_tab_calendar")
-                        )
-
-                        // 2: Ambient Prayer & Candle Sanctuary
-                        NavigationBarItem(
-                            selected = selectedScreen == 2,
-                            onClick = { selectedScreen = 2 },
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Default.WbSunny,
-                                    contentDescription = AgpeyaStrings.tabAmbient(lang)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = AgpeyaStrings.tabAmbient(lang),
-                                    fontWeight = if (selectedScreen == 2) FontWeight.Bold else FontWeight.Normal,
-                                    fontSize = 11.sp,
-                                    maxLines = 1
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.Black,
-                                selectedTextColor = GoldPrimary,
-                                indicatorColor = GoldPrimary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            modifier = Modifier.testTag("nav_tab_ambient")
-                        )
-
-                        // 3: Spiritual Journal & Confession Notes
-                        NavigationBarItem(
-                            selected = selectedScreen == 3,
-                            onClick = { selectedScreen = 3 },
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = AgpeyaStrings.tabJournal(lang)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = AgpeyaStrings.tabJournal(lang),
-                                    fontWeight = if (selectedScreen == 3) FontWeight.Bold else FontWeight.Normal,
-                                    fontSize = 11.sp,
-                                    maxLines = 1
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.Black,
-                                selectedTextColor = GoldPrimary,
-                                indicatorColor = GoldPrimary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            modifier = Modifier.testTag("nav_tab_journal")
-                        )
-
-                        // 4: Reports, Alarms & Settings Host
-                        NavigationBarItem(
-                            selected = selectedScreen == 4,
-                            onClick = { selectedScreen = 4 },
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Default.BarChart,
-                                    contentDescription = AgpeyaStrings.tabReportsAndSettings(lang)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = AgpeyaStrings.tabReports(lang),
-                                    fontWeight = if (selectedScreen == 4) FontWeight.Bold else FontWeight.Normal,
-                                    fontSize = 11.sp,
-                                    maxLines = 1
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.Black,
-                                selectedTextColor = GoldPrimary,
-                                indicatorColor = GoldPrimary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            modifier = Modifier.testTag("nav_tab_reports_settings")
-                        )
+                        navItems.forEachIndexed { index, (icon, label, tag) ->
+                            NavigationRailItem(
+                                selected = selectedScreen == index,
+                                onClick = { selectedScreen = index },
+                                icon = { Icon(imageVector = icon, contentDescription = label) },
+                                label = { Text(text = label, fontSize = 10.sp) },
+                                colors = NavigationRailItemDefaults.colors(
+                                    selectedIconColor = Color.Black,
+                                    selectedTextColor = GoldPrimary,
+                                    indicatorColor = GoldPrimary,
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                modifier = Modifier.testTag(tag)
+                            )
+                        }
                     }
                 }
-            }
-        }
-    ) { innerPadding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                ) {
-                    // Permission request banner if permission is denied on Android 13+
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
-                        Card(
-                            shape = RoundedCornerShape(0.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 10.dp)
+
+                Scaffold(
+                    modifier = Modifier.weight(1f),
+                    bottomBar = {
+                        if (!useNavRail) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.surface,
+                                tonalElevation = 8.dp,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.NotificationsActive,
-                                    contentDescription = null,
-                                    tint = GoldPrimary,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = AgpeyaStrings.notificationPermissionRequired(lang),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.weight(1f),
-                                    lineHeight = 16.sp
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Button(
-                                    onClick = {
-                                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
-                                    shape = RoundedCornerShape(10.dp),
-                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                Box(
+                                    modifier = Modifier
+                                        .windowInsetsPadding(NavigationBarDefaults.windowInsets)
+                                        .padding(top = 4.dp, bottom = 14.dp)
                                 ) {
-                                    Text(
-                                        text = AgpeyaStrings.allowPermission(lang),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.Black
-                                    )
+                                    NavigationBar(
+                                        containerColor = Color.Transparent,
+                                        tonalElevation = 0.dp,
+                                        windowInsets = WindowInsets(0, 0, 0, 0),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .testTag("bottom_navigation_bar")
+                                    ) {
+                                        navItems.forEachIndexed { index, (icon, label, tag) ->
+                                            NavigationBarItem(
+                                                selected = selectedScreen == index,
+                                                onClick = { selectedScreen = index },
+                                                icon = { Icon(imageVector = icon, contentDescription = label) },
+                                                label = {
+                                                    Text(
+                                                        text = label,
+                                                        fontWeight = if (selectedScreen == index) FontWeight.Bold else FontWeight.Normal,
+                                                        fontSize = 10.sp,
+                                                        maxLines = 1
+                                                    )
+                                                },
+                                                colors = NavigationBarItemDefaults.colors(
+                                                    selectedIconColor = Color.Black,
+                                                    selectedTextColor = GoldPrimary,
+                                                    indicatorColor = GoldPrimary,
+                                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                ),
+                                                modifier = Modifier.testTag(tag)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                ) { innerPadding ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    ) {
+                        // Permission request banner if permission is denied on Android 13+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
+                            Card(
+                                shape = RoundedCornerShape(0.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.NotificationsActive,
+                                        contentDescription = null,
+                                        tint = GoldPrimary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = AgpeyaStrings.notificationPermissionRequired(lang),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.weight(1f),
+                                        lineHeight = 16.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Button(
+                                        onClick = {
+                                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                                        shape = RoundedCornerShape(10.dp),
+                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = AgpeyaStrings.allowPermission(lang),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.Black
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
-                    // Screen switcher with smooth and responsive transition
-                    Crossfade(
-                        targetState = selectedScreen,
-                        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
-                        label = "screen_crossfade"
-                    ) { screen ->
-                        when (screen) {
-                            0 -> PrayersScreen(
-                                viewModel = viewModel,
-                                onNavigateToCalendar = { selectedScreen = 1 },
-                                onNavigateToAmbient = { selectedScreen = 2 },
-                                onNavigateToJournal = { selectedScreen = 3 }
+                        // Screen switcher with smooth, consistent spring-based transitions
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            // Immersive spiritual backdrop that fills the entire background
+                            SpiritualAtmosphereBackdrop(
+                                theme = spiritualTheme,
+                                opacity = (spiritualOpacity * 0.40f).coerceAtMost(0.16f),
+                                enableCandleGlow = isCandleGlowEnabled
                             )
-                            1 -> CopticCalendarScreen(
-                                viewModel = viewModel,
-                                onNavigateToPrayers = { selectedScreen = 0 }
-                            )
-                            2 -> AmbientPrayerScreen(
-                                viewModel = viewModel
-                            )
-                            3 -> SpiritualJournalScreen(
-                                viewModel = viewModel
-                            )
-                            4 -> ReportsAndSettingsHostScreen(
-                                viewModel = viewModel
-                            )
+
+                            AnimatedContent(
+                                targetState = selectedScreen,
+                                transitionSpec = {
+                                    val isForward = if (lang.isRtl) (targetState < initialState) else (targetState > initialState)
+                                    AgpeyaMotion.directionalSlide(forward = isForward)
+                                },
+                                label = "main_screen_transition",
+                                modifier = Modifier.fillMaxSize()
+                            ) { screen ->
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.TopCenter
+                                ) {
+                                    // Constrain width on tablets/foldables for better readability
+                                    val screenModifier = if (useNavRail) {
+                                        Modifier.fillMaxWidth().widthIn(max = 840.dp)
+                                    } else {
+                                        Modifier.fillMaxSize()
+                                    }
+
+                                    when (screen) {
+                                        0 -> PrayersScreen(
+                                            viewModel = viewModel,
+                                            onNavigateToCalendar = { selectedScreen = 1 },
+                                            onNavigateToAmbient = { selectedScreen = 2 },
+                                            onNavigateToJournal = { selectedScreen = 3 },
+                                            onNavigateToSettings = { selectedScreen = 4 },
+                                            modifier = screenModifier
+                                        )
+                                        1 -> CopticCalendarScreen(
+                                            viewModel = viewModel,
+                                            onNavigateToPrayers = { selectedScreen = 0 },
+                                            modifier = screenModifier
+                                        )
+                                        2 -> AmbientPrayerScreen(
+                                            viewModel = viewModel,
+                                            modifier = screenModifier
+                                        )
+                                        3 -> ReportsAndSettingsHostScreen(
+                                            viewModel = viewModel,
+                                            modifier = screenModifier
+                                        )
+                                        4 -> SettingsScreen(
+                                            viewModel = viewModel,
+                                            modifier = screenModifier
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

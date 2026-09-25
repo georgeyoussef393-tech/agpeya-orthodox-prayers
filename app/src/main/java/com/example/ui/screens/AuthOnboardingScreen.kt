@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -97,18 +99,56 @@ fun AuthOnboardingScreen(
 
     val scrollState = rememberScrollState()
 
+    BackHandler {
+        viewModel.continueAsGuest()
+    }
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = 20.dp, vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 600.dp)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+            // Top Navigation Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = { viewModel.continueAsGuest() },
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    modifier = Modifier.testTag("btn_skip_to_prayers")
+                ) {
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "← العودة لصلوات الأجبية" else "← Back to Prayers",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = GoldPrimary
+                    )
+                }
+
+                Text(
+                    text = if (lang == AppLanguage.ARABIC) "تخطي والدخول كضيف" else "Skip / Guest",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .clickable { viewModel.continueAsGuest() }
+                        .padding(8.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Sacred Orthodox Header Emblem
             Box(
@@ -479,4 +519,5 @@ fun AuthOnboardingScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
 }

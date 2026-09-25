@@ -47,6 +47,9 @@ class FirestoreSyncManager(private val context: Context) {
     private val _userEmail = MutableStateFlow(prefs.getString("user_email", null))
     val userEmail: StateFlow<String?> = _userEmail.asStateFlow()
 
+    private val _userFullName = MutableStateFlow(prefs.getString("user_full_name", null))
+    val userFullName: StateFlow<String?> = _userFullName.asStateFlow()
+
     private val _syncKey = MutableStateFlow(resolveInitialSyncKey())
     val syncKey: StateFlow<String> = _syncKey.asStateFlow()
 
@@ -109,6 +112,17 @@ class FirestoreSyncManager(private val context: Context) {
         }
         stopRealtimeListener()
         onComplete()
+    }
+
+    fun setUserFullName(fullName: String?) {
+        val trimmed = fullName?.trim()
+        if (!trimmed.isNullOrBlank()) {
+            prefs.edit().putString("user_full_name", trimmed).apply()
+            _userFullName.value = trimmed
+        } else {
+            prefs.edit().remove("user_full_name").apply()
+            _userFullName.value = null
+        }
     }
 
     fun authenticateWithEmail(

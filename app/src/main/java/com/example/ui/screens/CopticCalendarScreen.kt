@@ -4,9 +4,12 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import com.example.ui.animation.AgpeyaMotion
+import com.example.ui.animation.pressBounce
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,8 +38,10 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Today
+import com.example.ui.components.OrthodoxGroundedSearchDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -96,6 +101,8 @@ fun CopticCalendarScreen(
 
     val context = LocalContext.current
     var selectedCalendarOffsetDays by remember { mutableStateOf(0) }
+    var showGroundedSearchDialog by remember { mutableStateOf(false) }
+    var groundedSearchInitialQuery by remember { mutableStateOf("") }
 
     val activeCalendar = remember(selectedCalendarOffsetDays) {
         Calendar.getInstance().apply {
@@ -113,12 +120,6 @@ fun CopticCalendarScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        SpiritualAtmosphereBackdrop(
-            theme = spiritualTheme,
-            opacity = (spiritualOpacity * 0.40f).coerceAtMost(0.16f),
-            enableCandleGlow = isCandleGlowEnabled
-        )
-
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 88.dp)
@@ -163,7 +164,7 @@ fun CopticCalendarScreen(
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = if (lang == AppLanguage.ARABIC) "التقويم القبطي والسنكسار اليومي" else "Coptic Calendar & Synaxarium",
+                                    text = if (lang == AppLanguage.ARABIC) "التقويم القبطي والقطمارس اليومي" else "Coptic Calendar & Katameros",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = GoldLight
@@ -193,19 +194,30 @@ fun CopticCalendarScreen(
                                     .fillMaxWidth()
                                     .padding(16.dp)
                             ) {
-                                Text(
-                                    text = "${copticDate.day} ${if (lang == AppLanguage.ARABIC) copticDate.monthNameAr else copticDate.monthNameEn} ${copticDate.yearAM} ش",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = GoldPrimary,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = copticDate.monthNameCoptic,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = Color.White.copy(alpha = 0.85f),
-                                    textAlign = TextAlign.Center
-                                )
+                                AnimatedContent(
+                                    targetState = selectedCalendarOffsetDays,
+                                    transitionSpec = {
+                                        val forward = if (lang.isRtl) targetState < initialState else targetState > initialState
+                                        AgpeyaMotion.directionalSlide(forward = forward)
+                                    },
+                                    label = "coptic_date_transition"
+                                ) { _ ->
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = "${copticDate.day} ${if (lang == AppLanguage.ARABIC) copticDate.monthNameAr else copticDate.monthNameEn} ${copticDate.yearAM} ش",
+                                            style = MaterialTheme.typography.headlineMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = GoldPrimary,
+                                            textAlign = TextAlign.Center
+                                        )
+                                        Text(
+                                            text = copticDate.monthNameCoptic,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = Color.White.copy(alpha = 0.85f),
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
 
                                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -264,6 +276,96 @@ fun CopticCalendarScreen(
                                         )
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Google Search Grounded Research & Calendar Verification Card
+            item {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.45f)),
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .pressBounce()
+                            .clickable {
+                                groundedSearchInitialQuery = if (lang == AppLanguage.ARABIC) {
+                                    "طقس وأعياد اليوم ${copticDate.day} ${copticDate.monthNameAr} وقراءات القطمارس"
+                                } else {
+                                    "Liturgy and readings for ${copticDate.day} ${copticDate.monthNameEn}"
+                                }
+                                showGroundedSearchDialog = true
+                            }
+                            .testTag("card_grounded_search")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        Brush.radialGradient(
+                                            listOf(GoldLight, GoldPrimary, BurgundyDeep)
+                                        )
+                                    )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "البحث الأرثوذكسي الموثق" else "Orthodox Grounded Search",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = GoldPrimary
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Surface(
+                                        color = GoldPrimary.copy(alpha = 0.18f),
+                                        shape = RoundedCornerShape(6.dp)
+                                    ) {
+                                        Text(
+                                            text = "Google Search",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = GoldLight,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) {
+                                        "ابحث في الأعياد، مواعيد الأصوام، وتأملات وقراءات الكنيسة بدقة موثقة من محرك بحث Google"
+                                    } else {
+                                        "Search feasts, fast dates, and Church scripture reflections verified via Google Search"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 16.sp
+                                )
                             }
                         }
                     }
@@ -340,67 +442,6 @@ fun CopticCalendarScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 lineHeight = 18.sp
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Synaxarium Saint Commemorations Card
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-                    Card(
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(3.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(18.dp)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier
-                                        .size(38.dp)
-                                        .clip(CircleShape)
-                                        .background(GoldPrimary.copy(alpha = 0.15f))
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.AutoAwesome,
-                                        contentDescription = null,
-                                        tint = GoldPrimary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = if (lang == AppLanguage.ARABIC) "سنكسار اليوم والشهداء والقديسين" else "Synaxarium & Daily Saints",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            if (copticDate.feastNameAr != null) {
-                                Text(
-                                    text = if (lang == AppLanguage.ARABIC) copticDate.feastNameAr else copticDate.feastNameEn ?: "",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = GoldPrimary,
-                                    modifier = Modifier.padding(bottom = 6.dp)
-                                )
-                            }
-
-                            Text(
-                                text = if (lang == AppLanguage.ARABIC) copticDate.synaxariumSummaryAr else copticDate.synaxariumSummaryEn,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                lineHeight = 22.sp
                             )
                         }
                     }
@@ -504,8 +545,7 @@ fun CopticCalendarScreen(
                                 OutlinedButton(
                                     onClick = {
                                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                        val fullText = "${copticDate.day} ${copticDate.monthNameAr} ${copticDate.yearAM} ش\n" +
-                                                "${copticDate.synaxariumSummaryAr}\n\n" +
+                                        val fullText = "${copticDate.day} ${copticDate.monthNameAr} ${copticDate.yearAM} ش\n\n" +
                                                 "${copticDate.katamerosPsalmAr}\n" +
                                                 "${copticDate.katamerosGospelAr}"
                                         clipboard.setPrimaryClip(ClipData.newPlainText("Coptic Reading", fullText))
@@ -544,6 +584,14 @@ fun CopticCalendarScreen(
                     }
                 }
             }
+        }
+
+        if (showGroundedSearchDialog) {
+            OrthodoxGroundedSearchDialog(
+                language = lang,
+                onDismissRequest = { showGroundedSearchDialog = false },
+                initialQuery = groundedSearchInitialQuery
+            )
         }
     }
 }

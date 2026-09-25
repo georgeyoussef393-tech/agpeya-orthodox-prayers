@@ -139,9 +139,9 @@ fun SpiritualSoundPickerDialog(
 
                     val containerColor by animateColorAsState(
                         targetValue = when {
-                            isPlaying -> GoldPrimary.copy(alpha = 0.18f)
-                            isSelected -> MaterialTheme.colorScheme.surfaceVariant
-                            else -> MaterialTheme.colorScheme.surface
+                            isPlaying -> GoldPrimary.copy(alpha = 0.22f)
+                            isSelected -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f)
+                            else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.65f)
                         },
                         label = "cardColor"
                     )

@@ -73,6 +73,14 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     private val _isAuthCompleted = MutableStateFlow(false)
     val isAuthCompleted: StateFlow<Boolean> = _isAuthCompleted.asStateFlow()
 
+    // User Full Name (الاسم ثلاثي أو رباعي)
+    private val _userFullName = MutableStateFlow<String?>(null)
+    val userFullName: StateFlow<String?> = _userFullName.asStateFlow()
+
+    // Global Font Size Scaling for Reading
+    private val _fontSizeMultiplier = MutableStateFlow(1.0f)
+    val fontSizeMultiplier: StateFlow<Float> = _fontSizeMultiplier.asStateFlow()
+
     // Optional Church / Ministry Name
     private val _churchName = MutableStateFlow<String?>(null)
     val churchName: StateFlow<String?> = _churchName.asStateFlow()
@@ -124,6 +132,8 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         repository = AgpeyaRepository(db.prayerLogDao(), application)
         _currentLanguage.value = repository.getSavedLanguage()
         _isAuthCompleted.value = repository.isAuthOnboardingCompleted()
+        _userFullName.value = repository.getUserFullName()
+        _fontSizeMultiplier.value = repository.getFontSizeMultiplier()
         _churchName.value = repository.getChurchName()
         _churchEmblem.value = repository.getChurchEmblem()
         _spiritualTheme.value = repository.getSpiritualBackgroundTheme()
@@ -523,6 +533,21 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     fun setQuietHoursEndHour(hour: Int) {
         _quietHoursEndHour.value = hour
         repository.saveQuietHoursEndHour(hour)
+    }
+
+    fun saveUserFullName(fullName: String?) {
+        _userFullName.value = fullName
+        repository.saveUserFullName(fullName)
+    }
+
+    fun saveUserEmail(email: String?, onComplete: () -> Unit = {}) {
+        repository.setUserEmail(email, onComplete)
+    }
+
+    fun setFontSizeMultiplier(multiplier: Float) {
+        val clamped = multiplier.coerceIn(0.85f, 1.85f)
+        _fontSizeMultiplier.value = clamped
+        repository.saveFontSizeMultiplier(clamped)
     }
 
     fun syncAlarmsWithLocalTimezone() {

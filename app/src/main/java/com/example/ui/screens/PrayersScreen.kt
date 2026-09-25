@@ -1,9 +1,16 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,12 +35,18 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.ui.graphics.graphicsLayer
+import com.example.ui.animation.AgpeyaMotion
+import com.example.ui.animation.pressBounce
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.WbSunny
+import com.example.ui.components.OrthodoxGroundedSearchDialog
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Vibration
 import androidx.compose.material3.Button
@@ -98,6 +111,7 @@ fun PrayersScreen(
     onNavigateToCalendar: () -> Unit = {},
     onNavigateToAmbient: () -> Unit = {},
     onNavigateToJournal: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val lang by viewModel.currentLanguage.collectAsState()
@@ -109,6 +123,7 @@ fun PrayersScreen(
     val isCandleGlowEnabled by viewModel.isCandleGlowEnabled.collectAsState()
     val isBilingual by viewModel.isBilingualEnabled.collectAsState()
     val secondaryLang by viewModel.secondaryLanguage.collectAsState()
+    val fontSizeMultiplier by viewModel.fontSizeMultiplier.collectAsState()
 
     val todayString = AgpeyaRepository.getTodayString()
     val todayLogs = remember(allLogs, todayString) {
@@ -123,6 +138,7 @@ fun PrayersScreen(
 
     var prayerToEditTime by remember { mutableStateOf<PrayerId?>(null) }
     var prayerToEditSound by remember { mutableStateOf<PrayerId?>(null) }
+    var showGroundedSearchDialog by remember { mutableStateOf(false) }
 
     val canonicalList = PrayerId.canonicalPrayers
     val totalCanonical = 7 // Prime, Terce, Sext, None, Vespers, Compline, Midnight
@@ -130,18 +146,11 @@ fun PrayersScreen(
     val progressFraction = (completedCanonicalCount.toFloat() / totalCanonical.toFloat()).coerceIn(0f, 1f)
     val animatedProgress by animateFloatAsState(
         targetValue = progressFraction,
-        animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
         label = "progress"
     )
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Ambient Spiritual Reverence Backdrop for Whole Screen
-        SpiritualAtmosphereBackdrop(
-            theme = spiritualTheme,
-            opacity = (spiritualOpacity * 0.40f).coerceAtMost(0.16f),
-            enableCandleGlow = isCandleGlowEnabled
-        )
-
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 80.dp)
@@ -183,21 +192,42 @@ fun PrayersScreen(
                     verticalArrangement = Arrangement.Bottom
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        CopticCrossCanvas(size = 40.dp)
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Column {
-                            Text(
-                                text = AgpeyaStrings.appTitle(lang),
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = GoldLight
-                            )
-                            Text(
-                                text = AgpeyaStrings.appSubtitle(lang),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFFE2E8F0)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            CopticCrossCanvas(size = 40.dp)
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column {
+                                Text(
+                                    text = AgpeyaStrings.appTitle(lang),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GoldLight
+                                )
+                                Text(
+                                    text = AgpeyaStrings.appSubtitle(lang),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFFE2E8F0)
+                                )
+                            }
+                        }
+
+                        IconButton(
+                            onClick = onNavigateToSettings,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.45f))
+                                .testTag("top_bar_settings_btn")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = if (lang == AppLanguage.ARABIC) "الإعدادات" else "Settings",
+                                tint = GoldPrimary
                             )
                         }
                     }
@@ -215,7 +245,7 @@ fun PrayersScreen(
             }
         }
 
-        // Quick Spiritual Shortcuts Row (Synaxarium, Ambient Candle, Spiritual Journal)
+        // Quick Spiritual Shortcuts Row (Coptic Calendar, Ambient Candle, Spiritual Journal)
         item {
             Row(
                 modifier = Modifier
@@ -223,7 +253,7 @@ fun PrayersScreen(
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Synaxarium & Calendar Card
+                // Coptic Calendar Card
                 Card(
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -244,7 +274,7 @@ fun PrayersScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "السنكسار والتقويم" else "Synaxarium",
+                            text = if (lang == AppLanguage.ARABIC) "التقويم القبطي" else "Coptic Calendar",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -314,6 +344,66 @@ fun PrayersScreen(
                             maxLines = 1
                         )
                     }
+                }
+            }
+        }
+
+        // Google Search Grounded Inquiry Action
+        item {
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.4f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .clickable { showGroundedSearchDialog = true }
+                    .testTag("prayer_screen_grounded_search_btn")
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(GoldPrimary.copy(alpha = 0.2f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            tint = GoldPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) "بحث أرثوذكسي موثق عبر Google Search Grounding" else "Orthodox Grounded Search with Google",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = GoldPrimary
+                        )
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) "استفسر عن أي طقس، مناسبة، أو تفسير مزمور بدقة حية" else "Verify saints, liturgical feasts, and psalm interpretations",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
+                    }
+
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "بحث ↵" else "Search ↵",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = GoldPrimary
+                    )
                 }
             }
         }
@@ -523,11 +613,20 @@ fun PrayersScreen(
             isCandleGlowEnabled = isCandleGlowEnabled,
             isBilingual = isBilingual,
             secondaryLang = secondaryLang,
+            fontSizeMultiplier = fontSizeMultiplier,
+            onFontSizeMultiplierChange = { viewModel.setFontSizeMultiplier(it) },
             onLanguageChange = { viewModel.setLanguage(it) },
             onSpiritualThemeChange = { viewModel.setSpiritualTheme(it) },
             onAutoMarkPrayed = { viewModel.markPrayerAsPrayedToday(prayerId) },
             onTogglePrayed = { viewModel.togglePrayerToday(prayerId) },
             onDismiss = { viewModel.closePrayerReading() }
+        )
+    }
+
+    if (showGroundedSearchDialog) {
+        OrthodoxGroundedSearchDialog(
+            language = lang,
+            onDismissRequest = { showGroundedSearchDialog = false }
         )
     }
 }
@@ -552,6 +651,7 @@ private fun PrayerCardItem(
         } else {
             MaterialTheme.colorScheme.surface
         },
+        animationSpec = tween(durationMillis = 150, easing = FastOutSlowInEasing),
         label = "cardBg"
     )
 
@@ -562,6 +662,7 @@ private fun PrayerCardItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
+            .pressBounce()
             .testTag("prayer_card_${prayerId.code.lowercase()}")
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -649,95 +750,107 @@ private fun PrayerCardItem(
             )
 
             // Alarm controls (Sound toggle, Melody selector, Vibration toggle)
-            if (setting.isEnabled) {
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // Sound toggle chip
+            AnimatedVisibility(
+                visible = setting.isEnabled,
+                enter = AgpeyaMotion.expandSpring(),
+                exit = AgpeyaMotion.shrinkSpring()
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { onToggleSound() }
-                            .background(if (setting.soundEnabled) GoldPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 8.dp, vertical = 5.dp)
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(
-                            imageVector = if (setting.soundEnabled) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
-                            contentDescription = "Sound toggle",
-                            tint = if (setting.soundEnabled) GoldPrimary else MaterialTheme.colorScheme.outline,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = if (lang == AppLanguage.ARABIC) "صوت" else "Sound",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (setting.soundEnabled) FontWeight.Bold else FontWeight.Normal,
-                            color = if (setting.soundEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    if (setting.soundEnabled) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        val currentSound = SpiritualSound.fromId(setting.soundId)
+                        // Sound toggle chip
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(GoldPrimary.copy(alpha = 0.12f))
-                                .clickable { onEditSound() }
+                                .clickable { onToggleSound() }
+                                .background(if (setting.soundEnabled) GoldPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant)
                                 .padding(horizontal = 8.dp, vertical = 5.dp)
-                                .testTag("sound_chip_${prayerId.code.lowercase()}")
                         ) {
                             Icon(
-                                imageVector = Icons.Default.MusicNote,
-                                contentDescription = "Spiritual sound tone",
-                                tint = GoldPrimary,
-                                modifier = Modifier.size(15.dp)
+                                imageVector = if (setting.soundEnabled) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                                contentDescription = "Sound toggle",
+                                tint = if (setting.soundEnabled) GoldPrimary else MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = currentSound.getName(lang),
+                                text = if (lang == AppLanguage.ARABIC) "صوت" else "Sound",
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = "▾",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = GoldPrimary
+                                fontWeight = if (setting.soundEnabled) FontWeight.Bold else FontWeight.Normal,
+                                color = if (setting.soundEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                    }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                        AnimatedVisibility(
+                            visible = setting.soundEnabled,
+                            enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium)) + expandHorizontally(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+                            exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium)) + shrinkHorizontally(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                val currentSound = SpiritualSound.fromId(setting.soundId)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(GoldPrimary.copy(alpha = 0.12f))
+                                        .clickable { onEditSound() }
+                                        .padding(horizontal = 8.dp, vertical = 5.dp)
+                                        .testTag("sound_chip_${prayerId.code.lowercase()}")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.MusicNote,
+                                        contentDescription = "Spiritual sound tone",
+                                        tint = GoldPrimary,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = currentSound.getName(lang),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    Text(
+                                        text = "▾",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = GoldPrimary
+                                    )
+                                }
+                            }
+                        }
 
-                    // Vibration toggle chip
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { onToggleVibrate() }
-                            .background(if (setting.vibrateEnabled) GoldPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 8.dp, vertical = 5.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Vibration,
-                            contentDescription = "Vibration toggle",
-                            tint = if (setting.vibrateEnabled) GoldPrimary else MaterialTheme.colorScheme.outline,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = if (lang == AppLanguage.ARABIC) "اهتزاز" else "Vibrate",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (setting.vibrateEnabled) FontWeight.Bold else FontWeight.Normal,
-                            color = if (setting.vibrateEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Vibration toggle chip
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onToggleVibrate() }
+                                .background(if (setting.vibrateEnabled) GoldPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 8.dp, vertical = 5.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Vibration,
+                                contentDescription = "Vibration toggle",
+                                tint = if (setting.vibrateEnabled) GoldPrimary else MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "اهتزاز" else "Vibrate",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = if (setting.vibrateEnabled) FontWeight.Bold else FontWeight.Normal,
+                                color = if (setting.vibrateEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -758,7 +871,9 @@ private fun PrayerCardItem(
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
-                    modifier = Modifier.testTag("read_btn_${prayerId.code.lowercase()}")
+                    modifier = Modifier
+                        .pressBounce()
+                        .testTag("read_btn_${prayerId.code.lowercase()}")
                 ) {
                     Icon(
                         imageVector = Icons.Default.MenuBook,
@@ -774,21 +889,37 @@ private fun PrayerCardItem(
                     )
                 }
 
+                val markBtnColor by animateColorAsState(
+                    targetValue = if (isPrayedToday) PeacefulGreen else GoldPrimary,
+                    animationSpec = tween(durationMillis = 150, easing = FastOutSlowInEasing),
+                    label = "mark_btn_color"
+                )
+                val checkScale by animateFloatAsState(
+                    targetValue = if (isPrayedToday) 1.15f else 1f,
+                    animationSpec = tween(durationMillis = 120, easing = FastOutSlowInEasing),
+                    label = "check_scale"
+                )
+
                 // Mark as Prayed
                 Button(
                     onClick = onTogglePrayed,
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isPrayedToday) PeacefulGreen else GoldPrimary
-                    ),
-                    modifier = Modifier.testTag("mark_btn_${prayerId.code.lowercase()}")
+                    colors = ButtonDefaults.buttonColors(containerColor = markBtnColor),
+                    modifier = Modifier
+                        .pressBounce()
+                        .testTag("mark_btn_${prayerId.code.lowercase()}")
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
                         tint = if (isPrayedToday) Color.White else Color.Black,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier
+                            .size(16.dp)
+                            .graphicsLayer {
+                                scaleX = checkScale
+                                scaleY = checkScale
+                            }
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(

@@ -40,9 +40,9 @@ class AgpeyaRepository(
 
     val syncManager = FirestoreSyncManager(context)
 
-    // Auth & Onboarding state
+    // Auth & Onboarding state - defaults to true so downloaded app matches preview directly
     fun isAuthOnboardingCompleted(): Boolean {
-        return prefs.getBoolean("auth_onboarding_completed", false)
+        return prefs.getBoolean("auth_onboarding_completed", true)
     }
 
     fun setAuthOnboardingCompleted(completed: Boolean) {
@@ -55,6 +55,31 @@ class AgpeyaRepository(
 
     fun setUserEmail(email: String?, onComplete: () -> Unit = {}) {
         syncManager.setUserEmail(email, onComplete)
+    }
+
+    // User Full Name (الاسم ثلاثي أو رباعي)
+    fun getUserFullName(): String? {
+        return syncManager.userFullName.value ?: prefs.getString("user_full_name", null)
+    }
+
+    fun saveUserFullName(fullName: String?) {
+        val clean = fullName?.trim()
+        if (clean.isNullOrBlank()) {
+            prefs.edit().remove("user_full_name").apply()
+        } else {
+            prefs.edit().putString("user_full_name", clean).apply()
+        }
+        syncManager.setUserFullName(clean)
+    }
+
+    // Text & Reading Font Size Scaling
+    fun getFontSizeMultiplier(): Float {
+        return prefs.getFloat("reading_font_size_multiplier", 1.0f)
+    }
+
+    fun saveFontSizeMultiplier(multiplier: Float) {
+        val clamped = multiplier.coerceIn(0.85f, 1.85f)
+        prefs.edit().putFloat("reading_font_size_multiplier", clamped).apply()
     }
 
     // Church Name (Optional User Ministry / Church)

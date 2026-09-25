@@ -11,6 +11,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,15 +34,19 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
+import com.example.ui.components.OrthodoxGroundedSearchDialog
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.VolumeOff
@@ -132,6 +138,8 @@ fun SettingsScreen(
     val lastSyncTime by viewModel.lastSyncTime.collectAsState()
     val isRealtimeSyncActive by viewModel.isRealtimeSyncActive.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
+    val userFullName by viewModel.userFullName.collectAsState()
+    val fontSizeMultiplier by viewModel.fontSizeMultiplier.collectAsState()
     val churchName by viewModel.churchName.collectAsState()
     val churchEmblem by viewModel.churchEmblem.collectAsState()
     val allLogs by viewModel.allLogs.collectAsState()
@@ -169,9 +177,16 @@ fun SettingsScreen(
     var prayerToEditTime by remember { mutableStateOf<PrayerId?>(null) }
     var prayerToEditSound by remember { mutableStateOf<PrayerId?>(null) }
 
+    var isEditingFullName by remember { mutableStateOf(false) }
+    var fullNameInput by remember(userFullName) { mutableStateOf(userFullName ?: "") }
+
+    var isEditingEmail by remember { mutableStateOf(false) }
+    var emailInput by remember(userEmail) { mutableStateOf(userEmail ?: "") }
+
     var isEditingChurch by remember { mutableStateOf(false) }
     var churchInput by remember(churchName) { mutableStateOf(churchName ?: "") }
     var showPrivacyDialog by remember { mutableStateOf(false) }
+    var showGroundedSearchDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -182,25 +197,42 @@ fun SettingsScreen(
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                modifier = Modifier.fillMaxWidth()
+                border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("settings_header_card")
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(18.dp)
                 ) {
-                    CopticCrossCanvas(size = 36.dp)
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(GoldPrimary.copy(alpha = 0.2f))
+                    ) {
+                        CopticCrossCanvas(size = 32.dp, color = GoldPrimary)
+                    }
                     Spacer(modifier = Modifier.width(14.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = AgpeyaStrings.tabSettings(lang),
+                            text = if (lang == AppLanguage.ARABIC) "إعدادات الأجبية والتحكم الشامل" else "Agpeya Complete Settings",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = GoldPrimary
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "تخصيص مواعيد التنبيهات واللغة" else "Customize alarms & language",
+                            text = if (lang == AppLanguage.ARABIC) {
+                                "تخصيص اللغات، حجم الخط، أجراس السواعي، المزامنة السحابية، والخلفيات الروحية"
+                            } else {
+                                "Customize languages, text size, alarms, cloud sync, and spiritual themes"
+                            },
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 16.sp
                         )
                     }
                 }
@@ -212,6 +244,211 @@ fun SettingsScreen(
         // Multilingual Support & Local Timezone Notification Preferences
         item {
             MultilingualAndNotificationSettings(viewModel = viewModel)
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        // ==========================================
+        // TEXT SIZE & FONT SCALE CONTROL CARD
+        // ==========================================
+        item {
+            Text(
+                text = if (lang == AppLanguage.ARABIC) "التحكم في حجم النص والخط للصلوات" else "Prayer Text Size & Font Scale Control",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = GoldPrimary,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = if (lang == AppLanguage.ARABIC) "تكبير أو تصغير حجم خطوط الصلوات والمزامير للقراءة المريحة والخاشعة على جميع الشاشات" else "Scale prayer and psalm font size for comfortable, strain-free reading",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("text_size_control_card")
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.FormatSize,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "حجم خط الصلوات والمزامير" else "Prayer Text Scale",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                val percentage = (fontSizeMultiplier * 100).toInt()
+                                val scaleLabel = when {
+                                    fontSizeMultiplier < 0.95f -> if (lang == AppLanguage.ARABIC) "صغير" else "Small"
+                                    fontSizeMultiplier in 0.95f..1.10f -> if (lang == AppLanguage.ARABIC) "عادي (قياسي)" else "Normal"
+                                    fontSizeMultiplier in 1.11f..1.35f -> if (lang == AppLanguage.ARABIC) "كبير (مريح)" else "Large"
+                                    fontSizeMultiplier in 1.36f..1.60f -> if (lang == AppLanguage.ARABIC) "كبير جداً" else "Very Large"
+                                    else -> if (lang == AppLanguage.ARABIC) "عملاق (مكبر)" else "Huge"
+                                }
+                                Text(
+                                    text = "$percentage% - $scaleLabel",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GoldPrimary
+                                )
+                            }
+                        }
+
+                        // Stepper buttons (- and +)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = {
+                                    val newScale = (fontSizeMultiplier - 0.1f).coerceIn(0.85f, 1.85f)
+                                    viewModel.setFontSizeMultiplier(newScale)
+                                },
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Text(
+                                    text = "A-",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(6.dp))
+                            IconButton(
+                                onClick = {
+                                    val newScale = (fontSizeMultiplier + 0.1f).coerceIn(0.85f, 1.85f)
+                                    viewModel.setFontSizeMultiplier(newScale)
+                                },
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Text(
+                                    text = "A+",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GoldPrimary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Slider
+                    Slider(
+                        value = fontSizeMultiplier,
+                        onValueChange = { viewModel.setFontSizeMultiplier(it) },
+                        valueRange = 0.85f..1.85f,
+                        steps = 9,
+                        colors = SliderDefaults.colors(
+                            thumbColor = GoldPrimary,
+                            activeTrackColor = GoldPrimary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant
+                        ),
+                        modifier = Modifier.fillMaxWidth().testTag("font_size_slider")
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Quick Presets Row
+                    val presets = listOf(
+                        0.85f to (if (lang == AppLanguage.ARABIC) "صغير 85%" else "85%"),
+                        1.00f to (if (lang == AppLanguage.ARABIC) "عادي 100%" else "100%"),
+                        1.25f to (if (lang == AppLanguage.ARABIC) "كبير 125%" else "125%"),
+                        1.50f to (if (lang == AppLanguage.ARABIC) "كبير جداً 150%" else "150%"),
+                        1.75f to (if (lang == AppLanguage.ARABIC) "عملاق 175%" else "175%")
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        presets.forEach { (scale, label) ->
+                            val isCurrent = kotlin.math.abs(fontSizeMultiplier - scale) < 0.06f
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isCurrent) GoldPrimary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                                    .clickable { viewModel.setFontSizeMultiplier(scale) }
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isCurrent) Color.Black else MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Interactive Live Preview Container
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "معاينة حية لحجم الخط:" else "Live Text Size Preview:",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                            .border(1.dp, GoldPrimary.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                            .padding(14.dp)
+                    ) {
+                        Column {
+                            val sampleVerse = when (lang) {
+                                AppLanguage.COPTIC -> "Ⲡϭⲟⲓⲥ ⲡⲉ ⲡⲁⲙⲁⲛⲉⲥⲱⲟⲩ ⲟⲩⲟϩ ⲛ̀ⲛⲉ ϩⲗⲓ ϣⲱⲧ ⲙ̀ⲙⲟⲓ. Ϧⲉⲛ ⲟⲩⲙⲁ ⲛ̀ⲟⲩⲟⲧ ⲁϥⲑⲣⲓϣⲱⲡⲓ ⲙ̀ⲙⲁⲩ."
+                                AppLanguage.ENGLISH -> "«The Lord is my shepherd; I shall not want. He makes me to lie down in green pastures; He leads me beside the still waters.» (Psalm 23:1-2)"
+                                AppLanguage.GERMAN, AppLanguage.SWISS_GERMAN -> "«Der Herr ist mein Hirt, mir wird nichts mangeln. Er weidet mich auf grünen Auen und führet mich zum frischen Wasser.» (Psalm 23:1-2)"
+                                AppLanguage.AUSTRIAN_GERMAN -> "«Der Herr is mei Hirt, mir wird nix föhln. Er weidet mi auf saftign Wiesn und führt mi zum frischen Wossa.» (Psalm 23:1-2)"
+                                AppLanguage.SPANISH -> "«El Señor es mi pastor, nada me faltará. En lugares de delicados pastos me hará descansar; junto a aguas de reposo me pastoreará.» (Salmo 23:1-2)"
+                                AppLanguage.HINDI -> "«यहोवा मेरा चरवाहा है; मुझे कुछ घटी न होगी। वह मुझे हरी-हरी चराइयों में बैठाता है; वह मुझे सुखदाई जल के झरने के पास ले चलता है॥» (भजन संहिता 23:1-2)"
+                                AppLanguage.CHINESE -> "«耶和华是我的牧者，我必不致缺乏。祂使我躺卧在青草地上，领我在可安歇的水边。»（诗篇 23:1-2）"
+                                AppLanguage.ITALIAN -> "«Il Signore è il mio pastore: non manco di nulla. Su pascoli erbosi mi fa riposare, ad acque tranquille mi conduce.» (Salmo 23:1-2)"
+                                AppLanguage.FRENCH -> "«L'Éternel est mon berger: je ne manquerai de rien. Il me fait reposer dans de verts pâturages, Il me dirige près des eaux paisibles.» (Psaume 23:1-2)"
+                                else -> "«الرَّبُّ رَاعِيَّ فَلَا يُعْوِزُنِي شَيْءٌ. فِي مَرَاعٍ خُضْرٍ يُرْبِضُنِي. إِلَى مِيَاهِ الرَّاحَةِ يُورِدُنِي. يَرُدُّ نَفْسِي. يَهْدِينِي إِلَى سُبُلِ الْبِرِّ مِنْ أَجْلِ اسْمِهِ.» (مزمور 23: 1-3)"
+                            }
+
+                            Text(
+                                text = sampleVerse,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontSize = (15 * fontSizeMultiplier).sp,
+                                    lineHeight = (24 * fontSizeMultiplier).sp
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(20.dp))
         }
 
@@ -310,34 +547,228 @@ fun SettingsScreen(
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Connected Cloud Account
-                    if (userEmail != null) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(GoldPrimary.copy(alpha = 0.12f))
-                                .padding(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = null,
-                                tint = GoldPrimary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
+                    // 1. User Full Name Row (الاسم ثلاثي أو رباعي)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = GoldPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        if (isEditingFullName) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                OutlinedTextField(
+                                    value = fullNameInput,
+                                    onValueChange = { fullNameInput = it },
+                                    label = {
+                                        Text(if (lang == AppLanguage.ARABIC) "الاسم ثلاثي أو رباعي" else "Full Name (3 or 4 names)")
+                                    },
+                                    placeholder = {
+                                        Text(if (lang == AppLanguage.ARABIC) "مثال: مينا يوسف بطرس جرجس" else "e.g. Mina Youssef Boutros Guirguis")
+                                    },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                val words = fullNameInput.trim().split("\\s+".toRegex()).filter { it.isNotBlank() }
+                                val wordCount = words.size
+                                Spacer(modifier = Modifier.height(4.dp))
+                                if (wordCount >= 4) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "✅ اسم رباعي مكتمل ومثالي للتسجيل السحابي ($wordCount كلمات)" else "✅ Complete 4-part name ($wordCount words)",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFF4CAF50),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                } else if (wordCount == 3) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "✅ اسم ثلاثي معتمد للتسجيل السحابي (3 كلمات)" else "✅ Valid 3-part name (3 words)",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = GoldPrimary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                } else if (wordCount in 1..2) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "⚠️ يُفضل إدخال الاسم ثلاثياً أو رباعياً لضمان التوثيق السحابي الدقيق" else "⚠️ 3 or 4 names recommended for cloud sync",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFFFFA726)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = {
+                                    viewModel.saveUserFullName(fullNameInput.ifBlank { null })
+                                    isEditingFullName = false
+                                    Toast.makeText(
+                                        context,
+                                        if (lang == AppLanguage.ARABIC) "تم حفظ الاسم بنجاح" else "Name saved successfully",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Save Full Name",
+                                    tint = GoldPrimary
+                                )
+                            }
+                        } else {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = AgpeyaStrings.accountLinkedTitle(lang),
+                                    text = if (lang == AppLanguage.ARABIC) "الاسم ثلاثي أو رباعي (للتوثيق السحابي والتقارير)" else "Full Name (For Cloud & Reports)",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
-                                    text = userEmail ?: "",
+                                    text = if (!userFullName.isNullOrBlank()) userFullName!! else (if (lang == AppLanguage.ARABIC) "اضغط لإدخال الاسم ثلاثي أو رباعي" else "Tap to enter full name"),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = GoldLight
+                                    fontWeight = if (!userFullName.isNullOrBlank()) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (!userFullName.isNullOrBlank()) GoldLight else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                                val words = (userFullName ?: "").trim().split("\\s+".toRegex()).filter { it.isNotBlank() }
+                                if (words.size >= 4) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "✅ اسم رباعي موثق سحابياً" else "✅ Quadripartite Cloud Verified",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFF4CAF50),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                } else if (words.size == 3) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "✅ اسم ثلاثي موثق سحابياً" else "✅ Tripartite Cloud Verified",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = GoldPrimary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                            IconButton(
+                                onClick = {
+                                    fullNameInput = userFullName ?: ""
+                                    isEditingFullName = true
+                                },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Full Name",
+                                    tint = GoldPrimary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 2. Connected Cloud Email Row (البريد الإلكتروني للتسجيل السحابي)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(GoldPrimary.copy(alpha = 0.12f))
+                            .padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = null,
+                            tint = GoldPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        if (isEditingEmail) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                OutlinedTextField(
+                                    value = emailInput,
+                                    onValueChange = { emailInput = it },
+                                    label = {
+                                        Text(if (lang == AppLanguage.ARABIC) "البريد الإلكتروني للتسجيل السحابي" else "Cloud Sync Email")
+                                    },
+                                    placeholder = { Text("user@example.com") },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                val cleanEmail = emailInput.trim()
+                                val isValid = cleanEmail.isBlank() || android.util.Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()
+                                if (!isValid && cleanEmail.isNotBlank()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "⚠️ صيغة البريد الإلكتروني غير صحيحة" else "⚠️ Invalid email format",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFFFF6B6B)
+                                    )
+                                } else if (isValid && cleanEmail.isNotBlank()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "✅ بريد إلكتروني صالح للتسجيل والمزامنة" else "✅ Valid email for cloud sync",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFF4CAF50)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = {
+                                    val cleanEmail = emailInput.trim()
+                                    if (cleanEmail.isBlank() || android.util.Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) {
+                                        viewModel.saveUserEmail(cleanEmail.ifBlank { null }) {
+                                            Toast.makeText(
+                                                context,
+                                                if (lang == AppLanguage.ARABIC) "تم تحديث حساب المزامنة السحابية" else "Cloud sync account updated",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                        isEditingEmail = false
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            if (lang == AppLanguage.ARABIC) "صيغة البريد الإلكتروني غير صحيحة" else "Invalid email format",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Save Email",
+                                    tint = GoldPrimary
+                                )
+                            }
+                        } else {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "البريد الإلكتروني للتسجيل السحابي" else "Cloud Sync Email Account",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = if (!userEmail.isNullOrBlank()) userEmail!! else (if (lang == AppLanguage.ARABIC) "اضغط لإدخال بريدك السحابي" else "Tap to enter cloud email"),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (!userEmail.isNullOrBlank()) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (!userEmail.isNullOrBlank()) GoldLight else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    emailInput = userEmail ?: ""
+                                    isEditingEmail = true
+                                },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Cloud Email",
+                                    tint = GoldPrimary
                                 )
                             }
                             IconButton(
@@ -350,26 +781,6 @@ fun SettingsScreen(
                                     tint = GoldPrimary
                                 )
                             }
-                        }
-                    } else {
-                        OutlinedButton(
-                            onClick = { viewModel.openAuthOnboarding() },
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = null,
-                                tint = GoldPrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = AgpeyaStrings.stepAccountSync(lang),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = GoldLight
-                            )
                         }
                     }
 
@@ -657,6 +1068,114 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
+        // ==========================================
+        // ORTHODOX GROUNDED SEARCH & GOOGLE VERIFICATION CARD
+        // ==========================================
+        item {
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("settings_search_grounding_card")
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(GoldPrimary.copy(alpha = 0.2f))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = GoldPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "البحث الأرثوذكسي الموثق" else "Orthodox Grounded Search",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Google Search Grounding & Gemini",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = GoldPrimary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+
+                        Surface(
+                            color = Color(0xFF4CAF50).copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "مُفعل ونشط" else "Active",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF4CAF50),
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) {
+                            "محرك بحث كنسي ذكي مدعوم ببيانات جوجل المباشرة لتوثيق مواعيد الأعياد والأصوام القبطية، قراءات القطمارس، وتفاسير المزامير مع روابط المصادر."
+                        } else {
+                            "Live Orthodox search engine powered by real-time Google Search data to verify feast/fast dates, Katameros scriptures, and psalm commentaries with cited sources."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 18.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Button(
+                        onClick = { showGroundedSearchDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp)
+                            .testTag("btn_open_grounded_search_settings")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            tint = Color.Black,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) "فتح نافذة البحث الأرثوذكسي الموثق" else "Open Grounded Search Dialog",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         // Local Backup & Restore Card (JSON Export & Import)
         item {
             Card(
@@ -928,20 +1447,23 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = AgpeyaStrings.testAlert(lang),
+                            text = if (lang == AppLanguage.ARABIC) "تجربة التنبيه والاهتزاز الفوري" else AgpeyaStrings.testAlert(lang),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "تأكد من عمل صوت التنبيه والاهتزاز" else "Verify notification sound and vibration",
+                            text = if (lang == AppLanguage.ARABIC) "تشغيل محرك اهتزاز الجهاز ونغمة التنبيه للتأكد من عملهما" else "Test device vibration motor and alert sound",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
                     Button(
-                        onClick = { viewModel.testNotificationNow() },
+                        onClick = {
+                            viewModel.testNotificationNow()
+                            com.example.service.AgpeyaNotificationHelper.triggerDeviceVibration(context)
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.testTag("test_notification_btn")
@@ -954,7 +1476,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "تجربة" else "Test",
+                            text = if (lang == AppLanguage.ARABIC) "تجربة الاهتزاز" else "Test Vibration",
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
@@ -1195,61 +1717,6 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // Language Switcher Section
-        item {
-            Text(
-                text = AgpeyaStrings.languageSelection(lang),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = GoldPrimary,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
-
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    AppLanguage.entries.forEachIndexed { idx, appLang ->
-                        val isSelected = appLang == lang
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (isSelected) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
-                                .clickable { viewModel.setLanguage(appLang) }
-                                .padding(horizontal = 14.dp, vertical = 12.dp)
-                        ) {
-                            Text(
-                                text = "${appLang.flagEmoji}  ${appLang.nativeName}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isSelected) GoldPrimary else MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(1f)
-                            )
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected",
-                                    tint = GoldPrimary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                        if (idx < AppLanguage.entries.size - 1) {
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                                modifier = Modifier.padding(horizontal = 8.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-        }
 
         // Spiritual Sounds and Sacred Melodies Showcase Section
         item {
@@ -2009,6 +2476,13 @@ fun SettingsScreen(
                     )
                 }
             }
+        )
+    }
+
+    if (showGroundedSearchDialog) {
+        OrthodoxGroundedSearchDialog(
+            language = lang,
+            onDismissRequest = { showGroundedSearchDialog = false }
         )
     }
 }

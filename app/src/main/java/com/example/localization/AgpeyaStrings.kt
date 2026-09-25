@@ -73,17 +73,17 @@ object AgpeyaStrings {
     }
 
     fun tabCalendar(lang: AppLanguage): String = when (lang) {
-        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "السنكسار"
-        AppLanguage.COPTIC -> "Ⲥⲩⲛⲁⲝⲁⲣⲓⲟⲛ"
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "التقويم"
+        AppLanguage.COPTIC -> "Ⲡⲓⲁⲃⲟⲧ"
         AppLanguage.ENGLISH -> "Calendar"
-        AppLanguage.FRENCH -> "Synaxaire"
-        AppLanguage.SPANISH -> "Sinaxario"
-        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Synaxarion"
-        AppLanguage.ITALIAN -> "Sinassario"
+        AppLanguage.FRENCH -> "Calendrier"
+        AppLanguage.SPANISH -> "Calendario"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Kalender"
+        AppLanguage.ITALIAN -> "Calendario"
         AppLanguage.CHINESE -> "科普特历"
-        AppLanguage.JAPANESE -> "聖人伝"
-        AppLanguage.KOREAN -> "시낙사리온"
-        AppLanguage.HINDI -> "सिनैक्सारियन (कैलेंडर)"
+        AppLanguage.JAPANESE -> "カレンダー"
+        AppLanguage.KOREAN -> "달력"
+        AppLanguage.HINDI -> "कैलेंडर"
     }
 
     fun tabAmbient(lang: AppLanguage): String = when (lang) {

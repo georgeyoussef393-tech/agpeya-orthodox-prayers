@@ -1,6 +1,8 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import com.example.ui.animation.AgpeyaMotion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -265,12 +267,22 @@ fun ReportsScreen(
             }
         }
 
-        // Selected Tab Content
-        when (selectedTabIndex) {
-            0 -> DailyReportView(viewModel = viewModel, allLogs = allLogs, lang = lang)
-            1 -> MonthlyReportView(viewModel = viewModel, allLogs = allLogs, lang = lang)
-            2 -> YearlyReportView(viewModel = viewModel, allLogs = allLogs, lang = lang)
-            3 -> HistoryLogView(viewModel = viewModel, allLogs = allLogs, lang = lang)
+        // Selected Tab Content with smooth spring transitions
+        AnimatedContent(
+            targetState = selectedTabIndex,
+            transitionSpec = {
+                val isForward = if (lang.isRtl) (targetState < initialState) else (targetState > initialState)
+                AgpeyaMotion.directionalSlide(forward = isForward)
+            },
+            label = "report_tab_transition",
+            modifier = Modifier.fillMaxSize()
+        ) { tabIndex ->
+            when (tabIndex) {
+                0 -> DailyReportView(viewModel = viewModel, allLogs = allLogs, lang = lang)
+                1 -> MonthlyReportView(viewModel = viewModel, allLogs = allLogs, lang = lang)
+                2 -> YearlyReportView(viewModel = viewModel, allLogs = allLogs, lang = lang)
+                3 -> HistoryLogView(viewModel = viewModel, allLogs = allLogs, lang = lang)
+            }
         }
     }
 }

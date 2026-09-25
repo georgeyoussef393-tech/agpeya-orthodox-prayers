@@ -73,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.localization.AppLanguage
 import com.example.ui.components.CopticCrossCanvas
+import com.example.ui.components.SpiritualAtmosphereBackdrop
 import com.example.ui.theme.BurgundyDeep
 import com.example.ui.theme.GoldLight
 import com.example.ui.theme.GoldPrimary
@@ -86,6 +87,9 @@ fun AmbientPrayerScreen(
     modifier: Modifier = Modifier
 ) {
     val lang by viewModel.currentLanguage.collectAsState()
+    val spiritualTheme by viewModel.spiritualTheme.collectAsState()
+    val spiritualOpacity by viewModel.spiritualOpacity.collectAsState()
+    val isCandleGlowEnabled by viewModel.isCandleGlowEnabled.collectAsState()
     val context = LocalContext.current
 
     // Focus Retreat Timer State
@@ -181,19 +185,10 @@ fun AmbientPrayerScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF0D0507),
-                        Color(0xFF140A0F),
-                        Color(0xFF0A0406)
-                    )
-                )
-            )
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Screen Title
@@ -215,7 +210,7 @@ fun AmbientPrayerScreen(
                     CopticCrossCanvas(color = GoldPrimary, modifier = Modifier.size(24.dp))
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = if (lang == AppLanguage.ARABIC) "«ادخل إلى مخدعك وأغلق بابك وصل إلى أبيك الذي في الخفاء»" else "“Enter into your closet, and when you have shut your door, pray to your Father”",
                     style = MaterialTheme.typography.bodySmall,
@@ -223,7 +218,7 @@ fun AmbientPrayerScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             // Virtual Animated Candle Sanctuary Card
@@ -231,12 +226,12 @@ fun AmbientPrayerScreen(
                 Card(
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.Black.copy(alpha = 0.65f)
+                        containerColor = Color.Black.copy(alpha = 0.25f)
                     ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.4f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.25f)),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(240.dp)
+                        .height(160.dp)
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -356,9 +351,9 @@ fun AmbientPrayerScreen(
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)
                     ),
-                    elevation = CardDefaults.cardElevation(2.dp),
+                    elevation = CardDefaults.cardElevation(1.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -481,9 +476,9 @@ fun AmbientPrayerScreen(
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
                     ),
-                    elevation = CardDefaults.cardElevation(2.dp),
+                    elevation = CardDefaults.cardElevation(1.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -594,11 +589,11 @@ fun AmbientPrayerScreen(
 
             // Rotating Patristic Quote Banner
             item {
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Surface(
-                    color = Color.Black.copy(alpha = 0.45f),
+                    color = Color.Black.copy(alpha = 0.20f),
                     shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.25f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.20f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(

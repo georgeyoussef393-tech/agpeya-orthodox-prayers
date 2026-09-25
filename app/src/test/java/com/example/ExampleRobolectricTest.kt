@@ -144,7 +144,7 @@ class ExampleRobolectricTest {
     org.junit.Assert.assertTrue("Coptic day should be positive", copticDate.day > 0)
     org.junit.Assert.assertTrue("Coptic month should be 1..13", copticDate.monthIndex in 1..13)
     org.junit.Assert.assertTrue("Coptic year should be in 1740s AM", copticDate.yearAM >= 1740)
-    org.junit.Assert.assertTrue("Synaxarium summary should not be empty", copticDate.synaxariumSummaryAr.isNotEmpty())
+    org.junit.Assert.assertTrue("Commemoration summary should not be empty", copticDate.commemorationSummaryAr.isNotEmpty())
     org.junit.Assert.assertNotNull("Fasting type must be present", copticDate.fastingType)
   }
 

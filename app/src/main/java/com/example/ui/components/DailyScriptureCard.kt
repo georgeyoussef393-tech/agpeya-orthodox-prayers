@@ -1,10 +1,18 @@
 package com.example.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.ui.graphics.graphicsLayer
+import com.example.ui.animation.AgpeyaMotion
+import com.example.ui.animation.pressBounce
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -206,8 +214,8 @@ fun DailyScriptureCard(
             // Optional hour picker to view verse tied to any canonical hour
             AnimatedVisibility(
                 visible = showHourSelector,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
+                enter = AgpeyaMotion.expandSpring(),
+                exit = AgpeyaMotion.shrinkSpring()
             ) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     Text(
@@ -329,14 +337,24 @@ fun DailyScriptureCard(
                             )
                         }
 
+                        val chevronRotation by animateFloatAsState(
+                            targetValue = if (isReflectionExpanded) 180f else 0f,
+                            animationSpec = tween(durationMillis = 150, easing = FastOutSlowInEasing),
+                            label = "chevron_rotation"
+                        )
                         Icon(
-                            imageVector = if (isReflectionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            imageVector = Icons.Default.ExpandMore,
                             contentDescription = if (isReflectionExpanded) "Collapse" else "Expand",
-                            tint = BurgundyDeep
+                            tint = BurgundyDeep,
+                            modifier = Modifier.graphicsLayer { rotationZ = chevronRotation }
                         )
                     }
 
-                    AnimatedVisibility(visible = isReflectionExpanded) {
+                    AnimatedVisibility(
+                        visible = isReflectionExpanded,
+                        enter = AgpeyaMotion.expandSpring(),
+                        exit = AgpeyaMotion.shrinkSpring()
+                    ) {
                         Column(modifier = Modifier.padding(top = 8.dp)) {
                             Text(
                                 text = dailyVerse.getExplanation(language),
