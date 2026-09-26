@@ -99,7 +99,7 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     val isCandleGlowEnabled: StateFlow<Boolean> = _isCandleGlowEnabled.asStateFlow()
 
     // Multilingual & Dual-Language State
-    private val _isBilingualEnabled = MutableStateFlow(true)
+    private val _isBilingualEnabled = MutableStateFlow(false)
     val isBilingualEnabled: StateFlow<Boolean> = _isBilingualEnabled.asStateFlow()
 
     private val _secondaryLanguage = MutableStateFlow(AppLanguage.COPTIC)

@@ -23,24 +23,24 @@ data class DailyVerseMeditation(
     val liturgicalThemeEnglish: String
 ) {
     fun getReference(lang: AppLanguage): String = when (lang) {
-        AppLanguage.ARABIC -> referenceArabic
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> referenceArabic
         AppLanguage.COPTIC -> referenceCoptic
         else -> referenceEnglish
     }
 
     fun getVerse(lang: AppLanguage): String = when (lang) {
-        AppLanguage.ARABIC -> verseArabic
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> verseArabic
         AppLanguage.COPTIC -> verseCoptic
         else -> verseEnglish
     }
 
     fun getExplanation(lang: AppLanguage): String = when (lang) {
-        AppLanguage.ARABIC, AppLanguage.COPTIC -> explanationArabic
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC, AppLanguage.COPTIC -> explanationArabic
         else -> explanationEnglish
     }
 
     fun getLiturgicalTheme(lang: AppLanguage): String = when (lang) {
-        AppLanguage.ARABIC, AppLanguage.COPTIC -> liturgicalThemeArabic
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC, AppLanguage.COPTIC -> liturgicalThemeArabic
         else -> liturgicalThemeEnglish
     }
 }

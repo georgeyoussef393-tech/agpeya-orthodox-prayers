@@ -3,7 +3,7 @@ package com.example.localization
 object AgpeyaStrings {
     fun appTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "صلوات الأجبية"
-        AppLanguage.COPTIC -> "Ϯⲁⲅⲡⲓⲁ ⲉⲑⲟⲩⲁⲃ"
+        AppLanguage.COPTIC -> "Ϯⲁϫⲡⲓⲁ ⲉⲑⲟⲩⲁⲃ"
         AppLanguage.ENGLISH -> "Agpeya Prayers"
         AppLanguage.FRENCH -> "Prières de l'Agpeya"
         AppLanguage.SPANISH -> "Oraciones del Agpeya"
@@ -46,7 +46,7 @@ object AgpeyaStrings {
 
     fun tabReports(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "التقارير"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲡ"
+        AppLanguage.COPTIC -> "Ⲛⲓⲗⲟⲅⲟⲥ"
         AppLanguage.ENGLISH -> "Reports"
         AppLanguage.FRENCH -> "Rapports"
         AppLanguage.SPANISH -> "Informes"
@@ -74,7 +74,7 @@ object AgpeyaStrings {
 
     fun tabCalendar(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "التقويم"
-        AppLanguage.COPTIC -> "Ⲡⲓⲁⲃⲟⲧ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲙⲏⲛⲟⲗⲟⲅⲓⲟⲛ"
         AppLanguage.ENGLISH -> "Calendar"
         AppLanguage.FRENCH -> "Calendrier"
         AppLanguage.SPANISH -> "Calendario"
@@ -88,7 +88,7 @@ object AgpeyaStrings {
 
     fun tabAmbient(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الخلوة"
-        AppLanguage.COPTIC -> "Ⲕⲩⲣⲓⲉ ⲉⲗⲉⲏⲥⲟⲛ"
+        AppLanguage.COPTIC -> "Ϯϩⲏⲥⲩⲭⲓⲁ"
         AppLanguage.ENGLISH -> "Retreat"
         AppLanguage.FRENCH -> "Retraite"
         AppLanguage.SPANISH -> "Retiro"
@@ -102,7 +102,7 @@ object AgpeyaStrings {
 
     fun tabJournal(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "المفكرة"
-        AppLanguage.COPTIC -> "Ⲉⲝⲟⲙⲟⲗⲟⲅⲏⲥⲓⲥ"
+        AppLanguage.COPTIC -> "Ⲡⲓϫⲱⲙ ⲛ̀ⲥϧⲁⲓ"
         AppLanguage.ENGLISH -> "Journal"
         AppLanguage.FRENCH -> "Journal"
         AppLanguage.SPANISH -> "Diario"
@@ -116,7 +116,7 @@ object AgpeyaStrings {
 
     fun tabReportsAndSettings(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "التقارير والإعدادات"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲡ ⲛⲉⲙ ⲛⲓⲥⲩⲛⲑⲏⲕⲏ"
+        AppLanguage.COPTIC -> "Ⲛⲓⲗⲟⲅⲟⲥ ⲛⲉⲙ ⲛⲓⲥⲩⲛⲑⲏⲕⲏ"
         AppLanguage.ENGLISH -> "Reports & Settings"
         AppLanguage.FRENCH -> "Rapports & Paramètres"
         AppLanguage.SPANISH -> "Informes y Ajustes"
@@ -131,7 +131,7 @@ object AgpeyaStrings {
     // Daily / Monthly / Yearly
     fun reportDaily(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "يومي"
-        AppLanguage.COPTIC -> "Ⲙⲏⲛⲓ"
+        AppLanguage.COPTIC -> "Ⲙ̀ⲙⲏⲛⲓ"
         AppLanguage.ENGLISH -> "Daily"
         AppLanguage.FRENCH -> "Quotidien"
         AppLanguage.SPANISH -> "Diario"
@@ -145,7 +145,7 @@ object AgpeyaStrings {
 
     fun reportMonthly(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "شهري"
-        AppLanguage.COPTIC -> "Ⲫⲏⲧ"
+        AppLanguage.COPTIC -> "Ⲛ̀ⲁⲃⲟⲧ"
         AppLanguage.ENGLISH -> "Monthly"
         AppLanguage.FRENCH -> "Mensuel"
         AppLanguage.SPANISH -> "Mensual"
@@ -159,7 +159,7 @@ object AgpeyaStrings {
 
     fun reportYearly(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "سنوي"
-        AppLanguage.COPTIC -> "Ⲣⲟⲙⲡⲓ"
+        AppLanguage.COPTIC -> "Ⲛ̀ⲣⲟⲙⲡⲓ"
         AppLanguage.ENGLISH -> "Yearly"
         AppLanguage.FRENCH -> "Annuel"
         AppLanguage.SPANISH -> "Anual"
@@ -174,7 +174,7 @@ object AgpeyaStrings {
     // Action strings
     fun markPrayed(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "صليت هذه الساعة"
-        AppLanguage.COPTIC -> "Ⲁⲓⲉⲣⲡⲣⲟⲥⲉⲩⲭⲉⲥⲑⲉ"
+        AppLanguage.COPTIC -> "Ⲁⲓⲧⲱⲃϩ ϧⲉⲛ ⲧⲁⲓⲁϫⲡ"
         AppLanguage.ENGLISH -> "Mark as Prayed"
         AppLanguage.FRENCH -> "Marquer comme prié"
         AppLanguage.SPANISH -> "Marcar como orado"
@@ -188,7 +188,7 @@ object AgpeyaStrings {
 
     fun alreadyPrayed(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تمت الصلاة اليوم"
-        AppLanguage.COPTIC -> "Ⲁⲓⲧⲱⲃϩ"
+        AppLanguage.COPTIC -> "Ⲁⲓⲧⲱⲃϩ ⲙ̀ⲫⲟⲟⲩ"
         AppLanguage.ENGLISH -> "Prayed Today"
         AppLanguage.FRENCH -> "Prié aujourd'hui"
         AppLanguage.SPANISH -> "Orado hoy"
@@ -216,7 +216,7 @@ object AgpeyaStrings {
 
     fun testAlert(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تجربة تنبيه الآن"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲛ ⲧⲏⲣϥ"
+        AppLanguage.COPTIC -> "Ϫⲱⲛⲧ ⲙ̀ⲡⲓⲥⲟϩⲓ"
         AppLanguage.ENGLISH -> "Test Notification Now"
         AppLanguage.FRENCH -> "Tester l'alerte"
         AppLanguage.SPANISH -> "Probar alerta ahora"
@@ -230,7 +230,7 @@ object AgpeyaStrings {
 
     fun timezoneWorldwide(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "توقيتك المحلي الحالي"
-        AppLanguage.COPTIC -> "Ⲡⲓⲥⲏⲟⲩ ⲛ̀ⲧⲁⲕ"
+        AppLanguage.COPTIC -> "Ⲡⲉⲕⲥⲏⲟⲩ ⲛ̀ⲧⲟⲡⲟⲥ"
         AppLanguage.ENGLISH -> "Current Local Timezone"
         AppLanguage.FRENCH -> "Fuseau horaire local"
         AppLanguage.SPANISH -> "Zona horaria local"
@@ -244,7 +244,7 @@ object AgpeyaStrings {
 
     fun alarmNotificationTitle(prayerName: String, lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "حان موعد صلاة $prayerName"
-        AppLanguage.COPTIC -> "Ⲁϥⲓ̀ ⲉ̀ⲡⲓⲥⲏⲟⲩ ⲛ̀$prayerName"
+        AppLanguage.COPTIC -> "Ⲁϥⲓ̀ ⲉ̀ⲡⲓⲥⲏⲟⲩ ⲛ̀ϯⲉⲩⲭⲏ: $prayerName"
         AppLanguage.ENGLISH -> "Time for $prayerName Prayer"
         AppLanguage.FRENCH -> "L'heure de la prière de $prayerName"
         AppLanguage.SPANISH -> "Hora de la oración de $prayerName"
@@ -258,7 +258,7 @@ object AgpeyaStrings {
 
     fun alarmNotificationBody(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "«سبع مرات في النهار سبحتك على أحكام عدلك» - هلُم نسجد ونركع للمسيح ملكنا وإلهنا"
-        AppLanguage.COPTIC -> "«Ϣⲁϣϥ ⲛ̀ⲥⲟⲡ ϧⲉⲛ ⲡⲓⲉϩⲟⲟⲩ ⲁⲓⲥⲙⲟⲩ ⲉ̀ⲣⲟⲕ» - Ⲁⲙⲱⲓⲛⲓ ⲙⲁⲣⲉⲛⲟⲩⲱϣⲧ ⲙ̀Ⲡⲭ̅ⲥ̅"
+        AppLanguage.COPTIC -> "«Ϣⲁϣϥ ⲛ̀ⲥⲟⲡ ϧⲉⲛ ⲡⲓⲉϩⲟⲟⲩ ⲁⲓⲥⲙⲟⲩ ⲉ̀ⲣⲟⲕ» - Ⲁⲙⲱⲓⲛⲓ ⲙⲁⲣⲉⲛⲟⲩⲱϣⲧ ⲙ̀Ⲡⲭ̅ⲥ̅ Ⲡⲉⲛⲟⲩⲣⲟ"
         AppLanguage.ENGLISH -> "\"Seven times a day I praise You, because of Your righteous judgments.\" - Come let us worship Christ our King."
         AppLanguage.FRENCH -> "« Sept fois par jour je te célèbre, à cause des lois de ta justice. » Venez, adorons le Christ notre Roi."
         AppLanguage.SPANISH -> "«Siete veces al día te alabo a causa de tus justos juicios.» - Venid, adoremos a Cristo nuestro Rey."
@@ -273,7 +273,7 @@ object AgpeyaStrings {
     // Reports Headers & Stats
     fun totalPrayersCount(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "إجمالي الصلوات المكتملة"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲏⲣϥ ⲛ̀ⲛⲓⲉⲩⲭⲏ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲏⲣϥ ⲛ̀ⲛⲓⲉⲩⲭⲏ ⲉⲧϫⲏⲕ ⲉ̀ⲃⲟⲗ"
         AppLanguage.ENGLISH -> "Total Completed Prayers"
         AppLanguage.FRENCH -> "Total des prières accomplies"
         AppLanguage.SPANISH -> "Total de oraciones rezadas"
@@ -343,7 +343,7 @@ object AgpeyaStrings {
 
     fun noLogsYet(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "لا توجد صلوات مسجلة في هذه الفترة حتى الآن. اضغط على أيقونة الصلاة لتسجيلها."
-        AppLanguage.COPTIC -> "Ⲙⲙⲟⲛ ⲉⲩⲭⲏ ⲉⲥⲥϧⲏⲟⲩⲧ ⲙ̀ⲡⲁⲓⲥⲏⲟⲩ."
+        AppLanguage.COPTIC -> "Ⲙ̀ⲙⲟⲛ ⲉⲩⲭⲏ ⲉⲥⲥϧⲏⲟⲩⲧ ϣⲁ ϯⲛⲟⲩ."
         AppLanguage.ENGLISH -> "No prayers recorded in this period yet. Tap any prayer card to log it."
         AppLanguage.FRENCH -> "Aucune prière enregistrée pour cette période. Appuyez sur une prière pour l'enregistrer."
         AppLanguage.SPANISH -> "No hay oraciones registradas en este período. Toca una oración para registrarla."
@@ -357,7 +357,7 @@ object AgpeyaStrings {
 
     fun verseSevenTimes(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "«سَبْعَ مَرَّاتٍ فِي النَّهَارِ سَبَّحْتُكَ عَلَى أَحْكَامِ عَدْلِكَ» (مزمور 119: 164)"
-        AppLanguage.COPTIC -> "«Ϣⲁϣϥ ⲛ̀ⲥⲟⲡ ϧⲉⲛ ⲡⲓⲉϩⲟⲟⲩ ⲁⲓⲥⲙⲟⲩ ⲉ̀ⲣⲟⲕ ⲉ̀ϫⲉⲛ ⲛⲓϩⲁⲡ ⲛ̀ⲧⲉ ⲧⲉⲕⲙⲉⲑⲙⲏⲓ»"
+        AppLanguage.COPTIC -> "«Ϣⲁϣϥ ⲛ̀ⲥⲟⲡ ϧⲉⲛ ⲡⲓⲉϩⲟⲟⲩ ⲁⲓⲥⲙⲟⲩ ⲉ̀ⲣⲟⲕ ⲉ̀ϫⲉⲛ ⲛⲓϩⲁⲡ ⲛ̀ⲧⲉ ⲧⲉⲕⲙⲉⲑⲙⲏⲓ» (ⲯⲁⲗⲙⲟⲥ ⲣ̅ⲓ̅ⲏ̅)"
         AppLanguage.ENGLISH -> "\"Seven times a day I praise You, because of Your righteous judgments.\" (Psalm 119:164)"
         AppLanguage.FRENCH -> "« Sept fois par jour je te célèbre, à cause des lois de ta justice. » (Psaume 119:164)"
         AppLanguage.SPANISH -> "«Siete veces al día te alabo a causa de tus justos juicios.» (Salmo 119:164)"
@@ -371,7 +371,7 @@ object AgpeyaStrings {
 
     fun languageSelection(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "لغة التطبيق"
-        AppLanguage.COPTIC -> "Ϯⲁⲥⲡⲓ ⲛ̀ⲧⲉ ⲡⲓⲉⲫⲁⲣⲙⲟⲅⲏ"
+        AppLanguage.COPTIC -> "Ϯⲁⲥⲡⲓ ⲛ̀ⲣⲉⲙⲛ̀ⲭⲏⲙⲓ"
         AppLanguage.ENGLISH -> "App Language"
         AppLanguage.FRENCH -> "Langue de l'application"
         AppLanguage.SPANISH -> "Idioma de la aplicación"
@@ -385,7 +385,7 @@ object AgpeyaStrings {
 
     fun alarmTime(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "توقيت التنبيه"
-        AppLanguage.COPTIC -> "Ⲡⲓⲥⲏⲟⲩ ⲛ̀ⲧⲉ ⲡⲓⲥⲟϩⲓ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲥⲏⲟⲩ ⲙ̀ⲡⲓⲥⲟϩⲓ"
         AppLanguage.ENGLISH -> "Alarm Time"
         AppLanguage.FRENCH -> "Heure de l'alarme"
         AppLanguage.SPANISH -> "Hora de la alarma"
@@ -399,7 +399,7 @@ object AgpeyaStrings {
 
     fun soundAlert(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الصوت والاهتزاز"
-        AppLanguage.COPTIC -> "Ⲡⲓϧⲣⲱⲟⲩ"
+        AppLanguage.COPTIC -> "Ⲡⲓϧⲣⲱⲟⲩ ⲛⲉⲙ ⲡⲓⲙⲟⲛⲙⲉⲛ"
         AppLanguage.ENGLISH -> "Sound & Vibration"
         AppLanguage.FRENCH -> "Son et vibration"
         AppLanguage.SPANISH -> "Sonido y vibración"
@@ -413,7 +413,7 @@ object AgpeyaStrings {
 
     fun worldwideNotice(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "يعمل التطبيق في جميع دول العالم بحسب التوقيت المحلي لهاتفك، ويمكنك تعديل موعد كل صلاة بدقة بحسب رغبتك."
-        AppLanguage.COPTIC -> "Ⲫⲁⲓ ⲉⲣϩⲱⲃ ϧⲉⲛ ⲡⲓⲕⲟⲥⲙⲟⲥ ⲧⲏⲣϥ ⲕⲁⲧⲁ ⲡⲉⲕⲥⲏⲟⲩ."
+        AppLanguage.COPTIC -> "Ϥⲉⲣϩⲱⲃ ϧⲉⲛ ⲡⲓⲕⲟⲥⲙⲟⲥ ⲧⲏⲣϥ ⲕⲁⲧⲁ ⲡⲉⲕⲥⲏⲟⲩ ⲛ̀ⲧⲟⲡⲟⲥ."
         AppLanguage.ENGLISH -> "Works in all countries worldwide based on your device's local timezone. You can adjust the alarm time for each prayer as you wish."
         AppLanguage.FRENCH -> "Fonctionne dans tous les pays selon votre fuseau horaire local. Vous pouvez ajuster l'heure de chaque prière."
         AppLanguage.SPANISH -> "Funciona en todos los países según la zona horaria de su dispositivo. Puede ajustar la hora de cada oración a su gusto."
@@ -455,7 +455,7 @@ object AgpeyaStrings {
 
     fun deleteConfirm(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "حذف هذا السجل؟"
-        AppLanguage.COPTIC -> "Ⲃⲱⲗ ⲉⲃⲟⲗ"
+        AppLanguage.COPTIC -> "Ⲃⲱⲗ ⲉ̀ⲃⲟⲗ ⲙ̀ⲡⲁⲓⲥϧⲁⲓ?"
         AppLanguage.ENGLISH -> "Delete this log?"
         AppLanguage.FRENCH -> "Supprimer cet enregistrement ?"
         AppLanguage.SPANISH -> "¿Eliminar este registro?"
@@ -469,7 +469,7 @@ object AgpeyaStrings {
 
     fun notificationPermissionRequired(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "يرجى السماح بالتنبيهات لكي يتمكن التطبيق من تذكيرك بمواعيد صلوات الأجبية."
-        AppLanguage.COPTIC -> "Ⲙⲁ ϯⲉⲝⲟⲩⲥⲓⲁ ⲉ̀ⲡⲓⲥⲟϩⲓ"
+        AppLanguage.COPTIC -> "Ⲁⲣⲓϩⲙⲟⲧ ⲙⲁ ϯⲉⲝⲟⲩⲥⲓⲁ ⲛ̀ⲛⲓⲥⲟϩⲓ."
         AppLanguage.ENGLISH -> "Please enable notification permissions so the app can alert you at prayer times."
         AppLanguage.FRENCH -> "Veuillez autoriser les notifications pour recevoir les alertes des heures de prière."
         AppLanguage.SPANISH -> "Por favor, active los permisos de notificación para recibir las alertas de oración."
@@ -483,7 +483,7 @@ object AgpeyaStrings {
 
     fun allowPermission(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تفعيل التنبيهات"
-        AppLanguage.COPTIC -> "Ⲧⲱⲟⲩⲛⲟⲩ"
+        AppLanguage.COPTIC -> "Ⲧⲁϩⲟ ⲛⲓⲥⲟϩⲓ"
         AppLanguage.ENGLISH -> "Enable Notifications"
         AppLanguage.FRENCH -> "Activer les notifications"
         AppLanguage.SPANISH -> "Activar notificaciones"
@@ -498,7 +498,7 @@ object AgpeyaStrings {
     // Daily Verse & Meditation
     fun dailyVerseTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "آية اليوم والتأمل الروحي"
-        AppLanguage.COPTIC -> "Ϯⲥⲙⲏ ⲛ̀ϯⲅⲣⲁⲫⲏ ⲙ̀ⲙⲏⲛⲓ"
+        AppLanguage.COPTIC -> "Ϯⲥⲙⲏ ⲙ̀ⲙⲏⲛⲓ ⲛⲉⲙ ⲡⲓⲙⲉⲩⲓ"
         AppLanguage.ENGLISH -> "Daily Verse & Meditation"
         AppLanguage.FRENCH -> "Verset Quotidien & Méditation"
         AppLanguage.SPANISH -> "Versículo Diario y Meditación"
@@ -526,7 +526,7 @@ object AgpeyaStrings {
 
     fun spiritualExplanation(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الشرح والتأمل الآبائي الموجز"
-        AppLanguage.COPTIC -> "Ⲡⲓⲃⲱⲗ ⲛ̀ⲧⲉ ⲛⲓⲓⲟϯ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲃⲱⲗ ⲛ̀ⲧⲉ ⲛⲓⲓⲟϯ ⲉⲑⲟⲩⲁⲃ"
         AppLanguage.ENGLISH -> "Patristic Commentary & Reflection"
         AppLanguage.FRENCH -> "Commentaire et réflexion patristique"
         AppLanguage.SPANISH -> "Comentario y reflexión patrística"
@@ -554,7 +554,7 @@ object AgpeyaStrings {
 
     fun previewSound(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "معاينة الصوت"
-        AppLanguage.COPTIC -> "Ⲥⲱⲧⲉⲙ"
+        AppLanguage.COPTIC -> "Ⲥⲱⲧⲉⲙ ⲉ̀ⲡⲓϧⲣⲱⲟⲩ"
         AppLanguage.ENGLISH -> "Preview Sound"
         AppLanguage.FRENCH -> "Écouter"
         AppLanguage.SPANISH -> "Escuchar"
@@ -582,7 +582,7 @@ object AgpeyaStrings {
 
     fun selectAlarmTone(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "اختر نغمة التنبيه الروحية"
-        AppLanguage.COPTIC -> "Ⲥⲱⲧⲡ ⲙ̀ⲡⲓⲥⲟϩⲓ"
+        AppLanguage.COPTIC -> "Ⲥⲱⲧⲡ ⲙ̀ⲡⲓϧⲣⲱⲟⲩ ⲙ̀ⲡⲓⲥⲟϩⲓ"
         AppLanguage.ENGLISH -> "Select Spiritual Alarm Tone"
         AppLanguage.FRENCH -> "Choisir la sonnerie spirituelle"
         AppLanguage.SPANISH -> "Seleccionar tono espiritual"
@@ -596,7 +596,7 @@ object AgpeyaStrings {
 
     fun spiritualSoundsSubtitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "استمع لمعاينة نغمات الأجراس القبطية والدُف والمثلث والناقوس الكنسي لتحديدها لكل صلاة:"
-        AppLanguage.COPTIC -> "Ⲥⲱⲧⲉⲙ ⲉ̀ⲛⲓϧⲣⲱⲟⲩ ⲉⲑⲟⲩⲁⲃ ⲛ̀ⲧⲉ Ϯⲉⲕⲕⲗⲏⲥⲓⲁ:"
+        AppLanguage.COPTIC -> "Ⲥⲱⲧⲉⲙ ⲉ̀ⲛⲓϧⲣⲱⲟⲩ ⲛ̀ⲧⲉ Ϯⲉⲕⲕⲗⲏⲥⲓⲁ ⲛ̀ⲣⲉⲙⲛ̀ⲭⲏⲙⲓ:"
         AppLanguage.ENGLISH -> "Preview authentic Coptic bells, cymbals, triangle, and monastic wood chimes for your prayer reminders:"
         AppLanguage.FRENCH -> "Écoutez et choisissez parmi les cloches coptes, cymbales et carillons monastiques :"
         AppLanguage.SPANISH -> "Escucha y selecciona entre campanas coptas, címbalos y campanillas monásticas:"
@@ -652,7 +652,7 @@ object AgpeyaStrings {
 
     fun gloryToGodForever(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "والمجد لله دائماً أبدياً، آمين."
-        AppLanguage.COPTIC -> "Ⲇⲟⲝⲁ ⲥⲓ Ⲕⲩⲣⲓⲉ ⲇⲟⲝⲁ ⲥⲓ."
+        AppLanguage.COPTIC -> "Ⲇⲟⲝⲁ ⲥⲓ Ⲕⲩⲣⲓⲉ ⲇⲟⲝⲁ ⲥⲓ. Ⲁ̀ⲙⲏⲛ."
         AppLanguage.ENGLISH -> "Glory to God forever. Amen."
         AppLanguage.FRENCH -> "Gloire à Dieu pour toujours. Amen."
         AppLanguage.SPANISH -> "Gloria a Dios por siempre. Amén."
@@ -680,7 +680,7 @@ object AgpeyaStrings {
 
     fun recordPrayerNow(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "سجّل الصلاة الآن تلقائياً"
-        AppLanguage.COPTIC -> "Ⲥϧⲁⲓ ϯⲡⲣⲟⲥⲉⲩⲭⲏ ϯⲛⲟⲩ"
+        AppLanguage.COPTIC -> "Ⲥϧⲁⲓ ϯⲉⲩⲭⲏ ϯⲛⲟⲩ"
         AppLanguage.ENGLISH -> "Record Prayer Automatically Now"
         AppLanguage.FRENCH -> "Enregistrer la prière automatiquement maintenant"
         AppLanguage.SPANISH -> "Registrar la oración automáticamente ahora"
@@ -708,7 +708,7 @@ object AgpeyaStrings {
 
     fun prayerRecordedSuccess(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "✓ تم تسجيل الصلاة تلقائياً في موعدها بمجرد قراءة الإنجيل"
-        AppLanguage.COPTIC -> "✓ Ⲁⲓⲧⲱⲃϩ - ⲁⲩⲥϧⲏⲧⲥ ϧⲉⲛ ⲡⲉⲥⲥⲏⲟⲩ"
+        AppLanguage.COPTIC -> "✓ Ⲁⲩⲥϧⲁⲓ ϯⲉⲩⲭⲏ ϧⲉⲛ ⲡⲉⲥⲥⲏⲟⲩ"
         AppLanguage.ENGLISH -> "✓ Prayer Automatically Logged Upon Reading Gospel"
         AppLanguage.FRENCH -> "✓ Prière automatiquement enregistrée dès la lecture de l'Évangile"
         AppLanguage.SPANISH -> "✓ Oración registrada automáticamente al leer el Evangelio"
@@ -722,7 +722,7 @@ object AgpeyaStrings {
 
     fun unmarkPrayerPrompt(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "إلغاء التسجيل (لم أصلِّ)"
-        AppLanguage.COPTIC -> "Ⲭⲱ ⲉ̀ⲃⲟⲗ"
+        AppLanguage.COPTIC -> "Ⲃⲱⲗ ⲉ̀ⲃⲟⲗ ⲙ̀ⲡⲓⲥϧⲁⲓ"
         AppLanguage.ENGLISH -> "Unmark (Did not pray)"
         AppLanguage.FRENCH -> "Annuler l'enregistrement (pas prié)"
         AppLanguage.SPANISH -> "Desmarcar (no oré)"
@@ -734,10 +734,136 @@ object AgpeyaStrings {
         AppLanguage.HINDI -> "चिह्न हटाएँ"
     }
 
+    fun soundLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "صوت"
+        AppLanguage.COPTIC -> "Ⲧⲥⲙⲏ"
+        AppLanguage.ENGLISH -> "Sound"
+        AppLanguage.FRENCH -> "Son"
+        AppLanguage.SPANISH -> "Sonido"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Ton"
+        AppLanguage.ITALIAN -> "Suono"
+        AppLanguage.CHINESE -> "声音"
+        AppLanguage.JAPANESE -> "音声"
+        AppLanguage.KOREAN -> "소리"
+        AppLanguage.HINDI -> "ध्वनि"
+    }
+
+    fun vibrateLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "اهتزاز"
+        AppLanguage.COPTIC -> "Ⲡⲓⲙⲟⲛⲙⲉⲛ"
+        AppLanguage.ENGLISH -> "Vibrate"
+        AppLanguage.FRENCH -> "Vibration"
+        AppLanguage.SPANISH -> "Vibración"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Vibration"
+        AppLanguage.ITALIAN -> "Vibrazione"
+        AppLanguage.CHINESE -> "震动"
+        AppLanguage.JAPANESE -> "バイブ"
+        AppLanguage.KOREAN -> "진동"
+        AppLanguage.HINDI -> "कंपन"
+    }
+
+    fun peaceAndDiscipline(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "السلام والمواظبة"
+        AppLanguage.COPTIC -> "Ϯϩⲓⲣⲏⲛⲏ ⲛⲉⲙ ϯϩⲩⲡⲟⲙⲟⲛⲏ"
+        AppLanguage.ENGLISH -> "Peace & Discipline"
+        AppLanguage.FRENCH -> "Paix et Discipline"
+        AppLanguage.SPANISH -> "Paz y Disciplina"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Frieden & Beständigkeit"
+        AppLanguage.ITALIAN -> "Pace e Disciplina"
+        AppLanguage.CHINESE -> "平安与坚持"
+        AppLanguage.JAPANESE -> "平和と規律"
+        AppLanguage.KOREAN -> "평화와 절제"
+        AppLanguage.HINDI -> "शांति और अनुशासन"
+    }
+
+    fun completedPrayersTodaySuffix(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "صلوات مكتملة اليوم"
+        AppLanguage.COPTIC -> "ⲛⲓⲉⲩⲭⲏ ⲉ̀ⲧⲁⲩϫⲱⲕ ⲙ̀ⲫⲟⲟⲩ"
+        AppLanguage.ENGLISH -> "canonical prayers prayed today"
+        AppLanguage.FRENCH -> "prières canoniques accomplies aujourd'hui"
+        AppLanguage.SPANISH -> "oraciones canónicas completadas hoy"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "abgeschlossene Horen heute"
+        AppLanguage.ITALIAN -> "preghiere canoniche completate oggi"
+        AppLanguage.CHINESE -> "今日已完成的时课"
+        AppLanguage.JAPANESE -> "本日完了した時課"
+        AppLanguage.KOREAN -> "오늘 완료된 시간경"
+        AppLanguage.HINDI -> "आज पूरी की गई प्रार्थनाएँ"
+    }
+
+    fun groundedSearchTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "بحث أرثوذكسي موثق عبر Google Search Grounding"
+        AppLanguage.COPTIC -> "Ⲕⲱϯ ⲛ̀ⲟⲣⲑⲟⲇⲟⲝⲟⲥ ⲉ̀ⲃⲟⲗ ϩⲓⲧⲉⲛ Google"
+        AppLanguage.ENGLISH -> "Orthodox Grounded Search with Google"
+        AppLanguage.FRENCH -> "Recherche orthodoxe ancrée avec Google"
+        AppLanguage.SPANISH -> "Búsqueda ortodoxa fundamentada con Google"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Orthodoxe Suche mit Google-Verankerung"
+        AppLanguage.ITALIAN -> "Ricerca ortodossa verificata con Google"
+        AppLanguage.CHINESE -> "基于Google搜索的正统教会文献检索"
+        AppLanguage.JAPANESE -> "Google検索に基づく正教会文献検索"
+        AppLanguage.KOREAN -> "Google 검색 기반 정교회 지식 검색"
+        AppLanguage.HINDI -> "Google आधारित रूढ़िवादी खोज"
+    }
+
+    fun groundedSearchSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "استفسر عن أي طقس، مناسبة، أو تفسير مزمور بدقة حية"
+        AppLanguage.COPTIC -> "Ϣⲉⲛ ⲉ̀ⲑⲃⲉ ⲛⲓⲧⲁⲝⲓⲥ ⲛⲉⲙ ⲛⲓϣⲁⲓ ⲛⲉⲙ ⲛⲓⲯⲁⲗⲙⲟⲥ"
+        AppLanguage.ENGLISH -> "Verify saints, liturgical feasts, and psalm interpretations"
+        AppLanguage.FRENCH -> "Vérifiez les saints, fêtes liturgiques et psaumes"
+        AppLanguage.SPANISH -> "Consulte santos, fiestas litúrgicas e interpretaciones"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Heilige, liturgische Feste und Psalmenauslegungen abfragen"
+        AppLanguage.ITALIAN -> "Verifica santi, feste liturgiche e spiegazioni dei salmi"
+        AppLanguage.CHINESE -> "实时查询圣徒、礼仪节期与诗篇注解"
+        AppLanguage.JAPANESE -> "聖人、典礼の祝日、詩篇の注釈を検索"
+        AppLanguage.KOREAN -> "성인, 전례 축일, 시편 해설 실시간 검색"
+        AppLanguage.HINDI -> "संतों, पर्वों व भजनों की व्याख्या खोजें"
+    }
+
+    fun groundedSearchAction(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "بحث ↵"
+        AppLanguage.COPTIC -> "Ⲕⲱϯ ↵"
+        AppLanguage.ENGLISH -> "Search ↵"
+        AppLanguage.FRENCH -> "Rechercher ↵"
+        AppLanguage.SPANISH -> "Buscar ↵"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Suchen ↵"
+        AppLanguage.ITALIAN -> "Cerca ↵"
+        AppLanguage.CHINESE -> "搜索 ↵"
+        AppLanguage.JAPANESE -> "検索 ↵"
+        AppLanguage.KOREAN -> "검색 ↵"
+        AppLanguage.HINDI -> "खोजें ↵"
+    }
+
+    fun closeButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "إغلاق"
+        AppLanguage.COPTIC -> "Ⲙⲁϣⲑⲁⲙ"
+        AppLanguage.ENGLISH -> "Close"
+        AppLanguage.FRENCH -> "Fermer"
+        AppLanguage.SPANISH -> "Cerrar"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Schließen"
+        AppLanguage.ITALIAN -> "Chiudi"
+        AppLanguage.CHINESE -> "关闭"
+        AppLanguage.JAPANESE -> "閉じる"
+        AppLanguage.KOREAN -> "닫기"
+        AppLanguage.HINDI -> "बंद करें"
+    }
+
+    fun cancelButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "إلغاء"
+        AppLanguage.COPTIC -> "Ⲃⲱⲗ ⲉ̀ⲃⲟⲗ"
+        AppLanguage.ENGLISH -> "Cancel"
+        AppLanguage.FRENCH -> "Annuler"
+        AppLanguage.SPANISH -> "Cancelar"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Abbrechen"
+        AppLanguage.ITALIAN -> "Annulla"
+        AppLanguage.CHINESE -> "取消"
+        AppLanguage.JAPANESE -> "キャンセル"
+        AppLanguage.KOREAN -> "취소"
+        AppLanguage.HINDI -> "रद्द करें"
+    }
+
     // Visual Reports & Interactive Charts
     fun visualDashboard(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "لوحة التقارير والرسوم البيانية"
-        AppLanguage.COPTIC -> "Ⲡⲓⲫⲱϣ ⲛ̀ⲧⲉ ⲛⲓⲉⲩⲭⲏ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲡⲓⲛⲁⲝ ⲛ̀ⲧⲉ ⲛⲓⲉⲩⲭⲏ"
         AppLanguage.ENGLISH -> "Visual Dashboard & Charts"
         AppLanguage.FRENCH -> "Tableau de bord visuel & graphiques"
         AppLanguage.SPANISH -> "Panel visual y gráficos"
@@ -751,7 +877,7 @@ object AgpeyaStrings {
 
     fun prayerFrequency(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "معدل تكرار الصلوات"
-        AppLanguage.COPTIC -> "Ⲧⲁϫⲣⲟ ⲛ̀ⲛⲓⲉⲩⲭⲏ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲁⲥⲡⲁⲥⲙⲟⲥ ⲛ̀ⲧⲉ ⲛⲓⲉⲩⲭⲏ"
         AppLanguage.ENGLISH -> "Prayer Frequency"
         AppLanguage.FRENCH -> "Fréquence des prières"
         AppLanguage.SPANISH -> "Frecuencia de oraciones"
@@ -765,7 +891,7 @@ object AgpeyaStrings {
 
     fun dailyProgressChart(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مخطط السواعي وتوزيع الـ 24 ساعة"
-        AppLanguage.COPTIC -> "Ⲕⲩⲕⲗⲟⲥ ⲛ̀ⲛⲓⲁϫⲡ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲕⲩⲕⲗⲟⲥ ⲛ̀ⲛⲓⲁϫⲡ"
         AppLanguage.ENGLISH -> "Daily Canonical Hours & 24h Timeline"
         AppLanguage.FRENCH -> "Heures canoniques quotidiennes & ligne de 24h"
         AppLanguage.SPANISH -> "Horas canónicas diarias y cronología de 24h"
@@ -793,7 +919,7 @@ object AgpeyaStrings {
 
     fun yearlyProgressChart(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "منحنى التقدم الشهري عبر العام (12 شهراً)"
-        AppLanguage.COPTIC -> "Ⲡⲓϫⲱⲕ ⲛ̀ϯⲣⲟⲙⲡⲓ ⲧⲏⲣⲥ"
+        AppLanguage.COPTIC -> "Ⲡⲓϫⲱⲕ ⲛ̀ϯⲣⲟⲙⲡⲓ"
         AppLanguage.ENGLISH -> "12-Month Annual Prayer Trajectory"
         AppLanguage.FRENCH -> "Courbe annuelle de progression sur 12 mois"
         AppLanguage.SPANISH -> "Curva anual de progreso de 12 meses"
@@ -835,7 +961,7 @@ object AgpeyaStrings {
 
     fun consistencyScore(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "نسبة الالتزام"
-        AppLanguage.COPTIC -> "Ⲧⲁϫⲣⲟ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ"
         AppLanguage.ENGLISH -> "Consistency"
         AppLanguage.FRENCH -> "Régularité"
         AppLanguage.SPANISH -> "Constancia"
@@ -864,7 +990,7 @@ object AgpeyaStrings {
     // Cloud Sync & Firestore
     fun cloudSyncTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "المزامنة السحابية عبر الأجهزة (Cloud Sync)"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲙ ⲛ̀ⲛⲓⲉⲩⲭⲏ ⲉ̀ⲡϣⲱⲓ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲙⲧ ⲛ̀ⲛⲓⲉⲩⲭⲏ ⲉ̀ⲧ̀ⲫⲉ (Cloud Sync)"
         AppLanguage.ENGLISH -> "Cross-Device Cloud Sync"
         AppLanguage.FRENCH -> "Synchronisation Cloud multi-appareils"
         AppLanguage.SPANISH -> "Sincronización en la nube multidispositivo"
@@ -878,7 +1004,7 @@ object AgpeyaStrings {
 
     fun cloudSyncSubtitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مزامنة سجل الصلوات والإعدادات تلقائياً عبر جميع أجهزتك بواسطة Firestore"
-        AppLanguage.COPTIC -> "Ⲥϧⲁⲓ ⲛⲓⲉⲩⲭⲏ ⲛⲉⲙ ⲛⲓⲣⲁⲛ ϧⲉⲛ ⲡⲓⲥⲩⲛⲭⲣⲟⲛ"
+        AppLanguage.COPTIC -> "Ⲧⲱⲙⲧ ⲛ̀ⲛⲉⲕⲉⲩⲭⲏ ⲛⲉⲙ ⲛⲉⲕⲥⲩⲛⲑⲏⲕⲏ ϧⲉⲛ ⲛⲉⲕⲥⲩⲥⲕⲉⲩⲏ ⲧⲏⲣⲟⲩ."
         AppLanguage.ENGLISH -> "Sync prayer history and settings across all your devices with Firestore"
         AppLanguage.FRENCH -> "Synchronisez l'historique des prières et les paramètres sur tous vos appareils"
         AppLanguage.SPANISH -> "Sincroniza el historial de oraciones y configuraciones en todos tus dispositivos"
@@ -892,7 +1018,7 @@ object AgpeyaStrings {
 
     fun syncStatusSynced(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "متزامن سحابياً بالكامل (Firestore)"
-        AppLanguage.COPTIC -> "Ⲁⲩⲧⲱⲙ ⲉ̀ⲃⲟⲗ"
+        AppLanguage.COPTIC -> "Ⲁⲩⲧⲱⲙⲧ ⲉ̀ⲃⲟⲗ"
         AppLanguage.ENGLISH -> "All Synced via Firestore"
         AppLanguage.FRENCH -> "Entièrement synchronisé (Firestore)"
         AppLanguage.SPANISH -> "Completamente sincronizado (Firestore)"
@@ -906,7 +1032,7 @@ object AgpeyaStrings {
 
     fun syncStatusSyncing(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "جارٍ المزامنة السحابية..."
-        AppLanguage.COPTIC -> "Ⲉϥⲧⲱⲙ..."
+        AppLanguage.COPTIC -> "Ⲉϥⲧⲱⲙⲧ..."
         AppLanguage.ENGLISH -> "Syncing with Cloud..."
         AppLanguage.FRENCH -> "Synchronisation en cours..."
         AppLanguage.SPANISH -> "Sincronizando con la nube..."
@@ -920,7 +1046,7 @@ object AgpeyaStrings {
 
     fun syncStatusOffline(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الوضع المحلي (حفظ على هذا الجهاز)"
-        AppLanguage.COPTIC -> "Ϧⲉⲛ ⲡⲁⲓⲥⲏⲟⲩ"
+        AppLanguage.COPTIC -> "Ϧⲉⲛ ⲧⲁⲓⲥⲩⲥⲕⲉⲩⲏ ⲙ̀ⲙⲁⲩⲁⲧⲥ"
         AppLanguage.ENGLISH -> "Local Storage Mode"
         AppLanguage.FRENCH -> "Mode stockage local"
         AppLanguage.SPANISH -> "Modo de almacenamiento local"
@@ -934,7 +1060,7 @@ object AgpeyaStrings {
 
     fun syncNow(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مزامنة الآن"
-        AppLanguage.COPTIC -> "Ⲧⲱⲙ ϯⲛⲟⲩ"
+        AppLanguage.COPTIC -> "Ⲧⲱⲙⲧ ϯⲛⲟⲩ"
         AppLanguage.ENGLISH -> "Sync Now"
         AppLanguage.FRENCH -> "Synchroniser"
         AppLanguage.SPANISH -> "Sincronizar ahora"
@@ -948,7 +1074,7 @@ object AgpeyaStrings {
 
     fun deviceSyncKey(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مفتاح المزامنة (Sync Key)"
-        AppLanguage.COPTIC -> "Ⲡⲓϣⲟϣⲧ ⲛ̀ⲧⲉ ⲡⲓⲧⲱⲙ"
+        AppLanguage.COPTIC -> "Ⲡⲓϣⲟϣⲧ ⲛ̀ⲧⲉ ⲡⲓⲧⲱⲙⲧ"
         AppLanguage.ENGLISH -> "Device Sync Key"
         AppLanguage.FRENCH -> "Clé de synchronisation"
         AppLanguage.SPANISH -> "Clave de sincronización"
@@ -962,7 +1088,7 @@ object AgpeyaStrings {
 
     fun syncKeyDescription(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "استخدم نفس هذا المفتاح في هاتفك الآخر أو جهاز التابلت لربط السجل والصلوات تلقائياً."
-        AppLanguage.COPTIC -> "Ⲕⲱ ⲙ̀ⲡⲁⲓϣⲟϣⲧ ϧⲉⲛ ⲛⲓⲥⲩⲥⲕⲉⲩⲏ ⲧⲏⲣⲟⲩ."
+        AppLanguage.COPTIC -> "Ⲕⲱ ⲙ̀ⲡⲁⲓϣⲟϣⲧ ϧⲉⲛ ⲛⲉⲕⲕⲉⲥⲩⲥⲕⲉⲩⲏ ⲉ̀ⲑⲣⲉ ⲛⲉⲕⲉⲩⲭⲏ ⲧⲱⲙⲧ."
         AppLanguage.ENGLISH -> "Use this same key on your other phone or tablet to link your prayer history automatically."
         AppLanguage.FRENCH -> "Utilisez cette même clé sur vos autres appareils pour lier automatiquement votre historique."
         AppLanguage.SPANISH -> "Usa esta misma clave en tus otros dispositivos para vincular tu historial automáticamente."
@@ -976,7 +1102,7 @@ object AgpeyaStrings {
 
     fun linkAnotherDevice(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "ربط بجهاز آخر بواسطة مفتاح"
-        AppLanguage.COPTIC -> "Ⲧⲱⲙ ⲛⲉⲙ ⲕⲉⲥⲩⲥⲕⲉⲩⲏ"
+        AppLanguage.COPTIC -> "Ⲧⲱⲙⲧ ⲛⲉⲙ ⲕⲉⲥⲩⲥⲕⲉⲩⲏ"
         AppLanguage.ENGLISH -> "Link with another Device Key"
         AppLanguage.FRENCH -> "Lier avec une autre clé"
         AppLanguage.SPANISH -> "Vincular con otra clave"
@@ -1004,7 +1130,7 @@ object AgpeyaStrings {
 
     fun saveAndSync(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "حفظ ومزامنة"
-        AppLanguage.COPTIC -> "Ⲥϧⲁⲓ ⲛⲉⲙ ⲧⲱⲙ"
+        AppLanguage.COPTIC -> "Ⲁⲣⲉϩ ⲟⲩⲟϩ ⲧⲱⲙⲧ"
         AppLanguage.ENGLISH -> "Save & Sync"
         AppLanguage.FRENCH -> "Enregistrer et synchroniser"
         AppLanguage.SPANISH -> "Guardar y sincronizar"
@@ -1046,7 +1172,7 @@ object AgpeyaStrings {
 
     fun enableVibrationAll(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تفعيل الاهتزاز للكل"
-        AppLanguage.COPTIC -> "Ⲧⲁϩⲟ ⲙ̀ⲡⲓⲙⲟⲛⲙⲉⲛ ⲉ̀ⲡⲧⲏⲣϥ"
+        AppLanguage.COPTIC -> "Ⲧⲁϩⲟ ⲡⲓⲙⲟⲛⲙⲉⲛ ⲉ̀ⲡⲧⲏⲣϥ"
         AppLanguage.ENGLISH -> "Enable Vibrate for All"
         AppLanguage.FRENCH -> "Activer vibration pour tous"
         AppLanguage.SPANISH -> "Activar vibración para todos"
@@ -1060,7 +1186,7 @@ object AgpeyaStrings {
 
     fun disableVibrationAll(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "إيقاف الاهتزاز للكل"
-        AppLanguage.COPTIC -> "Ⲱϣⲉⲙ ⲙ̀ⲡⲓⲙⲟⲛⲙⲉⲛ"
+        AppLanguage.COPTIC -> "Ⲱϣⲉⲙ ⲡⲓⲙⲟⲛⲙⲉⲛ ⲉ̀ⲡⲧⲏⲣϥ"
         AppLanguage.ENGLISH -> "Mute Vibration for All"
         AppLanguage.FRENCH -> "Couper vibration pour tous"
         AppLanguage.SPANISH -> "Desactivar vibración para todos"
@@ -1074,7 +1200,7 @@ object AgpeyaStrings {
 
     fun enableSoundAll(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تفعيل الصوت للكل"
-        AppLanguage.COPTIC -> "Ⲧⲁϩⲟ ⲙ̀ⲡⲓϧⲣⲱⲟⲩ ⲉ̀ⲡⲧⲏⲣϥ"
+        AppLanguage.COPTIC -> "Ⲧⲁϩⲟ ⲡⲓϧⲣⲱⲟⲩ ⲉ̀ⲡⲧⲏⲣϥ"
         AppLanguage.ENGLISH -> "Enable Sound for All"
         AppLanguage.FRENCH -> "Activer son pour tous"
         AppLanguage.SPANISH -> "Activar sonido para todos"
@@ -1088,7 +1214,7 @@ object AgpeyaStrings {
 
     fun disableSoundAll(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "إيقاف الصوت للكل"
-        AppLanguage.COPTIC -> "Ⲱϣⲉⲙ ⲙ̀ⲡⲓϧⲣⲱⲟⲩ"
+        AppLanguage.COPTIC -> "Ⲱϣⲉⲙ ⲡⲓϧⲣⲱⲟⲩ ⲉ̀ⲡⲧⲏⲣϥ"
         AppLanguage.ENGLISH -> "Mute Sound for All"
         AppLanguage.FRENCH -> "Couper le son pour tous"
         AppLanguage.SPANISH -> "Desactivar sonido para todos"
@@ -1158,7 +1284,7 @@ object AgpeyaStrings {
 
     fun authWelcomeTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الأجبية المقدسة - كتاب صلوات السواعي"
-        AppLanguage.COPTIC -> "Ϯⲁ̀ϫⲡⲓⲁ ⲉⲑⲟⲩⲁⲃ - Ⲡⲓϫⲱⲙ ⲛ̀ⲧⲉ ⲛⲓⲁ̀ϫⲡ"
+        AppLanguage.COPTIC -> "Ϯⲁϫⲡⲓⲁ ⲉⲑⲟⲩⲁⲃ - Ⲡⲓϫⲱⲙ ⲛ̀ⲧⲉ ⲛⲓⲁϫⲡ"
         AppLanguage.ENGLISH -> "Holy Agpeya - Book of Canonical Hours"
         AppLanguage.FRENCH -> "Sainte Agpeya - Livre des Heures Canoniales"
         AppLanguage.SPANISH -> "Santa Agpeya - Libro de las Horas Canónicas"
@@ -1186,7 +1312,7 @@ object AgpeyaStrings {
 
     fun stepSelectLanguage(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الخطوة الأولى: اختر لغة التطبيق"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ ⲁ̅: Ⲥⲱⲧⲡ ⲛ̀ϯⲁⲥⲡⲓ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ ⲁ̅: Ⲥⲱⲧⲡ ⲛ̀Ϯⲁⲥⲡⲓ"
         AppLanguage.ENGLISH -> "Step 1: Choose Your Language"
         AppLanguage.FRENCH -> "Étape 1 : Choisissez votre langue"
         AppLanguage.SPANISH -> "Paso 1: Seleccione su idioma"
@@ -1200,7 +1326,7 @@ object AgpeyaStrings {
 
     fun stepAccountSync(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الخطوة الثانية: تسجيل البريد لحفظ الصلوات سحابياً"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ ⲃ̅: Ⲧⲱⲙⲧ ⲙ̀ⲡⲉⲕ-Email ⲉ̀ϯⲡⲉ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ ⲃ̅: Ⲧⲱⲙⲧ ⲛ̀ⲛⲓⲉⲩⲭⲏ ⲉ̀ⲧ̀ⲫⲉ"
         AppLanguage.ENGLISH -> "Step 2: Sign In with Email to Sync Prayers Online"
         AppLanguage.FRENCH -> "Étape 2 : Connectez-vous avec un e-mail pour synchroniser vos prières"
         AppLanguage.SPANISH -> "Paso 2: Iniciar sesión con correo para sincronizar oraciones"
@@ -1214,7 +1340,7 @@ object AgpeyaStrings {
 
     fun authEmailDescription(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "سجّل بريدك الإلكتروني لحفظ صلواتك على الإنترنت. عند فتح الأجبية من أي هاتف أو جهاز آخر بنفس البريد، ستجد سجل صلواتك ومواعيدك وتقاريرك مسجلة تلقائياً."
-        AppLanguage.COPTIC -> "Ⲥϧⲁⲓ ⲙ̀ⲡⲉⲕ-Email ⲉ̀ⲑⲣⲉ ⲛⲉⲕⲉⲩⲭⲏ ⲙⲟⲩⲛ ⲉ̀ⲃⲟⲗ ϧⲉⲛ ⲛⲓⲙⲁ ⲧⲏⲣⲟⲩ."
+        AppLanguage.COPTIC -> "Ⲥϧⲁⲓ ⲡⲉⲕ-Email ⲉ̀ⲑⲣⲉ ⲛⲉⲕⲉⲩⲭⲏ ⲙⲟⲩⲛ ⲉ̀ⲃⲟⲗ ϧⲉⲛ ⲛⲓⲙⲁ ⲧⲏⲣⲟⲩ."
         AppLanguage.ENGLISH -> "Enter your email to save your prayers online. When you open the Agpeya on any other device with this email, your prayer records, alarms, and history sync automatically."
         AppLanguage.FRENCH -> "Enregistrez votre e-mail pour sauvegarder vos prières en ligne. Si vous ouvrez l'Agpeya sur un autre appareil, vos prières et rapports seront automatiquement restaurés."
         AppLanguage.SPANISH -> "Ingrese su correo para guardar sus oraciones en la nube. Al abrir la Agpeya desde cualquier otro dispositivo con este correo, sus datos se sincronizan automáticamente."
@@ -1242,7 +1368,7 @@ object AgpeyaStrings {
 
     fun passwordOptionalLabel(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "كلمة المرور (اختياري لحماية حسابك)"
-        AppLanguage.COPTIC -> "Ⲡⲓ-Password (ⲕⲁⲧⲁ ⲡⲉⲕⲟⲩⲱϣ)"
+        AppLanguage.COPTIC -> "Ⲡⲓ-Password"
         AppLanguage.ENGLISH -> "Password (Optional / for account protection)"
         AppLanguage.FRENCH -> "Mot de passe (Facultatif / pour la protection)"
         AppLanguage.SPANISH -> "Contraseña (Opcional / para protección de la cuenta)"
@@ -1256,7 +1382,7 @@ object AgpeyaStrings {
 
     fun signInAndSyncButton(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تسجيل الدخول والمزامنة السحابية"
-        AppLanguage.COPTIC -> "Ϣⲱⲡ ⲉ̀ϧⲟⲩⲛ ⲟⲩⲟϩ ⲧⲱⲙⲧ ⲉ̀ϯⲡⲉ"
+        AppLanguage.COPTIC -> "Ϣⲱⲡ ⲉ̀ϧⲟⲩⲛ ⲟⲩⲟϩ ⲧⲱⲙⲧ"
         AppLanguage.ENGLISH -> "Sign In & Sync Across Devices"
         AppLanguage.FRENCH -> "Se connecter et synchroniser sur le Cloud"
         AppLanguage.SPANISH -> "Iniciar sesión y sincronizar en la nube"
@@ -1284,7 +1410,7 @@ object AgpeyaStrings {
 
     fun accountLinkedTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الحساب السحابي المتصل"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲙⲧ ⲉ̀ϯⲡⲉ ⲉⲧⲧⲁϫⲣⲏⲟⲩⲧ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲙⲧ ⲉ̀ⲧ̀ⲫⲉ ⲉⲧⲧⲁϫⲣⲏⲟⲩⲧ"
         AppLanguage.ENGLISH -> "Connected Cloud Account"
         AppLanguage.FRENCH -> "Compte Cloud connecté"
         AppLanguage.SPANISH -> "Cuenta en la nube conectada"
@@ -1326,7 +1452,7 @@ object AgpeyaStrings {
 
     fun cloudSyncAccount(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "حساب المزامنة السحابية"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲙⲧ ⲉ̀ϯⲡⲉ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲙⲧ ⲉ̀ⲧ̀ⲫⲉ"
         AppLanguage.ENGLISH -> "Cloud Sync Account"
         AppLanguage.FRENCH -> "Compte de synchronisation Cloud"
         AppLanguage.SPANISH -> "Cuenta de sincronización en la nube"
@@ -1340,7 +1466,7 @@ object AgpeyaStrings {
 
     fun exportPdfReport(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تصدير تقرير التقدم (PDF)"
-        AppLanguage.COPTIC -> "Ⲉⲃⲟⲗ PDF"
+        AppLanguage.COPTIC -> "Ⲉⲛ ⲉ̀ⲃⲟⲗ PDF"
         AppLanguage.ENGLISH -> "Export Progress Report (PDF)"
         AppLanguage.FRENCH -> "Exporter le rapport de progression (PDF)"
         AppLanguage.SPANISH -> "Exportar informe de progreso (PDF)"
@@ -1368,7 +1494,7 @@ object AgpeyaStrings {
 
     fun churchNameOptionalLabel(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "اسم الكنيسة / الخدمة التي تقدم فيها (اختياري)"
-        AppLanguage.COPTIC -> "Ⲫⲣⲁⲛ ⲛ̀ⲧⲉ ϯⲉⲕⲕⲗⲏⲥⲓⲁ (اختياري)"
+        AppLanguage.COPTIC -> "Ⲫⲣⲁⲛ ⲛ̀ⲧⲉ Ϯⲉⲕⲕⲗⲏⲥⲓⲁ"
         AppLanguage.ENGLISH -> "Church Name / Ministry Served (Optional)"
         AppLanguage.FRENCH -> "Nom de l'église / Service (Optionnel)"
         AppLanguage.SPANISH -> "Nombre de la Iglesia / Servicio (Opcional)"
@@ -1382,7 +1508,7 @@ object AgpeyaStrings {
 
     fun churchNamePlaceholder(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مثال: كنيسة السيدة العذراء مريم"
-        AppLanguage.COPTIC -> "Ϯⲉⲕⲕⲗⲏⲥⲓⲁ ⲛ̀ⲧⲉ ϯⲑⲉⲟⲧⲟⲕⲟⲥ"
+        AppLanguage.COPTIC -> "Ϯⲉⲕⲕⲗⲏⲥⲓⲁ ⲛ̀ⲧⲉ Ϯⲑⲉⲟⲧⲟⲕⲟⲥ Ⲙⲁⲣⲓⲁ"
         AppLanguage.ENGLISH -> "e.g., St. Mark Coptic Orthodox Church"
         AppLanguage.FRENCH -> "ex: Église Copte Orthodoxe Saint Marc"
         AppLanguage.SPANISH -> "ej: Iglesia Copta Ortodoxa San Marcos"
@@ -1396,7 +1522,7 @@ object AgpeyaStrings {
 
     fun churchEmblemTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "شعار / أيقونة الكنيسة للتقرير"
-        AppLanguage.COPTIC -> "Ⲡⲓⲥⲩⲙⲃⲟⲗⲟⲛ ⲛ̀ⲧⲉ ϯⲉⲕⲕⲗⲏⲥⲓⲁ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲥⲩⲙⲃⲟⲗⲟⲛ ⲛ̀ⲧⲉ Ϯⲉⲕⲕⲗⲏⲥⲓⲁ"
         AppLanguage.ENGLISH -> "Church Emblem / Badge for PDF Reports"
         AppLanguage.FRENCH -> "Insigne / Blason de l'église pour PDF"
         AppLanguage.SPANISH -> "Insignia / Emblema de la Iglesia para PDF"
@@ -1410,7 +1536,7 @@ object AgpeyaStrings {
 
     fun backupSectionTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "النسخ الاحتياطي والاستعادة المحلّية"
-        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲡ ⲛ̀ⲧⲉ ⲛⲓⲟⲩⲁⲓ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲡ ⲛⲉⲙ ⲡⲓⲧⲁⲥⲑⲟ"
         AppLanguage.ENGLISH -> "Local Backup & Data Restore"
         AppLanguage.FRENCH -> "Sauvegarde et Restauration Locale"
         AppLanguage.SPANISH -> "Copia de Seguridad y Restauración"
@@ -1424,7 +1550,7 @@ object AgpeyaStrings {
 
     fun backupExportButton(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تصدير نسخة احتياطية (JSON)"
-        AppLanguage.COPTIC -> "Ⲥⲱⲧⲡ ⲛ̀ⲟⲩⲧⲱⲡ (JSON)"
+        AppLanguage.COPTIC -> "Ⲉⲛ ⲉ̀ⲃⲟⲗ ⲛ̀ⲟⲩⲧⲱⲡ (JSON)"
         AppLanguage.ENGLISH -> "Export Backup File (JSON)"
         AppLanguage.FRENCH -> "Exporter Sauvegarde (JSON)"
         AppLanguage.SPANISH -> "Exportar Copia (JSON)"
@@ -1467,7 +1593,7 @@ object AgpeyaStrings {
     // Candle Sanctuary Mode
     fun candleSanctuaryTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "محراب الشمعة والتأمل الروحي"
-        AppLanguage.COPTIC -> "Ⲡⲓⲙⲁ ⲛ̀ⲑⲱⲃϣ ⲛ̀ⲧⲉ ⲛⲓⲗⲁⲙⲡⲁⲥ"
+        AppLanguage.COPTIC -> "Ϯϩⲏⲥⲩⲭⲓⲁ ⲛ̀ⲧⲉ ⲛⲓⲗⲁⲙⲡⲁⲥ"
         AppLanguage.ENGLISH -> "Candle Sanctuary Focus Mode"
         AppLanguage.FRENCH -> "Santuaires des Bougies & Méditation"
         AppLanguage.SPANISH -> "Santuario de Velas y Reflexión"
@@ -1482,7 +1608,7 @@ object AgpeyaStrings {
     // Annual Heatmap & Streaks
     fun annualHeatmapTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "التقويم الروحي الحراري السنوي (365 يومًا)"
-        AppLanguage.COPTIC -> "Ⲡⲓⲁⲃⲟⲧ ⲛ̀ⲧⲉ ⲛⲓⲉⲩⲭⲏ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲁⲃⲟⲧ ⲛ̀ⲛⲓⲉⲩⲭⲏ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ (ⲧ̅ⲝ̅ⲉ̅ ⲛ̀ⲉϩⲟⲟⲩ)"
         AppLanguage.ENGLISH -> "Annual Spiritual Heatmap Grid (365 Days)"
         AppLanguage.FRENCH -> "Matrice Annuelle de Prières (365 Jours)"
         AppLanguage.SPANISH -> "Mapa de Calor Anual de Oración (365 Días)"
@@ -1496,7 +1622,7 @@ object AgpeyaStrings {
 
     fun currentStreakTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "سلسلة المواظبة الحالية"
-        AppLanguage.COPTIC -> "Ⲧⲙⲏⲧ ⲛ̀ⲧⲉ ⲡⲓⲥⲏⲟⲩ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ ⲛ̀ϯⲛⲟⲩ"
         AppLanguage.ENGLISH -> "Current Prayer Streak"
         AppLanguage.FRENCH -> "Série Actuelle de Prières"
         AppLanguage.SPANISH -> "Racha Actual de Oración"
@@ -1510,7 +1636,7 @@ object AgpeyaStrings {
 
     fun longestStreakTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "أطول سلسلة مواظبة"
-        AppLanguage.COPTIC -> "ϯⲙⲏⲧ ⲉⲑⲛⲁϣⲱⲥ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲛⲓϣϯ ⲛ̀ⲧⲁϫⲣⲟ"
         AppLanguage.ENGLISH -> "Longest Prayer Streak"
         AppLanguage.FRENCH -> "Plus Longue Série"
         AppLanguage.SPANISH -> "Racha Más Larga"
@@ -1524,7 +1650,7 @@ object AgpeyaStrings {
 
     fun annualConsistencyTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "نسبة الالتزام السنوي"
-        AppLanguage.COPTIC -> "Ⲡⲓϣⲏⲓ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ ⲛ̀ϯⲣⲟⲙⲡⲓ"
         AppLanguage.ENGLISH -> "Annual Consistency"
         AppLanguage.FRENCH -> "Consistance Annuelle"
         AppLanguage.SPANISH -> "Consistencia Anual"
@@ -1539,7 +1665,7 @@ object AgpeyaStrings {
     // Audio Recitation & Chants Player
     fun audioPlayerTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الاستماع والتلاوة الروحية"
-        AppLanguage.COPTIC -> "Ⲡⲓⲥⲱⲧⲉⲙ ⲛ̀ⲧⲉ ⲛⲓⲉⲩⲭⲏ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲥⲱⲧⲉⲙ ⲛⲉⲙ ⲛⲓϩⲱⲥ"
         AppLanguage.ENGLISH -> "Audio Recitation & Chants"
         AppLanguage.FRENCH -> "Récitation Audio & Chant Liturgique"
         AppLanguage.SPANISH -> "Recitación de Audio y Cantos Coptos"
@@ -1553,7 +1679,7 @@ object AgpeyaStrings {
 
     fun autoScrollSyncTitle(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مزامنة التمرير التلقائي مع الصوت"
-        AppLanguage.COPTIC -> "Ⲡⲓⲕⲓⲙ ⲛ̀ⲧⲉ ⲛⲓⲥϧⲁⲓ"
+        AppLanguage.COPTIC -> "Ⲡⲓⲥⲩⲅⲭⲣⲟⲛⲓⲥⲙⲟⲥ ⲛ̀ⲛⲓⲥϧⲁⲓ"
         AppLanguage.ENGLISH -> "Auto-Scroll Sync"
         AppLanguage.FRENCH -> "Défilement Auto Synchro"
         AppLanguage.SPANISH -> "Sincronización de Desplazamiento"

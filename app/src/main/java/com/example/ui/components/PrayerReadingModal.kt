@@ -845,7 +845,7 @@ fun PrayerReadingModal(
                                 modifier = Modifier.height(52.dp)
                             ) {
                                 Text(
-                                    text = if (lang == AppLanguage.ARABIC) "إغلاق" else "Close",
+                                    text = AgpeyaStrings.closeButton(lang),
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.SemiBold,
                                     color = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface
@@ -979,26 +979,30 @@ private fun DetailedPrayerSectionCard(
                 color = textColor
             )
 
-            // Parallel Bilingual Text display when enabled
+            // Parallel Bilingual Text display when explicitly enabled and content is distinct
             if (isBilingual && secondaryLang != lang) {
-                Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(color = theme.accentColor.copy(alpha = 0.25f))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "${secondaryLang.flagEmoji}  ${secondaryLang.nativeName}",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = theme.accentColor
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = section.getContent(secondaryLang),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 14.sp * multiplier,
-                        lineHeight = 23.sp * multiplier
-                    ),
-                    color = textColor.copy(alpha = 0.88f)
-                )
+                val secContent = section.getContent(secondaryLang)
+                val mainContent = section.getContent(lang)
+                if (secContent.isNotBlank() && secContent.trim() != mainContent.trim()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    HorizontalDivider(color = theme.accentColor.copy(alpha = 0.25f))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "${secondaryLang.flagEmoji}  ${secondaryLang.nativeName}",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = theme.accentColor
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = secContent,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 14.sp * multiplier,
+                            lineHeight = 23.sp * multiplier
+                        ),
+                        color = textColor.copy(alpha = 0.88f)
+                    )
+                }
             }
         }
     }
@@ -1109,26 +1113,30 @@ private fun DetailedGospelBlock(
                 color = textColor
             )
 
-            // Parallel Bilingual Text display when enabled
+            // Parallel Bilingual Text display when explicitly enabled and content is distinct
             if (isBilingual && secondaryLang != lang) {
-                Spacer(modifier = Modifier.height(14.dp))
-                HorizontalDivider(color = theme.accentColor.copy(alpha = 0.35f))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "${secondaryLang.flagEmoji}  ${secondaryLang.nativeName}",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = theme.accentColor
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = section.getContent(secondaryLang),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 15.sp * multiplier,
-                        lineHeight = 25.sp * multiplier
-                    ),
-                    color = textColor.copy(alpha = 0.9f)
-                )
+                val secContent = section.getContent(secondaryLang)
+                val mainContent = section.getContent(lang)
+                if (secContent.isNotBlank() && secContent.trim() != mainContent.trim()) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = theme.accentColor.copy(alpha = 0.35f))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "${secondaryLang.flagEmoji}  ${secondaryLang.nativeName}",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = theme.accentColor
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = secContent,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 15.sp * multiplier,
+                            lineHeight = 25.sp * multiplier
+                        ),
+                        color = textColor.copy(alpha = 0.9f)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))

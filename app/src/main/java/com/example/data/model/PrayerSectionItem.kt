@@ -19,8 +19,21 @@ data class PrayerSectionItem(
     val isGospel: Boolean = false,
     val isDoxologyOrAmen: Boolean = false
 ) {
-    fun getTitle(lang: AppLanguage): String = if (lang == AppLanguage.ARABIC) titleAr else titleEn
-    fun getSubtitle(lang: AppLanguage): String? = if (lang == AppLanguage.ARABIC) subtitleAr else subtitleEn
-    fun getContent(lang: AppLanguage): String = if (lang == AppLanguage.ARABIC) contentAr else contentEn
-    fun getRubric(lang: AppLanguage): String? = if (lang == AppLanguage.ARABIC) rubricAr else rubricEn
+    fun getTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> titleAr
+        AppLanguage.COPTIC -> copticIntro?.ifBlank { null } ?: titleAr
+        else -> titleEn
+    }
+    fun getSubtitle(lang: AppLanguage): String? = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC, AppLanguage.COPTIC -> subtitleAr
+        else -> subtitleEn
+    }
+    fun getContent(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC, AppLanguage.COPTIC -> contentAr
+        else -> contentEn
+    }
+    fun getRubric(lang: AppLanguage): String? = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC, AppLanguage.COPTIC -> rubricAr
+        else -> rubricEn
+    }
 }

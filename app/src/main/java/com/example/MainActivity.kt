@@ -140,8 +140,8 @@ fun AgpeyaApp(
         Triple(Icons.Default.MenuBook, AgpeyaStrings.tabPrayers(lang), "nav_tab_prayers"),
         Triple(Icons.Default.DateRange, AgpeyaStrings.tabCalendar(lang), "nav_tab_calendar"),
         Triple(Icons.Default.WbSunny, AgpeyaStrings.tabAmbient(lang), "nav_tab_ambient"),
-        Triple(Icons.Default.BarChart, if (lang == AppLanguage.ARABIC) "التقارير والمفكرة" else "Reports & Notes", "nav_tab_reports_journal"),
-        Triple(Icons.Default.Settings, if (lang == AppLanguage.ARABIC) "الإعدادات" else "Settings", "nav_tab_settings")
+        Triple(Icons.Default.BarChart, AgpeyaStrings.tabReportsAndSettings(lang), "nav_tab_reports_journal"),
+        Triple(Icons.Default.Settings, AgpeyaStrings.tabSettings(lang), "nav_tab_settings")
     )
 
     // Notification permission handling for Android 13+

@@ -95,7 +95,7 @@ fun MultilingualAndNotificationSettings(
     var syncSuccessMessage by remember { mutableStateOf<String?>(null) }
     var showTimezoneMenu by remember { mutableStateOf(false) }
 
-    val isArabic = lang == AppLanguage.ARABIC
+    val isArabic = lang == AppLanguage.ARABIC || lang == AppLanguage.SYRIAN_ARABIC || lang == AppLanguage.SYRIAC
 
     // Popular Spiritual & Global Timezone presets
     val timezonesList = remember {

@@ -227,7 +227,7 @@ fun PrayersScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Settings,
-                                contentDescription = if (lang == AppLanguage.ARABIC) "الإعدادات" else "Settings",
+                                contentDescription = AgpeyaStrings.tabSettings(lang),
                                 tint = GoldPrimary
                             )
                         }
@@ -275,7 +275,7 @@ fun PrayersScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "التقويم القبطي" else "Coptic Calendar",
+                            text = AgpeyaStrings.tabCalendar(lang),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -306,7 +306,7 @@ fun PrayersScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "خلوة الشمعة" else "Candle Glow",
+                            text = AgpeyaStrings.tabAmbient(lang),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -337,7 +337,7 @@ fun PrayersScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "المفكرة والاعتراف" else "Journal Notes",
+                            text = AgpeyaStrings.tabJournal(lang),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -386,13 +386,13 @@ fun PrayersScreen(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "بحث أرثوذكسي موثق عبر Google Search Grounding" else "Orthodox Grounded Search with Google",
+                            text = AgpeyaStrings.groundedSearchTitle(lang),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = GoldPrimary
                         )
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "استفسر عن أي طقس، مناسبة، أو تفسير مزمور بدقة حية" else "Verify saints, liturgical feasts, and psalm interpretations",
+                            text = AgpeyaStrings.groundedSearchSubtitle(lang),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 11.sp
@@ -400,7 +400,7 @@ fun PrayersScreen(
                     }
 
                     Text(
-                        text = if (lang == AppLanguage.ARABIC) "بحث ↵" else "Search ↵",
+                        text = AgpeyaStrings.groundedSearchAction(lang),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = GoldPrimary
@@ -455,12 +455,11 @@ fun PrayersScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 PeaceDoveBadge(
-                                    text = if (lang == AppLanguage.ARABIC) "السلام والمواظبة" else "Peace & Discipline"
+                                    text = AgpeyaStrings.peaceAndDiscipline(lang)
                                 )
                             }
                             Text(
-                                text = "$completedCanonicalCount / $totalCanonical " +
-                                        if (lang == AppLanguage.ARABIC) "صلوات مكتملة اليوم" else "canonical prayers prayed",
+                                text = "$completedCanonicalCount / $totalCanonical ${AgpeyaStrings.completedPrayersTodaySuffix(lang)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -780,7 +779,7 @@ private fun PrayerCardItem(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = if (lang == AppLanguage.ARABIC) "صوت" else "Sound",
+                                text = AgpeyaStrings.soundLabel(lang),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = if (setting.soundEnabled) FontWeight.Bold else FontWeight.Normal,
                                 color = if (setting.soundEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
@@ -846,7 +845,7 @@ private fun PrayerCardItem(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = if (lang == AppLanguage.ARABIC) "اهتزاز" else "Vibrate",
+                                text = AgpeyaStrings.vibrateLabel(lang),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = if (setting.vibrateEnabled) FontWeight.Bold else FontWeight.Normal,
                                 color = if (setting.vibrateEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant

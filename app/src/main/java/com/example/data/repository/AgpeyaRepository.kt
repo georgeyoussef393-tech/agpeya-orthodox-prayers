@@ -163,7 +163,7 @@ class AgpeyaRepository(
 
     // Multilingual support preferences
     fun isBilingualEnabled(): Boolean {
-        return prefs.getBoolean("multilingual_bilingual_enabled", true)
+        return prefs.getBoolean("multilingual_bilingual_enabled", false)
     }
 
     fun setBilingualEnabled(enabled: Boolean) {
