@@ -3,6 +3,7 @@ package com.example.report
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
+import com.example.data.model.ArrowPrayerLogEntity
 import com.example.data.model.PrayerId
 import com.example.data.model.PrayerLogEntity
 import com.example.localization.AppLanguage
@@ -14,7 +15,7 @@ import java.util.Locale
 
 /**
  * Generates an Excel-compatible CSV spreadsheet report containing prayer logs,
- * timestamps, active days, and monthly prayer streaks.
+ * timestamps, active days, canonical hours, and arrow prayers.
  */
 object PrayerExcelExporter {
 
@@ -24,7 +25,8 @@ object PrayerExcelExporter {
         userName: String?,
         syncKey: String?,
         lang: AppLanguage,
-        allLogs: List<PrayerLogEntity>
+        allLogs: List<PrayerLogEntity>,
+        allArrowLogs: List<ArrowPrayerLogEntity> = emptyList()
     ): File? {
         try {
             val cacheDir = File(context.cacheDir, "reports").apply { mkdirs() }
@@ -39,8 +41,11 @@ object PrayerExcelExporter {
                     writer.append("Sync Key,$syncKey\n")
                 }
                 writer.append("Generated At," + SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date()) + "\n")
-                writer.append("Total Prayers Logged,${allLogs.size}\n")
-                writer.append("Active Prayer Days,${allLogs.map { it.dateString }.distinct().size}\n\n")
+                writer.append("Total Canonical Prayers Logged,${allLogs.size}\n")
+                val totalArrowBeads = allArrowLogs.sumOf { it.count }
+                writer.append("Total Arrow Prayers Count,$totalArrowBeads\n")
+                val allDates = (allLogs.map { it.dateString } + allArrowLogs.map { it.dateString }).distinct()
+                writer.append("Active Prayer Days,${allDates.size}\n\n")
 
                 // Canonical Breakdown Summary
                 writer.append("--- Canonical Hours Breakdown ---\n")
@@ -53,8 +58,22 @@ object PrayerExcelExporter {
                 }
                 writer.append("\n")
 
-                // Detailed Log Entries
-                writer.append("--- Detailed Prayer Log History ---\n")
+                // Arrow Prayers Summary
+                if (allArrowLogs.isNotEmpty()) {
+                    writer.append("--- Arrow Prayers (الصلوات السهمية) Summary ---\n")
+                    writer.append("Total Repetitions,$totalArrowBeads\n")
+                    writer.append("Total Sessions,${allArrowLogs.size}\n")
+                    writer.append("Log ID,Date (YYYY-MM-DD),Time,Count,Prayer Text\n")
+                    allArrowLogs.sortedByDescending { it.timestamp }.forEach { arrowLog ->
+                        val timeStr = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(arrowLog.timestamp))
+                        val cleanText = arrowLog.prayerText.replace("\"", "\"\"")
+                        writer.append("${arrowLog.id},${arrowLog.dateString},$timeStr,${arrowLog.count},\"$cleanText\"\n")
+                    }
+                    writer.append("\n")
+                }
+
+                // Detailed Canonical Log Entries
+                writer.append("--- Detailed Canonical Prayer Log History ---\n")
                 writer.append("Log ID,Date (YYYY-MM-DD),Time,Prayer Code,Prayer Title (English),Prayer Title (Arabic)\n")
                 allLogs.sortedByDescending { it.timestamp }.forEach { log ->
                     val prayer = PrayerId.fromCode(log.prayerCode)
@@ -79,9 +98,10 @@ object PrayerExcelExporter {
         userName: String?,
         syncKey: String?,
         lang: AppLanguage,
-        allLogs: List<PrayerLogEntity>
+        allLogs: List<PrayerLogEntity>,
+        allArrowLogs: List<ArrowPrayerLogEntity> = emptyList()
     ) {
-        val csvFile = generateCsvFile(context, userEmail, userName, syncKey, lang, allLogs) ?: return
+        val csvFile = generateCsvFile(context, userEmail, userName, syncKey, lang, allLogs, allArrowLogs) ?: return
 
         try {
             val contentUri = FileProvider.getUriForFile(
@@ -95,14 +115,14 @@ object PrayerExcelExporter {
                 putExtra(Intent.EXTRA_STREAM, contentUri)
                 putExtra(
                     Intent.EXTRA_SUBJECT,
-                    if (lang == AppLanguage.ARABIC) "تقرير الأجبية (Excel / CSV)" else "Agpeya Prayer Spreadsheet Report (CSV)"
+                    if (lang == AppLanguage.ARABIC) "تقرير الأجبية والصلوات السهمية (Excel / CSV)" else "Agpeya & Arrow Prayer Spreadsheet Report (CSV)"
                 )
                 putExtra(
                     Intent.EXTRA_TEXT,
                     if (lang == AppLanguage.ARABIC) {
-                        "مرفق جدول بيانات الأجبية وتقارير الصلوات (يفتح ببرنامج Excel أو Google Sheets)."
+                        "مرفق جدول بيانات الأجبية وصلوات السواعي والصلوات السهمية (يفتح ببرنامج Excel أو Google Sheets)."
                     } else {
-                        "Attached is your Agpeya prayer progress spreadsheet report (compatible with Excel, Google Sheets & Numbers)."
+                        "Attached is your Agpeya canonical & arrow prayers progress spreadsheet report (compatible with Excel, Google Sheets & Numbers)."
                     }
                 )
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

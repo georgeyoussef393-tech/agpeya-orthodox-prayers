@@ -25,12 +25,30 @@ class AgpeyaAlarmReceiver : BroadcastReceiver() {
         val lang = repository.getSavedLanguage()
 
         if (setting.isEnabled) {
+            val isQuiet = repository.isQuietHoursEnabled()
+            val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+            val quietStart = repository.getQuietHoursStartHour()
+            val quietEnd = repository.getQuietHoursEndHour()
+
+            val inQuietWindow = if (isQuiet) {
+                if (quietStart > quietEnd) {
+                    currentHour >= quietStart || currentHour < quietEnd
+                } else {
+                    currentHour in quietStart until quietEnd
+                }
+            } else {
+                false
+            }
+
+            val effectiveSound = if (inQuietWindow) false else setting.soundEnabled
+            val effectiveVibrate = if (inQuietWindow) false else setting.vibrateEnabled
+
             AgpeyaNotificationHelper.showPrayerNotification(
                 context = context,
                 prayerId = prayerId,
                 lang = lang,
-                soundEnabled = setting.soundEnabled,
-                vibrateEnabled = setting.vibrateEnabled,
+                soundEnabled = effectiveSound,
+                vibrateEnabled = effectiveVibrate,
                 soundId = setting.soundId
             )
 

@@ -33,7 +33,8 @@ class AgpeyaRepository(
     private val context: Context,
     private val prayerTextDao: PrayerTextDao = AgpeyaDatabase.getDatabase(context).prayerTextDao(),
     private val meditationDao: MeditationDao = AgpeyaDatabase.getDatabase(context).meditationDao(),
-    private val spiritualNoteDao: com.example.data.db.SpiritualNoteDao = AgpeyaDatabase.getDatabase(context).spiritualNoteDao()
+    private val spiritualNoteDao: com.example.data.db.SpiritualNoteDao = AgpeyaDatabase.getDatabase(context).spiritualNoteDao(),
+    private val arrowPrayerDao: com.example.data.db.ArrowPrayerDao = AgpeyaDatabase.getDatabase(context).arrowPrayerDao()
 ) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("agpeya_settings_prefs", Context.MODE_PRIVATE)
@@ -105,6 +106,16 @@ class AgpeyaRepository(
         prefs.edit().putString("user_church_emblem", emblemCode).apply()
     }
 
+    // Daily Arrow Prayer Target (Default: 33)
+    fun getDailyArrowPrayerTarget(): Int {
+        return prefs.getInt("daily_arrow_prayer_target", 33)
+    }
+
+    fun saveDailyArrowPrayerTarget(target: Int) {
+        val clamped = target.coerceIn(1, 10000)
+        prefs.edit().putInt("daily_arrow_prayer_target", clamped).apply()
+    }
+
     suspend fun getAllLogsDirect(): List<PrayerLogEntity> {
         return dao.getAllLogsList()
     }
@@ -131,7 +142,7 @@ class AgpeyaRepository(
     fun saveLanguage(language: AppLanguage) {
         prefs.edit().putString("app_language_code", language.code).apply()
         CoroutineScope(Dispatchers.IO).launch {
-            syncManager.syncSettings(language.code, getAllAlarmSettings()) { _, _ -> }
+            syncManager.uploadAlarmSettings(language.code, getAllAlarmSettings())
         }
     }
 
@@ -257,7 +268,7 @@ class AgpeyaRepository(
         )
     }
 
-    fun saveAlarmSetting(setting: PrayerAlarmSetting) {
+    fun saveAlarmSettingLocally(setting: PrayerAlarmSetting) {
         val prefix = "alarm_${setting.prayerCode}"
         prefs.edit()
             .putInt("${prefix}_hour", setting.hour)
@@ -267,9 +278,13 @@ class AgpeyaRepository(
             .putBoolean("${prefix}_vibrate", setting.vibrateEnabled)
             .putString("${prefix}_sound_id", setting.soundId)
             .apply()
+    }
+
+    fun saveAlarmSetting(setting: PrayerAlarmSetting) {
+        saveAlarmSettingLocally(setting)
 
         CoroutineScope(Dispatchers.IO).launch {
-            syncManager.syncSettings(getSavedLanguage().code, getAllAlarmSettings()) { _, _ -> }
+            syncManager.uploadAlarmSettings(getSavedLanguage().code, getAllAlarmSettings())
         }
     }
 
@@ -320,34 +335,174 @@ class AgpeyaRepository(
         dao.deleteLogById(id)
     }
 
-    suspend fun performFullSync() {
-        val localLogs = dao.getAllLogsList()
-        val localKeys = localLogs.map { "${it.prayerCode}_${it.dateString}" }.toSet()
-        syncManager.performFullBidirectionalSync(localLogs) { remoteLogs ->
-            val toInsert = remoteLogs.filter { "${it.prayerCode}_${it.dateString}" !in localKeys }
-            if (toInsert.isNotEmpty()) {
-                dao.insertLogs(toInsert)
-            }
+    // ==========================================
+    // Arrow Prayers (الصلوات السهمية وصلاة يسوع)
+    // ==========================================
+
+    fun getAllArrowLogs(): Flow<List<com.example.data.model.ArrowPrayerLogEntity>> = arrowPrayerDao.getAllArrowLogs()
+
+    fun getTotalArrowPrayersCount(): Flow<Int> = arrowPrayerDao.getTotalArrowPrayersCount()
+
+    fun getArrowLogsForDate(dateString: String): Flow<List<com.example.data.model.ArrowPrayerLogEntity>> = arrowPrayerDao.getArrowLogsForDate(dateString)
+
+    fun getArrowLogsForMonth(year: Int, month: Int): Flow<List<com.example.data.model.ArrowPrayerLogEntity>> = arrowPrayerDao.getArrowLogsForMonth(year, month)
+
+    fun getArrowLogsForQuarter(year: Int, quarter: Int): Flow<List<com.example.data.model.ArrowPrayerLogEntity>> = arrowPrayerDao.getArrowLogsForQuarter(year, quarter)
+
+    fun getArrowLogsForHalfYear(year: Int, halfYear: Int): Flow<List<com.example.data.model.ArrowPrayerLogEntity>> = arrowPrayerDao.getArrowLogsForHalfYear(year, halfYear)
+
+    fun getArrowLogsForYear(year: Int): Flow<List<com.example.data.model.ArrowPrayerLogEntity>> = arrowPrayerDao.getArrowLogsForYear(year)
+
+    suspend fun logArrowPrayer(
+        count: Int,
+        prayerText: String = "يارب يسوع المسيح، ابن الله، ارحمني أنا الخاطئ",
+        timestamp: Long = System.currentTimeMillis()
+    ): Long {
+        if (count <= 0) return 0L
+        val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
+        val dateString = formatDate(cal.time)
+        val month = cal.get(Calendar.MONTH) + 1
+        val quarter = when (month) {
+            in 1..3 -> 1
+            in 4..6 -> 2
+            in 7..9 -> 3
+            else -> 4
         }
-        syncManager.syncSettings(getSavedLanguage().code, getAllAlarmSettings()) { remoteLangCode, remoteAlarms ->
-            if (remoteLangCode.isNotBlank()) {
-                prefs.edit().putString("app_language_code", remoteLangCode).apply()
-            }
-            for (alarm in remoteAlarms) {
-                saveAlarmSetting(alarm)
-            }
+        val halfYear = if (month <= 6) 1 else 2
+
+        val log = com.example.data.model.ArrowPrayerLogEntity(
+            count = count,
+            prayerText = prayerText,
+            timestamp = timestamp,
+            dateString = dateString,
+            year = cal.get(Calendar.YEAR),
+            month = month,
+            quarter = quarter,
+            halfYear = halfYear,
+            day = cal.get(Calendar.DAY_OF_MONTH),
+            hour = cal.get(Calendar.HOUR_OF_DAY),
+            minute = cal.get(Calendar.MINUTE)
+        )
+        val id = arrowPrayerDao.insertArrowLog(log)
+        syncManager.uploadArrowPrayerLog(log.copy(id = id))
+        return id
+    }
+
+    suspend fun recordArrowPrayerTap(
+        prayerText: String = "«يارب يسوع المسيح، ابن الله، ارحمني أنا الخاطئ» (صلاة يسوع)",
+        increment: Int = 1
+    ): Long = withContext(Dispatchers.IO) {
+        if (increment <= 0) return@withContext 0L
+        val now = System.currentTimeMillis()
+        val cal = Calendar.getInstance().apply { timeInMillis = now }
+        val dateString = formatDate(cal.time)
+        val month = cal.get(Calendar.MONTH) + 1
+        val quarter = when (month) {
+            in 1..3 -> 1
+            in 4..6 -> 2
+            in 7..9 -> 3
+            else -> 4
+        }
+        val halfYear = if (month <= 6) 1 else 2
+
+        val latestLog = arrowPrayerDao.getLatestArrowLogForDateAndText(dateString, prayerText)
+        if (latestLog != null) {
+            arrowPrayerDao.incrementArrowCount(latestLog.id, increment, now)
+            val updatedLog = latestLog.copy(count = latestLog.count + increment, timestamp = now)
+            syncManager.uploadArrowPrayerLog(updatedLog)
+            latestLog.id
+        } else {
+            val log = com.example.data.model.ArrowPrayerLogEntity(
+                count = increment,
+                prayerText = prayerText,
+                timestamp = now,
+                dateString = dateString,
+                year = cal.get(Calendar.YEAR),
+                month = month,
+                quarter = quarter,
+                halfYear = halfYear,
+                day = cal.get(Calendar.DAY_OF_MONTH),
+                hour = cal.get(Calendar.HOUR_OF_DAY),
+                minute = cal.get(Calendar.MINUTE)
+            )
+            val id = arrowPrayerDao.insertArrowLog(log)
+            syncManager.uploadArrowPrayerLog(log.copy(id = id))
+            id
         }
     }
 
+    suspend fun deleteArrowLogById(id: Long) {
+        arrowPrayerDao.deleteArrowLogById(id)
+    }
+
+    suspend fun clearAllArrowLogs() {
+        arrowPrayerDao.clearAllArrowLogs()
+    }
+
+    suspend fun performFullSync() {
+        val localLogs = dao.getAllLogsList()
+        val localArrowLogs = arrowPrayerDao.getAllArrowLogsList()
+        val localKeys = localLogs.map { "${it.prayerCode}_${it.dateString}" }.toSet()
+        val currentLang = getSavedLanguage().code
+        val currentAlarms = getAllAlarmSettings()
+
+        syncManager.performFullBidirectionalSync(
+            localLogs = localLogs,
+            localArrowLogs = localArrowLogs,
+            localLanguageCode = currentLang,
+            localAlarmSettings = currentAlarms,
+            onRemoteLogsReceived = { remoteLogs ->
+                val toInsert = remoteLogs.filter { "${it.prayerCode}_${it.dateString}" !in localKeys }
+                if (toInsert.isNotEmpty()) {
+                    dao.insertLogs(toInsert)
+                }
+            },
+            onRemoteArrowLogsReceived = { remoteArrowLogs ->
+                val localArrowTimestamps = localArrowLogs.map { it.timestamp }.toSet()
+                val newArrowLogs = remoteArrowLogs.filter { it.timestamp !in localArrowTimestamps }
+                if (newArrowLogs.isNotEmpty()) {
+                    arrowPrayerDao.insertArrowLogs(newArrowLogs)
+                }
+            },
+            onRemoteAlarmsReceived = { remoteLangCode, remoteAlarms ->
+                if (remoteLangCode.isNotBlank()) {
+                    prefs.edit().putString("app_language_code", remoteLangCode).apply()
+                }
+                for (alarm in remoteAlarms) {
+                    saveAlarmSettingLocally(alarm)
+                }
+                com.example.alarm.AgpeyaAlarmScheduler.rescheduleAllActiveAlarms(context)
+            }
+        )
+    }
+
     fun startRealtimeSync(scope: CoroutineScope) {
-        syncManager.startRealtimeListener { remoteLog ->
-            scope.launch(Dispatchers.IO) {
-                val exists = dao.getCountForPrayerOnDate(remoteLog.prayerCode, remoteLog.dateString) > 0
-                if (!exists) {
-                    dao.insertLog(remoteLog)
+        syncManager.startRealtimeListener(
+            onRemoteLogAddedOrUpdated = { remoteLog ->
+                scope.launch(Dispatchers.IO) {
+                    val count = dao.getCountForPrayerOnDate(remoteLog.prayerCode, remoteLog.dateString)
+                    if (count == 0) {
+                        dao.insertLog(remoteLog)
+                    }
+                }
+            },
+            onRemoteArrowLogAddedOrUpdated = { arrowLog ->
+                scope.launch(Dispatchers.IO) {
+                    arrowPrayerDao.insertArrowLog(arrowLog)
+                }
+            },
+            onRemoteAlarmsChanged = { remoteLang, remoteAlarms ->
+                scope.launch(Dispatchers.IO) {
+                    if (remoteLang.isNotBlank()) {
+                        prefs.edit().putString("app_language_code", remoteLang).apply()
+                    }
+                    for (alarm in remoteAlarms) {
+                        saveAlarmSettingLocally(alarm)
+                    }
+                    com.example.alarm.AgpeyaAlarmScheduler.rescheduleAllActiveAlarms(context)
                 }
             }
-        }
+        )
     }
 
     // ==========================================

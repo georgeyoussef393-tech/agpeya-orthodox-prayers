@@ -3,6 +3,7 @@ package com.example.data.sync
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.example.data.model.ArrowPrayerLogEntity
 import com.example.data.model.PrayerAlarmSetting
 import com.example.data.model.PrayerLogEntity
 import com.google.firebase.FirebaseApp
@@ -62,6 +63,8 @@ class FirestoreSyncManager(private val context: Context) {
     private var firestore: FirebaseFirestore? = null
     private var auth: FirebaseAuth? = null
     private var logsListenerRegistration: ListenerRegistration? = null
+    private var arrowLogsListenerRegistration: ListenerRegistration? = null
+    private var settingsListenerRegistration: ListenerRegistration? = null
 
     init {
         initializeFirebaseIfPossible()
@@ -321,13 +324,117 @@ class FirestoreSyncManager(private val context: Context) {
     }
 
     /**
-     * Performs a full bidirectional sync:
-     * 1. Pulls all remote logs from Firestore and passes them to [onRemoteLogsReceived].
-     * 2. Pushes any local logs missing on remote.
+     * Uploads an arrow prayer log entry to Firestore.
+     */
+    fun uploadArrowPrayerLog(log: ArrowPrayerLogEntity) {
+        if (!isFirebaseReady()) return
+        val db = firestore ?: return
+        val currentKey = _syncKey.value
+        val docId = "arrow_${log.dateString}_${log.timestamp}"
+
+        val data = hashMapOf(
+            "id" to log.id,
+            "count" to log.count,
+            "prayerText" to log.prayerText,
+            "timestamp" to log.timestamp,
+            "dateString" to log.dateString,
+            "year" to log.year,
+            "month" to log.month,
+            "quarter" to log.quarter,
+            "halfYear" to log.halfYear,
+            "day" to log.day,
+            "hour" to log.hour,
+            "minute" to log.minute,
+            "updatedAt" to System.currentTimeMillis()
+        )
+
+        db.collection("users")
+            .document(currentKey)
+            .collection("arrow_prayer_logs")
+            .document(docId)
+            .set(data, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "Arrow prayer log synchronized with Firestore: $docId")
+                _lastSyncTimestamp.value = System.currentTimeMillis()
+                prefs.edit().putLong("last_sync_time", _lastSyncTimestamp.value).apply()
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Failed to upload arrow log to Firestore: ${e.message}")
+            }
+    }
+
+    /**
+     * Directly uploads alarm preferences to Firestore so any change on this device
+     * immediately propagates to other phones and tablets.
+     */
+    fun uploadAlarmSettings(
+        languageCode: String,
+        alarmSettings: List<PrayerAlarmSetting>
+    ) {
+        if (!isFirebaseReady()) return
+        val db = firestore ?: return
+        val currentKey = _syncKey.value
+
+        val alarmsMap = hashMapOf<String, Any>()
+        for (setting in alarmSettings) {
+            alarmsMap[setting.prayerCode] = hashMapOf(
+                "hour" to setting.hour,
+                "minute" to setting.minute,
+                "isEnabled" to setting.isEnabled,
+                "soundEnabled" to setting.soundEnabled,
+                "vibrateEnabled" to setting.vibrateEnabled,
+                "soundId" to setting.soundId
+            )
+        }
+
+        val now = System.currentTimeMillis()
+        val payload = hashMapOf(
+            "languageCode" to languageCode,
+            "alarms" to alarmsMap,
+            "updatedAt" to now
+        )
+
+        db.collection("users")
+            .document(currentKey)
+            .collection("settings")
+            .document("agpeya_settings")
+            .set(payload, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "Alarm preferences uploaded to Firestore successfully.")
+                _lastSyncTimestamp.value = now
+                prefs.edit().putLong("last_sync_time", now).apply()
+                _syncStatus.value = SyncStatus.SYNCED
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Failed to upload alarm preferences: ${e.message}")
+            }
+    }
+
+    /**
+     * Backward-compatible alias to upload alarm and language settings to Firestore.
+     */
+    fun syncSettings(
+        languageCode: String,
+        alarmSettings: List<PrayerAlarmSetting>,
+        onRemoteAlarmsReceived: ((String, List<PrayerAlarmSetting>) -> Unit)? = null
+    ) {
+        uploadAlarmSettings(languageCode, alarmSettings)
+    }
+
+    /**
+     * Performs a full bidirectional sync across devices:
+     * 1. Pulls all remote canonical prayer logs and pushes local ones missing on remote.
+     * 2. Pulls all remote arrow prayer logs and pushes local ones missing on remote.
+     * 3. Syncs alarm preferences and prayer settings across devices.
      */
     suspend fun performFullBidirectionalSync(
         localLogs: List<PrayerLogEntity>,
-        onRemoteLogsReceived: suspend (List<PrayerLogEntity>) -> Unit
+        localArrowLogs: List<ArrowPrayerLogEntity> = emptyList(),
+        localLanguageCode: String = "ar",
+        localAlarmSettings: List<PrayerAlarmSetting> = emptyList(),
+        onRemoteLogsReceived: suspend (List<PrayerLogEntity>) -> Unit,
+        onRemoteArrowLogsReceived: (suspend (List<ArrowPrayerLogEntity>) -> Unit)? = null,
+        onRemoteAlarmsReceived: (suspend (String, List<PrayerAlarmSetting>) -> Unit)? = null
     ) = withContext(Dispatchers.IO) {
         if (!isFirebaseReady()) {
             _syncStatus.value = SyncStatus.OFFLINE
@@ -343,6 +450,7 @@ class FirestoreSyncManager(private val context: Context) {
             _syncStatus.value = SyncStatus.SYNCING
             val currentKey = _syncKey.value
 
+            // 1. Sync Canonical Prayer Reading Logs
             val snapshot = db.collection("users")
                 .document(currentKey)
                 .collection("prayer_logs")
@@ -350,25 +458,24 @@ class FirestoreSyncManager(private val context: Context) {
                 .await()
 
             val remoteLogs = mutableListOf<PrayerLogEntity>()
-            val remoteIds = mutableSetOf<String>()
+            val remoteKeys = mutableSetOf<String>()
 
             for (doc in snapshot.documents) {
                 val entity = documentToPrayerLog(doc)
                 if (entity != null) {
                     remoteLogs.add(entity)
-                    remoteIds.add("${entity.prayerCode}_${entity.dateString}")
+                    remoteKeys.add("${entity.prayerCode}_${entity.dateString}")
                 }
             }
 
-            // Save incoming remote logs into local Room database
             if (remoteLogs.isNotEmpty()) {
                 onRemoteLogsReceived(remoteLogs)
             }
 
-            // Upload any local logs that do not exist in remote
+            // Upload any local logs that do not exist on remote
             for (local in localLogs) {
                 val key = "${local.prayerCode}_${local.dateString}"
-                if (!remoteIds.contains(key)) {
+                if (!remoteKeys.contains(key)) {
                     val docId = "${local.prayerCode}_${local.dateString}_${local.timestamp}"
                     val data = hashMapOf(
                         "id" to local.id,
@@ -391,11 +498,100 @@ class FirestoreSyncManager(private val context: Context) {
                 }
             }
 
+            // 2. Sync Arrow Prayer Logs (الصلوات السهمية)
+            if (onRemoteArrowLogsReceived != null) {
+                val arrowSnapshot = db.collection("users")
+                    .document(currentKey)
+                    .collection("arrow_prayer_logs")
+                    .get()
+                    .await()
+
+                val remoteArrowLogs = mutableListOf<ArrowPrayerLogEntity>()
+                val remoteArrowTimestamps = mutableSetOf<Long>()
+
+                for (doc in arrowSnapshot.documents) {
+                    val arrowEntity = documentToArrowPrayerLog(doc)
+                    if (arrowEntity != null) {
+                        remoteArrowLogs.add(arrowEntity)
+                        remoteArrowTimestamps.add(arrowEntity.timestamp)
+                    }
+                }
+
+                if (remoteArrowLogs.isNotEmpty()) {
+                    onRemoteArrowLogsReceived(remoteArrowLogs)
+                }
+
+                for (local in localArrowLogs) {
+                    if (!remoteArrowTimestamps.contains(local.timestamp)) {
+                        val docId = "arrow_${local.dateString}_${local.timestamp}"
+                        val data = hashMapOf(
+                            "id" to local.id,
+                            "count" to local.count,
+                            "prayerText" to local.prayerText,
+                            "timestamp" to local.timestamp,
+                            "dateString" to local.dateString,
+                            "year" to local.year,
+                            "month" to local.month,
+                            "quarter" to local.quarter,
+                            "halfYear" to local.halfYear,
+                            "day" to local.day,
+                            "hour" to local.hour,
+                            "minute" to local.minute,
+                            "updatedAt" to System.currentTimeMillis()
+                        )
+                        db.collection("users")
+                            .document(currentKey)
+                            .collection("arrow_prayer_logs")
+                            .document(docId)
+                            .set(data, SetOptions.merge())
+                            .await()
+                    }
+                }
+            }
+
+            // 3. Sync Alarm Settings & Preferences
+            if (onRemoteAlarmsReceived != null) {
+                val settingsDocRef = db.collection("users")
+                    .document(currentKey)
+                    .collection("settings")
+                    .document("agpeya_settings")
+
+                val doc = settingsDocRef.get().await()
+                if (doc.exists()) {
+                    val remoteLang = doc.getString("languageCode") ?: localLanguageCode
+                    val alarmsList = mutableListOf<PrayerAlarmSetting>()
+                    val alarmsMap = doc.get("alarms") as? Map<*, *>
+                    if (alarmsMap != null) {
+                        for ((code, data) in alarmsMap) {
+                            val map = data as? Map<*, *> ?: continue
+                            alarmsList.add(
+                                PrayerAlarmSetting(
+                                    prayerCode = code.toString(),
+                                    hour = (map["hour"] as? Long)?.toInt() ?: 0,
+                                    minute = (map["minute"] as? Long)?.toInt() ?: 0,
+                                    isEnabled = map["isEnabled"] as? Boolean ?: true,
+                                    soundEnabled = map["soundEnabled"] as? Boolean ?: true,
+                                    vibrateEnabled = map["vibrateEnabled"] as? Boolean ?: true,
+                                    soundId = map["soundId"] as? String ?: "church_bells"
+                                )
+                            )
+                        }
+                    }
+                    if (alarmsList.isNotEmpty()) {
+                        onRemoteAlarmsReceived(remoteLang, alarmsList)
+                    } else if (localAlarmSettings.isNotEmpty()) {
+                        uploadAlarmSettings(localLanguageCode, localAlarmSettings)
+                    }
+                } else if (localAlarmSettings.isNotEmpty()) {
+                    uploadAlarmSettings(localLanguageCode, localAlarmSettings)
+                }
+            }
+
             val now = System.currentTimeMillis()
             _lastSyncTimestamp.value = now
             prefs.edit().putLong("last_sync_time", now).apply()
             _syncStatus.value = SyncStatus.SYNCED
-            Log.d(TAG, "Full sync completed successfully. Synced ${remoteLogs.size} remote and ${localLogs.size} local logs.")
+            Log.d(TAG, "Full cross-device sync completed successfully.")
         } catch (e: Exception) {
             Log.e(TAG, "Sync error: ${e.message}", e)
             _syncStatus.value = SyncStatus.ERROR
@@ -403,10 +599,15 @@ class FirestoreSyncManager(private val context: Context) {
     }
 
     /**
-     * Starts a real-time Firestore listener for live cross-device sync.
+     * Starts real-time listeners for live cross-device sync:
+     * - Canonical prayer reading logs
+     * - Arrow prayer logs
+     * - Alarm preferences and settings
      */
     fun startRealtimeListener(
-        onRemoteLogAddedOrUpdated: (PrayerLogEntity) -> Unit
+        onRemoteLogAddedOrUpdated: (PrayerLogEntity) -> Unit,
+        onRemoteArrowLogAddedOrUpdated: ((ArrowPrayerLogEntity) -> Unit)? = null,
+        onRemoteAlarmsChanged: ((String, List<PrayerAlarmSetting>) -> Unit)? = null
     ) {
         if (!_isRealtimeSyncActive.value || !isFirebaseReady()) return
         val db = firestore ?: return
@@ -415,15 +616,15 @@ class FirestoreSyncManager(private val context: Context) {
         stopRealtimeListener()
 
         try {
+            // 1. Listen for prayer reading logs
             logsListenerRegistration = db.collection("users")
                 .document(currentKey)
                 .collection("prayer_logs")
                 .addSnapshotListener { snapshots, error ->
                     if (error != null) {
-                        Log.w(TAG, "Real-time sync listener error: ${error.message}")
+                        Log.w(TAG, "Real-time prayer log listener error: ${error.message}")
                         return@addSnapshotListener
                     }
-
                     if (snapshots != null) {
                         for (dc in snapshots.documentChanges) {
                             val entity = documentToPrayerLog(dc.document)
@@ -433,81 +634,75 @@ class FirestoreSyncManager(private val context: Context) {
                         }
                     }
                 }
+
+            // 2. Listen for arrow prayer logs
+            if (onRemoteArrowLogAddedOrUpdated != null) {
+                arrowLogsListenerRegistration = db.collection("users")
+                    .document(currentKey)
+                    .collection("arrow_prayer_logs")
+                    .addSnapshotListener { snapshots, error ->
+                        if (error != null) {
+                            Log.w(TAG, "Real-time arrow log listener error: ${error.message}")
+                            return@addSnapshotListener
+                        }
+                        if (snapshots != null) {
+                            for (dc in snapshots.documentChanges) {
+                                val entity = documentToArrowPrayerLog(dc.document)
+                                if (entity != null) {
+                                    onRemoteArrowLogAddedOrUpdated(entity)
+                                }
+                            }
+                        }
+                    }
+            }
+
+            // 3. Listen for alarm preferences and settings changes
+            if (onRemoteAlarmsChanged != null) {
+                settingsListenerRegistration = db.collection("users")
+                    .document(currentKey)
+                    .collection("settings")
+                    .document("agpeya_settings")
+                    .addSnapshotListener { doc, error ->
+                        if (error != null || doc == null || !doc.exists()) {
+                            return@addSnapshotListener
+                        }
+                        val remoteLang = doc.getString("languageCode") ?: "ar"
+                        val alarmsList = mutableListOf<PrayerAlarmSetting>()
+                        val alarmsMap = doc.get("alarms") as? Map<*, *>
+                        if (alarmsMap != null) {
+                            for ((code, data) in alarmsMap) {
+                                val map = data as? Map<*, *> ?: continue
+                                alarmsList.add(
+                                    PrayerAlarmSetting(
+                                        prayerCode = code.toString(),
+                                        hour = (map["hour"] as? Long)?.toInt() ?: 0,
+                                        minute = (map["minute"] as? Long)?.toInt() ?: 0,
+                                        isEnabled = map["isEnabled"] as? Boolean ?: true,
+                                        soundEnabled = map["soundEnabled"] as? Boolean ?: true,
+                                        vibrateEnabled = map["vibrateEnabled"] as? Boolean ?: true,
+                                        soundId = map["soundId"] as? String ?: "church_bells"
+                                    )
+                                )
+                            }
+                        }
+                        if (alarmsList.isNotEmpty()) {
+                            Log.d(TAG, "Real-time alarm preferences update received from other device.")
+                            onRemoteAlarmsChanged(remoteLang, alarmsList)
+                        }
+                    }
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Error starting realtime listener: ${e.message}")
+            Log.e(TAG, "Error starting realtime listeners: ${e.message}")
         }
     }
 
     fun stopRealtimeListener() {
         logsListenerRegistration?.remove()
         logsListenerRegistration = null
-    }
-
-    /**
-     * Synchronizes app settings (language and alarms) to/from Firestore.
-     */
-    suspend fun syncSettings(
-        languageCode: String,
-        alarmSettings: List<PrayerAlarmSetting>,
-        onRemoteSettingsReceived: (String, List<PrayerAlarmSetting>) -> Unit
-    ) = withContext(Dispatchers.IO) {
-        if (!isFirebaseReady()) return@withContext
-        val db = firestore ?: return@withContext
-        val currentKey = _syncKey.value
-
-        try {
-            val settingsDocRef = db.collection("users")
-                .document(currentKey)
-                .collection("settings")
-                .document("agpeya_settings")
-
-            val doc = settingsDocRef.get().await()
-
-            if (doc.exists()) {
-                val remoteLang = doc.getString("languageCode") ?: languageCode
-                val alarmsList = mutableListOf<PrayerAlarmSetting>()
-                val alarmsMap = doc.get("alarms") as? Map<*, *>
-                if (alarmsMap != null) {
-                    for ((code, data) in alarmsMap) {
-                        val map = data as? Map<*, *> ?: continue
-                        alarmsList.add(
-                            PrayerAlarmSetting(
-                                prayerCode = code.toString(),
-                                hour = (map["hour"] as? Long)?.toInt() ?: 0,
-                                minute = (map["minute"] as? Long)?.toInt() ?: 0,
-                                isEnabled = map["isEnabled"] as? Boolean ?: true,
-                                soundEnabled = map["soundEnabled"] as? Boolean ?: true,
-                                vibrateEnabled = map["vibrateEnabled"] as? Boolean ?: true,
-                                soundId = map["soundId"] as? String ?: "church_bells"
-                            )
-                        )
-                    }
-                }
-                onRemoteSettingsReceived(remoteLang, alarmsList)
-            } else {
-                // Document doesn't exist yet, upload local settings
-                val alarmsMap = hashMapOf<String, Any>()
-                for (setting in alarmSettings) {
-                    alarmsMap[setting.prayerCode] = hashMapOf(
-                        "hour" to setting.hour,
-                        "minute" to setting.minute,
-                        "isEnabled" to setting.isEnabled,
-                        "soundEnabled" to setting.soundEnabled,
-                        "vibrateEnabled" to setting.vibrateEnabled,
-                        "soundId" to setting.soundId
-                    )
-                }
-
-                val payload = hashMapOf(
-                    "languageCode" to languageCode,
-                    "alarms" to alarmsMap,
-                    "updatedAt" to System.currentTimeMillis()
-                )
-                settingsDocRef.set(payload, SetOptions.merge()).await()
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Error syncing settings with Firestore: ${e.message}")
-        }
+        arrowLogsListenerRegistration?.remove()
+        arrowLogsListenerRegistration = null
+        settingsListenerRegistration?.remove()
+        settingsListenerRegistration = null
     }
 
     private fun documentToPrayerLog(doc: DocumentSnapshot): PrayerLogEntity? {
@@ -527,6 +722,35 @@ class FirestoreSyncManager(private val context: Context) {
             dateString = dateString,
             year = year,
             month = month,
+            day = day,
+            hour = hour,
+            minute = minute
+        )
+    }
+
+    private fun documentToArrowPrayerLog(doc: DocumentSnapshot): ArrowPrayerLogEntity? {
+        val count = doc.getLong("count")?.toInt() ?: return null
+        val prayerText = doc.getString("prayerText") ?: return null
+        val dateString = doc.getString("dateString") ?: return null
+        val timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis()
+        val year = doc.getLong("year")?.toInt() ?: 0
+        val month = doc.getLong("month")?.toInt() ?: 0
+        val quarter = doc.getLong("quarter")?.toInt() ?: 1
+        val halfYear = doc.getLong("halfYear")?.toInt() ?: 1
+        val day = doc.getLong("day")?.toInt() ?: 0
+        val hour = doc.getLong("hour")?.toInt() ?: 0
+        val minute = doc.getLong("minute")?.toInt() ?: 0
+
+        return ArrowPrayerLogEntity(
+            id = 0, // Auto-generated locally by Room
+            count = count,
+            prayerText = prayerText,
+            timestamp = timestamp,
+            dateString = dateString,
+            year = year,
+            month = month,
+            quarter = quarter,
+            halfYear = halfYear,
             day = day,
             hour = hour,
             minute = minute

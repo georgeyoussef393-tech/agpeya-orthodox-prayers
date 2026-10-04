@@ -102,8 +102,6 @@ fun CopticCalendarScreen(
 
     val context = LocalContext.current
     var selectedCalendarOffsetDays by remember { mutableStateOf(0) }
-    var showGroundedSearchDialog by remember { mutableStateOf(false) }
-    var groundedSearchInitialQuery by remember { mutableStateOf("") }
 
     val activeCalendar = remember(selectedCalendarOffsetDays) {
         Calendar.getInstance().apply {
@@ -283,96 +281,6 @@ fun CopticCalendarScreen(
                                         )
                                     }
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Google Search Grounded Research & Calendar Verification Card
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.45f)),
-                        elevation = CardDefaults.cardElevation(2.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .pressBounce()
-                            .clickable {
-                                groundedSearchInitialQuery = if (lang == AppLanguage.ARABIC) {
-                                    "طقس وأعياد اليوم ${copticDate.day} ${copticDate.monthNameAr} وقراءات القطمارس"
-                                } else {
-                                    "Liturgy and readings for ${copticDate.day} ${copticDate.monthNameEn}"
-                                }
-                                showGroundedSearchDialog = true
-                            }
-                            .testTag("card_grounded_search")
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp)
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        Brush.radialGradient(
-                                            listOf(GoldLight, GoldPrimary, BurgundyDeep)
-                                        )
-                                    )
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = null,
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(12.dp))
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = if (lang == AppLanguage.ARABIC) "البحث الأرثوذكسي الموثق" else "Orthodox Grounded Search",
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = GoldPrimary
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Surface(
-                                        color = GoldPrimary.copy(alpha = 0.18f),
-                                        shape = RoundedCornerShape(6.dp)
-                                    ) {
-                                        Text(
-                                            text = "Google Search",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = GoldLight,
-                                            fontSize = 9.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(3.dp))
-                                Text(
-                                    text = if (lang == AppLanguage.ARABIC) {
-                                        "ابحث في الأعياد، مواعيد الأصوام، وتأملات وقراءات الكنيسة بدقة موثقة من محرك بحث Google"
-                                    } else {
-                                        "Search feasts, fast dates, and Church scripture reflections verified via Google Search"
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    lineHeight = 16.sp
-                                )
                             }
                         }
                     }
@@ -591,14 +499,6 @@ fun CopticCalendarScreen(
                     }
                 }
             }
-        }
-
-        if (showGroundedSearchDialog) {
-            OrthodoxGroundedSearchDialog(
-                language = lang,
-                onDismissRequest = { showGroundedSearchDialog = false },
-                initialQuery = groundedSearchInitialQuery
-            )
         }
     }
 }

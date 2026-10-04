@@ -21,6 +21,9 @@ interface PrayerLogDao {
     @Query("SELECT * FROM prayer_logs WHERE year = :year AND month = :month ORDER BY timestamp DESC")
     fun getLogsForMonth(year: Int, month: Int): Flow<List<PrayerLogEntity>>
 
+    @Query("SELECT * FROM prayer_logs WHERE year = :year AND month >= :startMonth AND month <= :endMonth ORDER BY timestamp DESC")
+    fun getLogsForMonthRange(year: Int, startMonth: Int, endMonth: Int): Flow<List<PrayerLogEntity>>
+
     @Query("SELECT * FROM prayer_logs WHERE year = :year ORDER BY timestamp DESC")
     fun getLogsForYear(year: Int): Flow<List<PrayerLogEntity>>
 

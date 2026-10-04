@@ -37,13 +37,29 @@ object AgpeyaAlarmScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Calculate trigger time in device's local timezone
-        val now = Calendar.getInstance()
-        val target = Calendar.getInstance().apply {
+        // Calculate trigger time in user's active timezone (auto-detected or manually selected)
+        val database = AgpeyaDatabase.getDatabase(context)
+        val repository = AgpeyaRepository(database.prayerLogDao(), context)
+        
+        val targetTimezone = if (repository.isAutoTimezoneSyncEnabled()) {
+            java.util.TimeZone.getDefault()
+        } else {
+            java.util.TimeZone.getTimeZone(repository.getSelectedTimezoneId())
+        }
+
+        val leadTimeMinutes = repository.getNotificationLeadTimeMinutes()
+
+        val now = Calendar.getInstance(targetTimezone)
+        val target = Calendar.getInstance(targetTimezone).apply {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
+        }
+
+        // Apply lead-time offset if enabled
+        if (leadTimeMinutes > 0) {
+            target.add(Calendar.MINUTE, -leadTimeMinutes)
         }
 
         // If target time is before or equal to now, schedule for tomorrow

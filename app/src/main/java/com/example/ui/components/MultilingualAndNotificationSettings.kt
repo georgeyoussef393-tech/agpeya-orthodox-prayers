@@ -85,6 +85,7 @@ fun MultilingualAndNotificationSettings(
 
     val isAutoTimezone by viewModel.isAutoTimezoneSyncEnabled.collectAsState()
     val selectedTzId by viewModel.selectedTimezoneId.collectAsState()
+    val tzSyncResult by viewModel.timezoneSyncResult.collectAsState()
     val leadTimeMins by viewModel.notificationLeadTimeMinutes.collectAsState()
     val isQuietHours by viewModel.isQuietHoursEnabled.collectAsState()
     val quietStart by viewModel.quietHoursStartHour.collectAsState()
@@ -661,11 +662,15 @@ fun MultilingualAndNotificationSettings(
                         onClick = {
                             scope.launch {
                                 isSyncingAlarms = true
-                                viewModel.syncAlarmsWithLocalTimezone()
-                                delay(600)
+                                val result = viewModel.syncAlarmsWithLocalTimezone()
+                                delay(500)
                                 isSyncingAlarms = false
-                                syncSuccessMessage = if (isArabic) "تم تحديث كافة المواعيد بالتوقيت المحلي!" else "Alarms synchronized with local timezone!"
-                                delay(2500)
+                                syncSuccessMessage = if (isArabic) {
+                                    "✓ تم الكشف عن ${result.currentTimezoneDisplayName} (${result.gmtOffsetString}) وتعديل تنبيهات الصلوات تلقائياً"
+                                } else {
+                                    "✓ Detected ${result.currentTimezoneDisplayName} (${result.gmtOffsetString}) and adjusted all prayer alarms"
+                                }
+                                delay(3500)
                                 syncSuccessMessage = null
                             }
                         },
@@ -684,7 +689,7 @@ fun MultilingualAndNotificationSettings(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = if (isArabic) "إعادة ضبط بالتوقيت المحلي" else "Sync Local Time Alarms",
+                            text = if (isArabic) "إعادة كشف وضبط التوقيت" else "Auto Detect & Sync Alarms",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black

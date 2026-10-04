@@ -32,12 +32,13 @@ object PrayerPdfExporter {
         syncKey: String?,
         lang: AppLanguage,
         periodName: String,
-        allLogs: List<PrayerLogEntity>
+        allLogs: List<PrayerLogEntity>,
+        allArrowLogs: List<com.example.data.model.ArrowPrayerLogEntity> = emptyList()
     ): String {
         val sb = StringBuilder()
         val displayName = userEmail ?: userName ?: if (lang == AppLanguage.ARABIC) "المصلي" else "Worshipper"
         sb.appendLine("==================================================")
-        sb.appendLine(if (lang == AppLanguage.ARABIC) "تقرير الصلوات الأرثوذكسية - صلوات السواعي (الأجبية)" else "Orthodox Agpeya Prayer Spiritual Progress Report")
+        sb.appendLine(if (lang == AppLanguage.ARABIC) "تقرير الصلوات الأرثوذكسية - صلوات السواعي والصلوات السهمية" else "Orthodox Agpeya & Arrow Prayers Progress Report")
         sb.appendLine("==================================================")
         sb.appendLine("${if (lang == AppLanguage.ARABIC) "المستخدم المسجل" else "Logged-in User"}: $displayName")
         if (!churchName.isNullOrBlank()) {
@@ -47,14 +48,22 @@ object PrayerPdfExporter {
         sb.appendLine("${if (lang == AppLanguage.ARABIC) "نوع التقرير" else "Report Period"}: $periodName")
         sb.appendLine("${if (lang == AppLanguage.ARABIC) "تاريخ الإصدار" else "Generated At"}: ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())}")
         sb.appendLine("--------------------------------------------------")
-        sb.appendLine("${if (lang == AppLanguage.ARABIC) "إجمالي الصلوات المسجلة" else "Total Prayers Logged"}: ${allLogs.size}")
-        val uniqueDays = allLogs.map { it.dateString }.distinct().size
+        sb.appendLine("${if (lang == AppLanguage.ARABIC) "إجمالي صلوات السواعي المسجلة" else "Total Canonical Prayers Logged"}: ${allLogs.size}")
+        val totalArrowBeads = allArrowLogs.sumOf { it.count }
+        sb.appendLine("${if (lang == AppLanguage.ARABIC) "إجمالي الصلوات السهمية المسجلة" else "Total Arrow Prayers Count"}: $totalArrowBeads")
+        val uniqueDays = (allLogs.map { it.dateString } + allArrowLogs.map { it.dateString }).distinct().size
         sb.appendLine("${if (lang == AppLanguage.ARABIC) "أيام الصلاة" else "Active Days"}: $uniqueDays")
         sb.appendLine("--------------------------------------------------")
         sb.appendLine(if (lang == AppLanguage.ARABIC) "تفاصيل السواعي القانونية:" else "Canonical Hours Breakdown:")
         PrayerId.canonicalPrayers.forEach { prayer ->
             val count = allLogs.count { it.prayerCode == prayer.code }
             sb.appendLine("- ${prayer.getDisplayName(lang)}: $count")
+        }
+        if (allArrowLogs.isNotEmpty()) {
+            sb.appendLine("--------------------------------------------------")
+            sb.appendLine(if (lang == AppLanguage.ARABIC) "تفاصيل الصلوات السهمية:" else "Arrow Prayers Breakdown:")
+            sb.appendLine("${if (lang == AppLanguage.ARABIC) "عدد الجلسات" else "Sessions"}: ${allArrowLogs.size}")
+            sb.appendLine("${if (lang == AppLanguage.ARABIC) "إجمالي التكرارات" else "Total Repetitions"}: $totalArrowBeads")
         }
         sb.appendLine("==================================================")
         sb.appendLine(if (lang == AppLanguage.ARABIC) "«سبع مرات في النهار سبحتك على أحكام عدلك» (مزمور 119: 164)" else "“Seven times a day I praise You, because of Your righteous judgments.” (Ps 119:164)")
@@ -71,6 +80,7 @@ object PrayerPdfExporter {
         lang: AppLanguage,
         periodName: String,
         allLogs: List<PrayerLogEntity>,
+        allArrowLogs: List<com.example.data.model.ArrowPrayerLogEntity> = emptyList(),
         selectedDateString: String? = null
     ): File? {
         try {
@@ -89,6 +99,7 @@ object PrayerPdfExporter {
                 lang = lang,
                 periodName = periodName,
                 allLogs = allLogs,
+                allArrowLogs = allArrowLogs,
                 selectedDateString = selectedDateString
             )
 
@@ -121,6 +132,7 @@ object PrayerPdfExporter {
         lang: AppLanguage,
         periodName: String,
         allLogs: List<PrayerLogEntity>,
+        allArrowLogs: List<com.example.data.model.ArrowPrayerLogEntity> = emptyList(),
         selectedDateString: String? = null
     ): File? {
         val pdfFile = generatePdfFile(
@@ -133,6 +145,7 @@ object PrayerPdfExporter {
             lang = lang,
             periodName = periodName,
             allLogs = allLogs,
+            allArrowLogs = allArrowLogs,
             selectedDateString = selectedDateString
         ) ?: return null
 
@@ -187,6 +200,7 @@ object PrayerPdfExporter {
         lang: AppLanguage,
         periodName: String,
         allLogs: List<PrayerLogEntity>,
+        allArrowLogs: List<com.example.data.model.ArrowPrayerLogEntity> = emptyList(),
         selectedDateString: String?
     ) {
         val paint = Paint().apply { isAntiAlias = true }
@@ -223,7 +237,7 @@ object PrayerPdfExporter {
         val subtitle = if (!churchName.isNullOrBlank()) {
             if (lang == AppLanguage.ARABIC) "الكنيسة / الخدمة: $churchName" else "Church / Ministry: $churchName"
         } else {
-            if (lang == AppLanguage.ARABIC) "تقرير التقدم الروحي وإتمام صلوات السواعي القانونية" else "Spiritual Progress Report & Canonical Hours Completion"
+            if (lang == AppLanguage.ARABIC) "تقرير التقدم الروحي وإتمام صلوات السواعي والصلوات السهمية" else "Spiritual Progress Report: Canonical & Arrow Prayers"
         }
         canvas.drawText(subtitle, 25f, 65f, paint)
 
@@ -277,13 +291,12 @@ object PrayerPdfExporter {
 
         // Summary Stats Row (y = 200 to 255)
         val totalLogged = allLogs.size
-        val uniqueDays = allLogs.map { it.dateString }.distinct().size
-        val todayStr = AgpeyaRepository.getTodayString()
-        val todayLogsCount = allLogs.count { it.dateString == todayStr }
+        val totalArrowBeads = allArrowLogs.sumOf { it.count }
+        val uniqueDays = (allLogs.map { it.dateString } + allArrowLogs.map { it.dateString }).distinct().size
 
-        drawStatBox(canvas, 28f, 200f, 165f, 55f, if (lang == AppLanguage.ARABIC) "إجمالي الصلوات المسجلة" else "Total Prayers Logged", "$totalLogged", android.graphics.Color.rgb(107, 20, 38))
-        drawStatBox(canvas, 214f, 200f, 165f, 55f, if (lang == AppLanguage.ARABIC) "أيام الصلاة والتسجيل" else "Active Days in Prayer", "$uniqueDays", android.graphics.Color.rgb(212, 175, 55))
-        drawStatBox(canvas, 400f, 200f, 167f, 55f, if (lang == AppLanguage.ARABIC) "صلوات اليوم الحالي" else "Today's Completed", "$todayLogsCount / 8", android.graphics.Color.rgb(46, 125, 50))
+        drawStatBox(canvas, 28f, 200f, 165f, 55f, if (lang == AppLanguage.ARABIC) "صلوات السواعي المسجلة" else "Canonical Prayers", "$totalLogged", android.graphics.Color.rgb(107, 20, 38))
+        drawStatBox(canvas, 214f, 200f, 165f, 55f, if (lang == AppLanguage.ARABIC) "الصلوات السهمية المسجلة" else "Arrow Prayers Count", "$totalArrowBeads", android.graphics.Color.rgb(107, 20, 38))
+        drawStatBox(canvas, 400f, 200f, 167f, 55f, if (lang == AppLanguage.ARABIC) "أيام الصلاة والتسجيل" else "Active Days in Prayer", "$uniqueDays", android.graphics.Color.rgb(46, 125, 50))
 
         // Canonical Hours Breakdown Table (y = 275 to 455)
         paint.color = android.graphics.Color.rgb(107, 20, 38)

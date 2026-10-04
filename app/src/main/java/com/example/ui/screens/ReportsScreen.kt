@@ -18,16 +18,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sync
@@ -44,8 +47,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -65,14 +69,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.model.ArrowPrayerLogEntity
 import com.example.data.model.PrayerId
 import com.example.data.model.PrayerLogEntity
-import com.example.data.sync.SyncStatus
 import com.example.data.repository.AgpeyaRepository
+import com.example.data.sync.SyncStatus
 import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
 import com.example.report.PrayerPdfExporter
 import com.example.ui.components.CopticCrossCanvas
+import com.example.ui.components.charts.AnnualPrayerHeatmap
 import com.example.ui.components.charts.AreaPoint
 import com.example.ui.components.charts.BarChartItem
 import com.example.ui.components.charts.DailyTimelineChart
@@ -82,6 +88,7 @@ import com.example.ui.components.charts.PrayerActivityHeatmap
 import com.example.ui.components.charts.PrayerFrequencyBarChart
 import com.example.ui.components.charts.PrayerRadialDonutChart
 import com.example.ui.components.charts.PrayerTrendAreaChart
+import com.example.ui.components.charts.ThirtyDayPrayerTrendChart
 import com.example.ui.theme.BurgundyDeep
 import com.example.ui.theme.BurgundyPrimary
 import com.example.ui.theme.GoldLight
@@ -113,8 +120,10 @@ fun ReportsScreen(
 ) {
     val lang by viewModel.currentLanguage.collectAsState()
     val allLogs by viewModel.allLogs.collectAsState()
+    val allArrowLogs by viewModel.allArrowLogs.collectAsState()
     val totalCount by viewModel.totalCount.collectAsState()
-    val currentPeriod by viewModel.selectedReportPeriod.collectAsState()
+    val totalArrowCount by viewModel.totalArrowCount.collectAsState()
+    val dailyArrowTarget by viewModel.dailyArrowTarget.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
     val churchName by viewModel.churchName.collectAsState()
@@ -125,17 +134,19 @@ fun ReportsScreen(
     val tabTitles = listOf(
         AgpeyaStrings.reportDaily(lang),
         AgpeyaStrings.reportMonthly(lang),
+        AgpeyaStrings.reportQuarterly(lang),
+        AgpeyaStrings.reportSemiAnnual(lang),
         AgpeyaStrings.reportYearly(lang),
         if (lang == AppLanguage.ARABIC) "سجل التواريخ" else "History"
     )
 
     Column(modifier = modifier.fillMaxSize()) {
-        // Sacred Header with Total Stats
+        // Sacred Header with Total Canonical & Arrow Stats
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -146,40 +157,72 @@ fun ReportsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f, fill = false)
                 ) {
-                    CopticCrossCanvas(size = 32.dp)
-                    Spacer(modifier = Modifier.width(12.dp))
+                    CopticCrossCanvas(size = 30.dp)
+                    Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
                             text = AgpeyaStrings.visualDashboard(lang),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = AgpeyaStrings.prayerFrequency(lang),
+                            text = if (lang == AppLanguage.ARABIC) "صلوات السواعي والصلوات السهمية" else "Canonical Hours & Arrow Prayers",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                // Total Completed Prayers Counter Badge, PDF Export & Cloud Sync Icon
+                // Dual Badges: Canonical Hours Count & Arrow Beads Count
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "$totalCount",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = GoldPrimary
-                        )
-                        Text(
-                            text = if (lang == AppLanguage.ARABIC) "صلاة مسجلة" else "prayers logged",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = GoldPrimary.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
+                        modifier = Modifier.padding(end = 6.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "$totalCount",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = GoldPrimary
+                            )
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "سواعي" else "hours",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = BurgundyDeep.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, BurgundyDeep.copy(alpha = 0.35f)),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "$totalArrowCount",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = BurgundyDeep
+                            )
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "سهمية" else "arrows",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
 
                     // Export PDF Button
                     IconButton(
@@ -193,11 +236,12 @@ fun ReportsScreen(
                                 syncKey = syncKey,
                                 lang = lang,
                                 periodName = periodLabel,
-                                allLogs = allLogs
+                                allLogs = allLogs,
+                                allArrowLogs = allArrowLogs
                             )
                         },
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(34.dp)
                             .clip(CircleShape)
                             .background(GoldPrimary.copy(alpha = 0.15f))
                             .testTag("export_pdf_button")
@@ -206,21 +250,21 @@ fun ReportsScreen(
                             imageVector = Icons.Default.PictureAsPdf,
                             contentDescription = AgpeyaStrings.exportPdfReport(lang),
                             tint = GoldPrimary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
 
                     IconButton(
                         onClick = { viewModel.triggerSync() },
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(34.dp)
                             .testTag("reports_sync_btn")
                     ) {
                         if (syncStatus == SyncStatus.SYNCING) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
+                                modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
                                 color = GoldPrimary
                             )
@@ -229,7 +273,7 @@ fun ReportsScreen(
                                 imageVector = if (syncStatus == SyncStatus.SYNCED) Icons.Default.CloudDone else Icons.Default.Sync,
                                 contentDescription = "Sync",
                                 tint = if (syncStatus == SyncStatus.SYNCED) Color(0xFF4CAF50) else GoldPrimary,
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -237,11 +281,12 @@ fun ReportsScreen(
             }
         }
 
-        // Tabs: Daily, Monthly, Yearly, History
-        TabRow(
+        // 6 Tabs: Daily, Monthly, Quarterly, Semi-Annual, Yearly, History
+        ScrollableTabRow(
             selectedTabIndex = selectedTabIndex,
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = GoldPrimary,
+            edgePadding = 12.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             tabTitles.forEachIndexed { index, title ->
@@ -252,7 +297,9 @@ fun ReportsScreen(
                         when (index) {
                             0 -> viewModel.setReportPeriod(ReportPeriod.DAILY)
                             1 -> viewModel.setReportPeriod(ReportPeriod.MONTHLY)
-                            2 -> viewModel.setReportPeriod(ReportPeriod.YEARLY)
+                            2 -> viewModel.setReportPeriod(ReportPeriod.QUARTERLY)
+                            3 -> viewModel.setReportPeriod(ReportPeriod.SEMI_ANNUAL)
+                            4 -> viewModel.setReportPeriod(ReportPeriod.YEARLY)
                         }
                     },
                     text = {
@@ -267,7 +314,7 @@ fun ReportsScreen(
             }
         }
 
-        // Selected Tab Content with smooth spring transitions
+        // Selected Tab Content
         AnimatedContent(
             targetState = selectedTabIndex,
             transitionSpec = {
@@ -278,22 +325,25 @@ fun ReportsScreen(
             modifier = Modifier.fillMaxSize()
         ) { tabIndex ->
             when (tabIndex) {
-                0 -> DailyReportView(viewModel = viewModel, allLogs = allLogs, lang = lang)
-                1 -> MonthlyReportView(viewModel = viewModel, allLogs = allLogs, lang = lang)
-                2 -> YearlyReportView(viewModel = viewModel, allLogs = allLogs, lang = lang)
-                3 -> HistoryLogView(viewModel = viewModel, allLogs = allLogs, lang = lang)
+                0 -> DailyReportView(viewModel = viewModel, allLogs = allLogs, allArrowLogs = allArrowLogs, lang = lang)
+                1 -> MonthlyReportView(viewModel = viewModel, allLogs = allLogs, allArrowLogs = allArrowLogs, lang = lang, dailyArrowTarget = dailyArrowTarget)
+                2 -> QuarterlyReportView(viewModel = viewModel, allLogs = allLogs, allArrowLogs = allArrowLogs, lang = lang)
+                3 -> SemiAnnualReportView(viewModel = viewModel, allLogs = allLogs, allArrowLogs = allArrowLogs, lang = lang)
+                4 -> YearlyReportView(viewModel = viewModel, allLogs = allLogs, allArrowLogs = allArrowLogs, lang = lang)
+                5 -> HistoryLogView(viewModel = viewModel, allLogs = allLogs, allArrowLogs = allArrowLogs, lang = lang)
             }
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────
-// 1. Daily Report View (Visual Timeline & Completion Gauge)
+// 1. Daily Report View (Canonical Hours + Arrow Prayers)
 // ─────────────────────────────────────────────────────────────
 @Composable
 private fun DailyReportView(
     viewModel: AgpeyaViewModel,
     allLogs: List<PrayerLogEntity>,
+    allArrowLogs: List<ArrowPrayerLogEntity>,
     lang: AppLanguage
 ) {
     val selectedDateStr by viewModel.selectedDateString.collectAsState()
@@ -308,6 +358,10 @@ private fun DailyReportView(
     val dateLogs = remember(allLogs, selectedDateStr) {
         allLogs.filter { it.dateString == selectedDateStr }
     }
+    val dateArrowLogs = remember(allArrowLogs, selectedDateStr) {
+        allArrowLogs.filter { it.dateString == selectedDateStr }
+    }
+
     val prayedCodesOnDate = remember(dateLogs) {
         dateLogs.map { it.prayerCode }.toSet()
     }
@@ -316,6 +370,11 @@ private fun DailyReportView(
     val totalCanonical = 7
     val completedCount = canonicalList.count { it != PrayerId.VEIL && prayedCodesOnDate.contains(it.code) }
     val progress = (completedCount.toFloat() / totalCanonical.toFloat()).coerceIn(0f, 1f)
+
+    val totalDayArrowCount = dateArrowLogs.sumOf { it.count }
+    val arrowSessionsCount = dateArrowLogs.size
+
+    var showQuickArrowDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -388,10 +447,10 @@ private fun DailyReportView(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
         }
 
-        // Daily Stat Summary Card
+        // Dual Daily KPI Card: Canonical Hours & Arrow Prayers
         item {
             Card(
                 shape = RoundedCornerShape(18.dp),
@@ -399,7 +458,7 @@ private fun DailyReportView(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(18.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -407,14 +466,14 @@ private fun DailyReportView(
                     ) {
                         Column {
                             Text(
-                                text = if (lang == AppLanguage.ARABIC) "تقرير إتمام الصلوات اليومي" else "Daily Prayer Completion",
+                                text = if (lang == AppLanguage.ARABIC) "تقرير الصلوات اليومية" else "Daily Prayer Completion",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "$completedCount / $totalCanonical " +
-                                        if (lang == AppLanguage.ARABIC) "صلوات تم أداؤها" else "prayers completed",
+                                        if (lang == AppLanguage.ARABIC) "سواعي تم أداؤها" else "canonical hours completed",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -425,7 +484,7 @@ private fun DailyReportView(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(if (completedCount >= totalCanonical) PeacefulGreen else GoldPrimary)
-                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
                         ) {
                             Text(
                                 text = "${(progress * 100).toInt()}%",
@@ -436,7 +495,7 @@ private fun DailyReportView(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     LinearProgressIndicator(
                         progress = { progress },
@@ -447,13 +506,72 @@ private fun DailyReportView(
                         color = if (completedCount >= totalCanonical) PeacefulGreen else GoldPrimary,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Arrow Prayers Daily Summary Row
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(BurgundyDeep.copy(alpha = 0.15f))
+                            ) {
+                                CopticCrossCanvas(color = BurgundyDeep, modifier = Modifier.size(18.dp))
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = AgpeyaStrings.arrowPrayersTitle(lang),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "$totalDayArrowCount سهمية في $arrowSessionsCount جلسات" else "$totalDayArrowCount prayers across $arrowSessionsCount sessions",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Button(
+                            onClick = { showQuickArrowDialog = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = BurgundyDeep),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.testTag("quick_log_arrow_btn")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = GoldLight,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "تسجيل سهمية" else "Log Arrow",
+                                color = GoldLight,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
         }
 
-        // 24-Hour Timeline Visual Chart (D3 / Recharts style)
+        // 24-Hour Timeline Visual Chart
         item {
             DailyTimelineChart(
                 dateLogs = dateLogs,
@@ -469,6 +587,17 @@ private fun DailyReportView(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Section Title: Canonical Hours
+        item {
+            Text(
+                text = AgpeyaStrings.canonicalPrayersLabel(lang),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = GoldPrimary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
         }
 
         // Canonical Prayers Status List for this Day
@@ -490,12 +619,12 @@ private fun DailyReportView(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(34.dp)
                             .clip(CircleShape)
                             .background(if (isPrayed) PeacefulGreen else MaterialTheme.colorScheme.surfaceVariant)
                     ) {
@@ -503,16 +632,16 @@ private fun DailyReportView(
                             imageVector = if (isPrayed) Icons.Default.Check else Icons.Default.Close,
                             contentDescription = null,
                             tint = if (isPrayed) Color.White else MaterialTheme.colorScheme.outline,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(14.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = prayerId.getDisplayName(lang),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -553,17 +682,200 @@ private fun DailyReportView(
                 }
             }
         }
+
+        // Arrow Prayers Logged Today List (if any)
+        if (dateArrowLogs.isNotEmpty()) {
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = if (lang == AppLanguage.ARABIC) "الصلوات السهمية المسجلة في هذا اليوم" else "Arrow Prayers Recorded Today",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = BurgundyDeep,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
+            items(dateArrowLogs, key = { it.id }) { arrowLog ->
+                val timeStr = String.format("%02d:%02d", arrowLog.hour, arrowLog.minute)
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = BurgundyDeep.copy(alpha = 0.15f),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = "${arrowLog.count}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BurgundyDeep
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = arrowLog.prayerText,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "${arrowLog.dateString} • $timeStr",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        IconButton(onClick = { viewModel.deleteArrowLog(arrowLog.id) }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete arrow log",
+                                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Quick Arrow Prayer Log Dialog
+    if (showQuickArrowDialog) {
+        var selectedCount by remember { mutableIntStateOf(33) }
+        var selectedTextIndex by remember { mutableIntStateOf(0) }
+        val presets = listOf(
+            "«يارب يسوع المسيح، ابن الله، ارحمني أنا الخاطئ» (صلاة يسوع)",
+            "«يا ربي يسوع المسيح، أسرع إلى معونتي وعضدني» (سهمية الاستغاثة)",
+            "«اللهم اغفر لي خطاياي ونقِ قلبي برحمتك» (سهمية التوبة)",
+            "«نشكرك يا صانع الخيرات الرحوم في كل حين» (سهمية الشكر)"
+        )
+
+        AlertDialog(
+            onDismissRequest = { showQuickArrowDialog = false },
+            title = {
+                Text(
+                    text = if (lang == AppLanguage.ARABIC) "تسجيل صلوات سهمية" else "Log Arrow Prayer",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "اختر عدد المرات:" else "Select bead count:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        listOf(33, 50, 100).forEach { cnt ->
+                            val isSelected = selectedCount == cnt
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSelected) BurgundyDeep else MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { selectedCount = cnt }
+                            ) {
+                                Text(
+                                    text = "$cnt",
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) GoldLight else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "نص الصلاة السهمية:" else "Prayer text:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    presets.forEachIndexed { idx, text ->
+                        val isSel = selectedTextIndex == idx
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (isSel) GoldPrimary.copy(alpha = 0.15f) else Color.Transparent,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (isSel) GoldPrimary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 3.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { selectedTextIndex = idx }
+                        ) {
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSel) GoldPrimary else MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.logArrowPrayer(selectedCount, presets[selectedTextIndex])
+                        showQuickArrowDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BurgundyDeep)
+                ) {
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "حفظ في التقرير" else "Save to Report",
+                        color = GoldLight,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showQuickArrowDialog = false }) {
+                    Text(AgpeyaStrings.close(lang))
+                }
+            }
+        )
     }
 }
 
 // ─────────────────────────────────────────────────────────────
-// 2. Monthly Report View (Bar Chart, Heatmap, Donut Breakdown)
+// 2. Monthly Report View (Canonical + Arrow Prayers + Charts)
 // ─────────────────────────────────────────────────────────────
 @Composable
 private fun MonthlyReportView(
     viewModel: AgpeyaViewModel,
     allLogs: List<PrayerLogEntity>,
-    lang: AppLanguage
+    allArrowLogs: List<ArrowPrayerLogEntity>,
+    lang: AppLanguage,
+    dailyArrowTarget: Int = 33
 ) {
     val selectedYear by viewModel.selectedYear.collectAsState()
     val selectedMonth by viewModel.selectedMonth.collectAsState()
@@ -571,13 +883,16 @@ private fun MonthlyReportView(
     val monthLogs = remember(allLogs, selectedYear, selectedMonth) {
         allLogs.filter { it.year == selectedYear && it.month == selectedMonth }
     }
-
-    val totalMonthPrayers = monthLogs.size
-    val activeDays = remember(monthLogs) {
-        monthLogs.map { it.day }.toSet().size
+    val monthArrowLogs = remember(allArrowLogs, selectedYear, selectedMonth) {
+        allArrowLogs.filter { it.year == selectedYear && it.month == selectedMonth }
     }
 
-    // Number of days in this month
+    val totalMonthPrayers = monthLogs.size
+    val totalMonthArrowBeads = monthArrowLogs.sumOf { it.count }
+    val activeDays = remember(monthLogs, monthArrowLogs) {
+        (monthLogs.map { it.day } + monthArrowLogs.map { it.day }).toSet().size
+    }
+
     val daysInMonth = remember(selectedYear, selectedMonth) {
         val cal = Calendar.getInstance().apply {
             set(Calendar.YEAR, selectedYear)
@@ -610,7 +925,7 @@ private fun MonthlyReportView(
         monthNames[selectedMonth - 1]
     }
 
-    // Prepare Daily Bar Chart Items (Days 1 to daysInMonth)
+    // Daily Bar Chart Items
     val dailyBarItems = remember(monthLogs, daysInMonth) {
         (1..daysInMonth).map { day ->
             val count = monthLogs.count { it.day == day }
@@ -622,7 +937,7 @@ private fun MonthlyReportView(
         }
     }
 
-    // Prepare Calendar Heatmap Days Data
+    // Calendar Heatmap Days Data
     val heatmapDays = remember(monthLogs, selectedYear, selectedMonth, daysInMonth) {
         (1..daysInMonth).map { day ->
             val cal = Calendar.getInstance().apply {
@@ -639,7 +954,7 @@ private fun MonthlyReportView(
         }
     }
 
-    // Prepare Donut Slices for Canonical Prayers Distribution
+    // Donut Slices for Canonical Prayers
     val donutSlices = remember(monthLogs, lang) {
         PrayerId.canonicalPrayers.map { prayer ->
             val count = monthLogs.count { it.prayerCode == prayer.code }
@@ -709,26 +1024,27 @@ private fun MonthlyReportView(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
         }
 
-        // Summary Metric Cards Grid (4 KPIs)
+        // 4 KPI Cards (including Arrow Prayers)
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 MetricCard(
-                    title = if (lang == AppLanguage.ARABIC) "إجمالي الصلوات" else "Total Prayers",
+                    title = if (lang == AppLanguage.ARABIC) "إجمالي السواعي" else "Canonical Hours",
                     value = "$totalMonthPrayers",
-                    subtitle = if (lang == AppLanguage.ARABIC) "خلال هذا الشهر" else "this month",
+                    subtitle = if (lang == AppLanguage.ARABIC) "صلاة هذا الشهر" else "prayed this month",
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
-                    title = if (lang == AppLanguage.ARABIC) "أيام الصلاة" else "Active Days",
-                    value = "$activeDays / $daysInMonth",
-                    subtitle = if (lang == AppLanguage.ARABIC) "يوماً به صلوات" else "active days",
-                    modifier = Modifier.weight(1f)
+                    title = if (lang == AppLanguage.ARABIC) "الصلوات السهمية" else "Arrow Prayers",
+                    value = "$totalMonthArrowBeads",
+                    subtitle = if (lang == AppLanguage.ARABIC) "${monthArrowLogs.size} جلسة تسبيح" else "${monthArrowLogs.size} sessions",
+                    modifier = Modifier.weight(1f),
+                    accentColor = BurgundyDeep
                 )
             }
 
@@ -739,23 +1055,38 @@ private fun MonthlyReportView(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 MetricCard(
-                    title = AgpeyaStrings.dailyAverage(lang),
-                    value = dailyAverage,
-                    subtitle = if (lang == AppLanguage.ARABIC) "صلاة يومياً" else "prayers / day",
+                    title = if (lang == AppLanguage.ARABIC) "أيام الصلاة" else "Active Days",
+                    value = "$activeDays / $daysInMonth",
+                    subtitle = if (lang == AppLanguage.ARABIC) "يوماً به صلوات" else "active days",
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
                     title = AgpeyaStrings.consistencyScore(lang),
                     value = "$consistencyPercent%",
-                    subtitle = if (lang == AppLanguage.ARABIC) "نسبة أيام الحضور" else "commitment rate",
+                    subtitle = if (lang == AppLanguage.ARABIC) "نسبة الالتزام" else "commitment rate",
                     modifier = Modifier.weight(1f)
                 )
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // 30-Day Rolling Prayer Trend Chart (D3 / Recharts-inspired Spline & Area Fill)
+        item {
+            ThirtyDayPrayerTrendChart(
+                allLogs = allLogs,
+                allArrowLogs = allArrowLogs,
+                language = lang,
+                dailyArrowTarget = dailyArrowTarget,
+                onDaySelected = { dateStr ->
+                    viewModel.setSelectedDate(dateStr)
+                }
+            )
+
             Spacer(modifier = Modifier.height(18.dp))
         }
 
-        // 1. Day-by-Day Frequency Bar Chart (Recharts / D3 BarChart)
+        // 1. Frequency Bar Chart
         item {
             val avgFloat = if (daysInMonth > 0) totalMonthPrayers.toFloat() / daysInMonth.toFloat() else 0f
             PrayerFrequencyBarChart(
@@ -771,7 +1102,6 @@ private fun MonthlyReportView(
                 secondaryBarColor = GoldLight,
                 chartHeight = 180.dp,
                 onItemSelected = { selectedItem ->
-                    // Jump to that day in daily view
                     val dayInt = selectedItem.label.toIntOrNull() ?: 1
                     val dayStr = String.format("%04d-%02d-%02d", selectedYear, selectedMonth, dayInt)
                     viewModel.setSelectedDate(dayStr)
@@ -781,7 +1111,7 @@ private fun MonthlyReportView(
             Spacer(modifier = Modifier.height(18.dp))
         }
 
-        // 2. Monthly Calendar Activity Heatmap (D3 Heatmap)
+        // 2. Monthly Calendar Activity Heatmap
         item {
             PrayerActivityHeatmap(
                 year = selectedYear,
@@ -803,7 +1133,7 @@ private fun MonthlyReportView(
             Spacer(modifier = Modifier.height(18.dp))
         }
 
-        // 3. Canonical Prayer Distribution Donut / Pie Chart (Recharts PieChart)
+        // 3. Canonical Prayer Distribution Donut Chart
         item {
             PrayerRadialDonutChart(
                 slices = donutSlices,
@@ -819,7 +1149,7 @@ private fun MonthlyReportView(
             Spacer(modifier = Modifier.height(18.dp))
         }
 
-        // 4. Breakdown List per Canonical Prayer
+        // 4. Canonical Hours Breakdown
         item {
             Text(
                 text = AgpeyaStrings.monthlyBreakdown(lang),
@@ -896,12 +1226,485 @@ private fun MonthlyReportView(
 }
 
 // ─────────────────────────────────────────────────────────────
-// 3. Yearly Report View (Smooth Area Trajectory, Bar Chart, Donut)
+// 3. Quarterly Report View (Q1, Q2, Q3, Q4)
+// ─────────────────────────────────────────────────────────────
+@Composable
+private fun QuarterlyReportView(
+    viewModel: AgpeyaViewModel,
+    allLogs: List<PrayerLogEntity>,
+    allArrowLogs: List<ArrowPrayerLogEntity>,
+    lang: AppLanguage
+) {
+    val selectedYear by viewModel.selectedYear.collectAsState()
+    val selectedQuarter by viewModel.selectedQuarter.collectAsState()
+
+    val quarterMonthRange = when (selectedQuarter) {
+        1 -> 1..3
+        2 -> 4..6
+        3 -> 7..9
+        else -> 10..12
+    }
+
+    val quarterLogs = remember(allLogs, selectedYear, quarterMonthRange) {
+        allLogs.filter { it.year == selectedYear && it.month in quarterMonthRange }
+    }
+    val quarterArrowLogs = remember(allArrowLogs, selectedYear, quarterMonthRange) {
+        allArrowLogs.filter { it.year == selectedYear && it.month in quarterMonthRange }
+    }
+
+    val totalQuarterCanonical = quarterLogs.size
+    val totalQuarterArrowBeads = quarterArrowLogs.sumOf { it.count }
+    val activeDays = remember(quarterLogs, quarterArrowLogs) {
+        (quarterLogs.map { "${it.month}_${it.day}" } + quarterArrowLogs.map { "${it.month}_${it.day}" }).distinct().size
+    }
+
+    val quarterNameAr = when (selectedQuarter) {
+        1 -> "الربع الأول (يناير - مارس)"
+        2 -> "الربع الثاني (أبريل - يونيو)"
+        3 -> "الربع الثالث (يوليو - سبتمبر)"
+        else -> "الربع الرابع (أكتوبر - ديسمبر)"
+    }
+    val quarterNameEn = "Quarter $selectedQuarter (Q$selectedQuarter)"
+
+    val monthNamesAr = listOf("يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر")
+    val monthNamesEn = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+    // 3 Months Bar Chart Items in Quarter
+    val quarterBarItems = remember(quarterLogs, selectedQuarter, quarterMonthRange) {
+        quarterMonthRange.map { m ->
+            val label = if (lang == AppLanguage.ARABIC) monthNamesAr[m - 1] else monthNamesEn[m - 1]
+            val count = quarterLogs.count { it.month == m }
+            BarChartItem(
+                label = label,
+                value = count,
+                highlight = count > 0
+            )
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        // Quarter Selector Row
+        item {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        IconButton(onClick = { viewModel.setSelectedYear(selectedYear - 1) }) {
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GoldPrimary)
+                        }
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) "$quarterNameAr $selectedYear" else "$quarterNameEn $selectedYear",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        IconButton(onClick = { viewModel.setSelectedYear(selectedYear + 1) }) {
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = GoldPrimary)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Quarter Pills (Q1, Q2, Q3, Q4)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        (1..4).forEach { q ->
+                            val isSel = selectedQuarter == q
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSel) GoldPrimary else MaterialTheme.colorScheme.surface,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { viewModel.setSelectedQuarter(q) }
+                            ) {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "الربع $q" else "Q$q",
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSel) Color.Black else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // 4 KPI Cards for the Quarter
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                MetricCard(
+                    title = if (lang == AppLanguage.ARABIC) "سواعي الربع سنوي" else "Quarter Canonical",
+                    value = "$totalQuarterCanonical",
+                    subtitle = if (lang == AppLanguage.ARABIC) "صلاة خلال الربع" else "prayers in quarter",
+                    modifier = Modifier.weight(1f)
+                )
+                MetricCard(
+                    title = if (lang == AppLanguage.ARABIC) "سهمية الربع سنوي" else "Quarter Arrow",
+                    value = "$totalQuarterArrowBeads",
+                    subtitle = if (lang == AppLanguage.ARABIC) "${quarterArrowLogs.size} جلسة تسبيح" else "${quarterArrowLogs.size} sessions",
+                    modifier = Modifier.weight(1f),
+                    accentColor = BurgundyDeep
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                MetricCard(
+                    title = if (lang == AppLanguage.ARABIC) "أيام الصلاة بالربع" else "Active Days in Q",
+                    value = "$activeDays / 90",
+                    subtitle = if (lang == AppLanguage.ARABIC) "يوماً به صلوات" else "active days",
+                    modifier = Modifier.weight(1f)
+                )
+                MetricCard(
+                    title = AgpeyaStrings.consistencyScore(lang),
+                    value = "${((activeDays.toFloat() / 90f) * 100).toInt()}%",
+                    subtitle = if (lang == AppLanguage.ARABIC) "نسبة التزام الربع" else "commitment rate",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Quarterly Monthly Progression Chart
+        item {
+            val avgQuarterMonth = if (quarterBarItems.isNotEmpty()) totalQuarterCanonical.toFloat() / 3f else 0f
+            PrayerFrequencyBarChart(
+                items = quarterBarItems,
+                title = if (lang == AppLanguage.ARABIC) "مقارنة شهور الربع سنوي" else "Quarterly Monthly Comparison",
+                subtitle = if (lang == AppLanguage.ARABIC) "توزيع صلوات السواعي على مدار شهور الربع الـ 3" else "Breakdown across the 3 months of this quarter",
+                averageValue = avgQuarterMonth,
+                primaryBarColor = BurgundyDeep,
+                secondaryBarColor = GoldPrimary,
+                chartHeight = 175.dp
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+        }
+
+        // Canonical Breakdown
+        item {
+            Text(
+                text = if (lang == AppLanguage.ARABIC) "تفاصيل سواعي الربع سنوي" else "Quarterly Canonical Hours Breakdown",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = GoldPrimary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        items(PrayerId.canonicalPrayers, key = { it.code }) { prayerId ->
+            val count = quarterLogs.count { it.prayerCode == prayerId.code }
+            val pColor = CanonicalPrayerColors[prayerId.code] ?: GoldPrimary
+
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(pColor)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = prayerId.getDisplayName(lang),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Text(
+                        text = "$count " + if (lang == AppLanguage.ARABIC) "صلاة" else "times",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = pColor
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// 4. Semi-Annual Report View (H1, H2)
+// ─────────────────────────────────────────────────────────────
+@Composable
+private fun SemiAnnualReportView(
+    viewModel: AgpeyaViewModel,
+    allLogs: List<PrayerLogEntity>,
+    allArrowLogs: List<ArrowPrayerLogEntity>,
+    lang: AppLanguage
+) {
+    val selectedYear by viewModel.selectedYear.collectAsState()
+    val selectedHalfYear by viewModel.selectedHalfYear.collectAsState()
+
+    val halfYearMonthRange = if (selectedHalfYear == 1) 1..6 else 7..12
+
+    val halfLogs = remember(allLogs, selectedYear, halfYearMonthRange) {
+        allLogs.filter { it.year == selectedYear && it.month in halfYearMonthRange }
+    }
+    val halfArrowLogs = remember(allArrowLogs, selectedYear, halfYearMonthRange) {
+        allArrowLogs.filter { it.year == selectedYear && it.month in halfYearMonthRange }
+    }
+
+    val totalHalfCanonical = halfLogs.size
+    val totalHalfArrowBeads = halfArrowLogs.sumOf { it.count }
+    val activeDays = remember(halfLogs, halfArrowLogs) {
+        (halfLogs.map { "${it.month}_${it.day}" } + halfArrowLogs.map { "${it.month}_${it.day}" }).distinct().size
+    }
+
+    val halfNameAr = if (selectedHalfYear == 1) "النصف الأول (يناير - يونيو)" else "النصف الثاني (يوليو - ديسمبر)"
+    val halfNameEn = if (selectedHalfYear == 1) "First Half (H1: Jan - Jun)" else "Second Half (H2: Jul - Dec)"
+
+    val monthNamesAr = listOf("يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر")
+    val monthNamesEn = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+    // 6 Months Bar Chart Items
+    val halfBarItems = remember(halfLogs, selectedHalfYear, halfYearMonthRange) {
+        halfYearMonthRange.map { m ->
+            val label = if (lang == AppLanguage.ARABIC) monthNamesAr[m - 1] else monthNamesEn[m - 1]
+            val count = halfLogs.count { it.month == m }
+            BarChartItem(
+                label = label,
+                value = count,
+                highlight = count > 0
+            )
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        // Semi-Annual Selector
+        item {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        IconButton(onClick = { viewModel.setSelectedYear(selectedYear - 1) }) {
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = GoldPrimary)
+                        }
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) "$halfNameAr $selectedYear" else "$halfNameEn $selectedYear",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        IconButton(onClick = { viewModel.setSelectedYear(selectedYear + 1) }) {
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = GoldPrimary)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        listOf(1, 2).forEach { h ->
+                            val isSel = selectedHalfYear == h
+                            val label = if (lang == AppLanguage.ARABIC) {
+                                if (h == 1) "النصف الأول (H1)" else "النصف الثاني (H2)"
+                            } else {
+                                if (h == 1) "First Half (H1)" else "Second Half (H2)"
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSel) GoldPrimary else MaterialTheme.colorScheme.surface,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { viewModel.setSelectedHalfYear(h) }
+                            ) {
+                                Text(
+                                    text = label,
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSel) Color.Black else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // 4 KPI Cards for the Half-Year
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                MetricCard(
+                    title = if (lang == AppLanguage.ARABIC) "سواعي النصف سنوي" else "Half-Year Canonical",
+                    value = "$totalHalfCanonical",
+                    subtitle = if (lang == AppLanguage.ARABIC) "صلاة بالأجبية" else "canonical prayers",
+                    modifier = Modifier.weight(1f)
+                )
+                MetricCard(
+                    title = if (lang == AppLanguage.ARABIC) "سهمية النصف سنوي" else "Half-Year Arrow",
+                    value = "$totalHalfArrowBeads",
+                    subtitle = if (lang == AppLanguage.ARABIC) "${halfArrowLogs.size} جلسة تسبيح" else "${halfArrowLogs.size} sessions",
+                    modifier = Modifier.weight(1f),
+                    accentColor = BurgundyDeep
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                MetricCard(
+                    title = if (lang == AppLanguage.ARABIC) "أيام الصلاة بالنصف" else "Active Days in H",
+                    value = "$activeDays / 182",
+                    subtitle = if (lang == AppLanguage.ARABIC) "يوماً به صلوات" else "active days",
+                    modifier = Modifier.weight(1f)
+                )
+                MetricCard(
+                    title = AgpeyaStrings.consistencyScore(lang),
+                    value = "${((activeDays.toFloat() / 182f) * 100).toInt()}%",
+                    subtitle = if (lang == AppLanguage.ARABIC) "نسبة التزام النصف" else "commitment rate",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // 6-Month Comparison Chart
+        item {
+            val avgHalfMonth = if (halfBarItems.isNotEmpty()) totalHalfCanonical.toFloat() / 6f else 0f
+            PrayerFrequencyBarChart(
+                items = halfBarItems,
+                title = if (lang == AppLanguage.ARABIC) "مقارنة شهور النصف سنوي" else "Semi-Annual Monthly Comparison",
+                subtitle = if (lang == AppLanguage.ARABIC) "توزيع صلوات السواعي على مدار شهور النصف الـ 6" else "Breakdown across the 6 months of this half-year",
+                averageValue = avgHalfMonth,
+                primaryBarColor = BurgundyPrimary,
+                secondaryBarColor = GoldPrimary,
+                chartHeight = 175.dp
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+        }
+
+        // Canonical Breakdown
+        item {
+            Text(
+                text = if (lang == AppLanguage.ARABIC) "تفاصيل سواعي النصف سنوي" else "Semi-Annual Canonical Hours Breakdown",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = GoldPrimary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        items(PrayerId.canonicalPrayers, key = { it.code }) { prayerId ->
+            val count = halfLogs.count { it.prayerCode == prayerId.code }
+            val pColor = CanonicalPrayerColors[prayerId.code] ?: GoldPrimary
+
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(pColor)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = prayerId.getDisplayName(lang),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Text(
+                        text = "$count " + if (lang == AppLanguage.ARABIC) "صلاة" else "times",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = pColor
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// 5. Yearly Report View (Annual Harvest & 52-Week Heatmap)
 // ─────────────────────────────────────────────────────────────
 @Composable
 private fun YearlyReportView(
     viewModel: AgpeyaViewModel,
     allLogs: List<PrayerLogEntity>,
+    allArrowLogs: List<ArrowPrayerLogEntity>,
     lang: AppLanguage
 ) {
     val selectedYear by viewModel.selectedYear.collectAsState()
@@ -909,8 +1712,12 @@ private fun YearlyReportView(
     val yearLogs = remember(allLogs, selectedYear) {
         allLogs.filter { it.year == selectedYear }
     }
+    val yearArrowLogs = remember(allArrowLogs, selectedYear) {
+        allArrowLogs.filter { it.year == selectedYear }
+    }
 
     val totalYearPrayers = yearLogs.size
+    val totalYearArrowBeads = yearArrowLogs.sumOf { it.count }
 
     val mostPrayedPrayerCode = remember(yearLogs) {
         yearLogs.groupBy { it.prayerCode }.maxByOrNull { it.value.size }?.key
@@ -927,7 +1734,6 @@ private fun YearlyReportView(
         (1..12).map { m -> yearLogs.count { it.month == m } }
     }
 
-    // Area Chart Data Points (Smooth Bezier Trajectory)
     val areaPoints = remember(monthCounts, monthLabels) {
         (0..11).map { idx ->
             AreaPoint(
@@ -937,7 +1743,6 @@ private fun YearlyReportView(
         }
     }
 
-    // Bar Chart Items for 12 months
     val barItems = remember(monthCounts, monthLabels) {
         (0..11).map { idx ->
             BarChartItem(
@@ -948,7 +1753,6 @@ private fun YearlyReportView(
         }
     }
 
-    // Donut slices for annual canonical prayer distribution
     val annualDonutSlices = remember(yearLogs, lang) {
         PrayerId.canonicalPrayers.map { prayer ->
             val count = yearLogs.count { it.prayerCode == prayer.code }
@@ -1004,7 +1808,7 @@ private fun YearlyReportView(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
         }
 
         // Yearly Highlights Card
@@ -1042,22 +1846,26 @@ private fun YearlyReportView(
                             )
                         }
 
-                        // Spiritual Badge
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        // Arrow Prayers Annual Summary Box
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = BurgundyDeep.copy(alpha = 0.15f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, BurgundyDeep.copy(alpha = 0.35f))
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                CopticCrossCanvas(size = 24.dp)
-                                Spacer(modifier = Modifier.height(4.dp))
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                            ) {
                                 Text(
-                                    text = if (lang == AppLanguage.ARABIC) "صلاة مقبولة" else "Faithful Prayer",
-                                    style = MaterialTheme.typography.labelSmall,
+                                    text = "$totalYearArrowBeads",
+                                    style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
-                                    color = GoldPrimary
+                                    color = BurgundyDeep
+                                )
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "سهمية سنوية" else "arrow prayers",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -1083,7 +1891,7 @@ private fun YearlyReportView(
 
         // Annual 52-Week Coptic Prayer Heatmap Grid & Streaks
         item {
-            com.example.ui.components.charts.AnnualPrayerHeatmap(
+            AnnualPrayerHeatmap(
                 year = selectedYear,
                 logs = allLogs,
                 lang = lang
@@ -1092,7 +1900,7 @@ private fun YearlyReportView(
             Spacer(modifier = Modifier.height(18.dp))
         }
 
-        // 1. Recharts/D3 Smooth Area Trajectory Chart
+        // 1. Smooth Area Trajectory Chart
         item {
             PrayerTrendAreaChart(
                 points = areaPoints,
@@ -1161,260 +1969,384 @@ private fun YearlyReportView(
 }
 
 // ─────────────────────────────────────────────────────────────
-// 4. Detailed History Log View
+// 6. Detailed History Log View (Canonical & Arrow Prayers)
 // ─────────────────────────────────────────────────────────────
 @Composable
 private fun HistoryLogView(
     viewModel: AgpeyaViewModel,
     allLogs: List<PrayerLogEntity>,
+    allArrowLogs: List<ArrowPrayerLogEntity>,
     lang: AppLanguage
 ) {
     var logToDelete by remember { mutableStateOf<PrayerLogEntity?>(null) }
+    var arrowLogToDelete by remember { mutableStateOf<ArrowPrayerLogEntity?>(null) }
+    var selectedFilterIndex by remember { mutableIntStateOf(0) } // 0: All, 1: Canonical, 2: Arrow
 
-    if (allLogs.isEmpty()) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp)
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CopticCrossCanvas(size = 48.dp)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = AgpeyaStrings.noLogsYet(lang),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+    val userEmail by viewModel.userEmail.collectAsState()
+    val churchName by viewModel.churchName.collectAsState()
+    val syncKey by viewModel.syncKey.collectAsState()
+    val context = LocalContext.current
+
+    val filterLabels = listOf(
+        if (lang == AppLanguage.ARABIC) "الكل (${allLogs.size + allArrowLogs.size})" else "All (${allLogs.size + allArrowLogs.size})",
+        if (lang == AppLanguage.ARABIC) "السواعي (${allLogs.size})" else "Canonical (${allLogs.size})",
+        if (lang == AppLanguage.ARABIC) "السهمية (${allArrowLogs.size})" else "Arrow (${allArrowLogs.size})"
+    )
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        // Social Sharing & Export Hub Card
+        item {
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 14.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(GoldPrimary.copy(alpha = 0.2f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "تصدير ومشاركة السجل الروحي" else "Spiritual History & Export Hub",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "تصدير الصلوات والسهميات بصيغ Excel و PDF والمشاركة" else "Export canonical & arrow prayers to Excel, PDF & Social",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // 1. Social Media Streaks Share Button
+                        Button(
+                            onClick = {
+                                com.example.report.SocialShareHelper.shareToSocialMedia(
+                                    context = context,
+                                    lang = lang,
+                                    allLogs = allLogs
+                                )
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("social_share_streak_btn"),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "مشاركة" else "Social",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        // 2. Excel (CSV) Export Button
+                        Button(
+                            onClick = {
+                                com.example.report.PrayerExcelExporter.generateAndShareCsv(
+                                    context = context,
+                                    userEmail = userEmail,
+                                    userName = userEmail?.substringBefore("@"),
+                                    syncKey = syncKey,
+                                    lang = lang,
+                                    allLogs = allLogs,
+                                    allArrowLogs = allArrowLogs
+                                )
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("export_excel_button"),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20)),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.TableChart,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "Excel" else "Excel",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        // 3. PDF Report Export Button
+                        Button(
+                            onClick = {
+                                PrayerPdfExporter.generateAndSharePdf(
+                                    context = context,
+                                    userEmail = userEmail,
+                                    userName = userEmail?.substringBefore("@"),
+                                    churchName = churchName,
+                                    syncKey = syncKey,
+                                    lang = lang,
+                                    periodName = AgpeyaStrings.prayersLogHistory(lang),
+                                    allLogs = allLogs,
+                                    allArrowLogs = allArrowLogs
+                                )
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("export_pdf_button"),
+                            colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PictureAsPdf,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "PDF" else "PDF",
+                                color = Color.Black,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
             }
         }
-    } else {
-        val userEmail by viewModel.userEmail.collectAsState()
-        val churchName by viewModel.churchName.collectAsState()
-        val syncKey by viewModel.syncKey.collectAsState()
-        val context = LocalContext.current
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp)
-        ) {
-            // Social Sharing & Export Hub Card (Social Media Streaks + Excel + PDF)
-            item {
-                Card(
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+        // Filter Pills Row
+        item {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+            ) {
+                filterLabels.forEachIndexed { idx, label ->
+                    val isSel = selectedFilterIndex == idx
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (isSel) GoldPrimary else MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { selectedFilterIndex = idx }
+                    ) {
+                        Text(
+                            text = label,
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSel) Color.Black else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // 1. Canonical Prayers Logs
+        if (selectedFilterIndex == 0 || selectedFilterIndex == 1) {
+            if (allLogs.isNotEmpty()) {
+                item {
+                    Text(
+                        text = AgpeyaStrings.canonicalPrayersLabel(lang),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = GoldPrimary,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                items(allLogs, key = { "can_${it.id}" }) { log ->
+                    val prayerId = PrayerId.fromCode(log.prayerCode)
+                    val timeStr = String.format("%02d:%02d", log.hour, log.minute)
+
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
                         ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .clip(CircleShape)
-                                    .background(GoldPrimary.copy(alpha = 0.2f))
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Share,
-                                    contentDescription = null,
-                                    tint = GoldPrimary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
+                            CopticCrossCanvas(size = 24.dp)
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = if (lang == AppLanguage.ARABIC) "مشاركة التقدم الروحي والتصدير الشامل" else "Social Sharing & Export Hub",
-                                    style = MaterialTheme.typography.titleMedium,
+                                    text = prayerId.getDisplayName(lang),
+                                    style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = if (lang == AppLanguage.ARABIC) "شارك سلاسل الصلوات عبر وسائل التواصل، Excel و PDF" else "Share streaks on social media, Excel & PDF",
-                                    style = MaterialTheme.typography.bodySmall,
+                                    text = "${log.dateString} • $timeStr",
+                                    style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        // Action Buttons Row (Social Share, Excel, PDF)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            // 1. Social Media Streaks Share Button
-                            Button(
-                                onClick = {
-                                    com.example.report.SocialShareHelper.shareToSocialMedia(
-                                        context = context,
-                                        lang = lang,
-                                        allLogs = allLogs
-                                    )
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .testTag("social_share_streak_btn"),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
-                                shape = RoundedCornerShape(12.dp),
-                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
-                            ) {
+                            IconButton(onClick = { logToDelete = log }) {
                                 Icon(
-                                    imageVector = Icons.Default.Share,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = if (lang == AppLanguage.ARABIC) "مشاركة" else "Social",
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-
-                            // 2. Excel (CSV) Export Button
-                            Button(
-                                onClick = {
-                                    com.example.report.PrayerExcelExporter.generateAndShareCsv(
-                                        context = context,
-                                        userEmail = userEmail,
-                                        userName = userEmail?.substringBefore("@"),
-                                        syncKey = syncKey,
-                                        lang = lang,
-                                        allLogs = allLogs
-                                    )
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .testTag("export_excel_button"),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20)),
-                                shape = RoundedCornerShape(12.dp),
-                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.TableChart,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = if (lang == AppLanguage.ARABIC) "Excel" else "Excel",
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-
-                            // 3. PDF Report Export Button
-                            Button(
-                                onClick = {
-                                    PrayerPdfExporter.generateAndSharePdf(
-                                        context = context,
-                                        userEmail = userEmail,
-                                        userName = userEmail?.substringBefore("@"),
-                                        churchName = churchName,
-                                        syncKey = syncKey,
-                                        lang = lang,
-                                        periodName = AgpeyaStrings.prayersLogHistory(lang),
-                                        allLogs = allLogs
-                                    )
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .testTag("export_pdf_button"),
-                                colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
-                                shape = RoundedCornerShape(12.dp),
-                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.PictureAsPdf,
-                                    contentDescription = null,
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = if (lang == AppLanguage.ARABIC) "PDF" else "PDF",
-                                    color = Color.Black,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete entry",
+                                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
                     }
                 }
             }
+        }
 
-            item {
-                Text(
-                    text = AgpeyaStrings.prayersLogHistory(lang),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = GoldPrimary,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-            }
+        // 2. Arrow Prayers Logs
+        if (selectedFilterIndex == 0 || selectedFilterIndex == 2) {
+            if (allArrowLogs.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = AgpeyaStrings.arrowPrayersTitle(lang),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = BurgundyDeep,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
 
-            items(allLogs, key = { it.id }) { log ->
-                val prayerId = PrayerId.fromCode(log.prayerCode)
-                val timeStr = String.format("%02d:%02d", log.hour, log.minute)
+                items(allArrowLogs, key = { "arr_${it.id}" }) { arrowLog ->
+                    val timeStr = String.format("%02d:%02d", arrowLog.hour, arrowLog.minute)
 
-                Card(
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                            .padding(vertical = 4.dp)
                     ) {
-                        CopticCrossCanvas(size = 24.dp)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = prayerId.getDisplayName(lang),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "${log.dateString} • $timeStr",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = BurgundyDeep.copy(alpha = 0.15f),
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = "${arrowLog.count}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = BurgundyDeep
+                                    )
+                                }
+                            }
 
-                        IconButton(onClick = { logToDelete = log }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete entry",
-                                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = arrowLog.prayerText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${arrowLog.dateString} • $timeStr • ${arrowLog.count} " + (if (lang == AppLanguage.ARABIC) "سهمية" else "beads"),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            IconButton(onClick = { arrowLogToDelete = arrowLog }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete entry",
+                                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
+                    }
+                }
+            }
+        }
+
+        if (allLogs.isEmpty() && allArrowLogs.isEmpty()) {
+            item {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(40.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CopticCrossCanvas(size = 48.dp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = AgpeyaStrings.noLogsYet(lang),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
         }
     }
 
-    // Confirm Delete Dialog
+    // Confirm Delete Canonical Log Dialog
     logToDelete?.let { log ->
         AlertDialog(
             onDismissRequest = { logToDelete = null },
@@ -1441,6 +2373,33 @@ private fun HistoryLogView(
             }
         )
     }
+
+    // Confirm Delete Arrow Log Dialog
+    arrowLogToDelete?.let { arrowLog ->
+        AlertDialog(
+            onDismissRequest = { arrowLogToDelete = null },
+            title = { Text(AgpeyaStrings.deleteConfirm(lang)) },
+            text = {
+                Text("${arrowLog.prayerText} (${arrowLog.count}) - ${arrowLog.dateString}")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteArrowLog(arrowLog.id)
+                        arrowLogToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(if (lang == AppLanguage.ARABIC) "حذف" else "Delete")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { arrowLogToDelete = null }) {
+                    Text(AgpeyaStrings.close(lang))
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -1448,7 +2407,8 @@ private fun MetricCard(
     title: String,
     value: String,
     subtitle: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    accentColor: Color = GoldPrimary
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -1467,7 +2427,7 @@ private fun MetricCard(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = GoldPrimary
+                color = accentColor
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(

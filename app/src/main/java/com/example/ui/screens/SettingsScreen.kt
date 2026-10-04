@@ -141,6 +141,7 @@ fun SettingsScreen(
     val userEmail by viewModel.userEmail.collectAsState()
     val userFullName by viewModel.userFullName.collectAsState()
     val fontSizeMultiplier by viewModel.fontSizeMultiplier.collectAsState()
+    val dailyArrowTarget by viewModel.dailyArrowTarget.collectAsState()
     val churchName by viewModel.churchName.collectAsState()
     val churchEmblem by viewModel.churchEmblem.collectAsState()
     val allLogs by viewModel.allLogs.collectAsState()
@@ -450,6 +451,150 @@ fun SettingsScreen(
                         }
                     }
                 }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        // Daily Arrow Prayers Target Card (هدف الصلوات السهمية اليومي)
+        item {
+            var showArrowTargetDialog by remember { mutableStateOf(false) }
+
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                modifier = Modifier.fillMaxWidth().testTag("daily_arrow_target_settings_card")
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = BurgundyDeep.copy(alpha = 0.15f),
+                                modifier = Modifier.size(38.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    CopticCrossCanvas(color = BurgundyDeep, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = AgpeyaStrings.dailyArrowTargetTitle(lang),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = AgpeyaStrings.dailyArrowTargetSubtitle(lang),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 11.5.sp
+                                )
+                            }
+                        }
+
+                        // Current Target Badge
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = GoldPrimary.copy(alpha = 0.15f),
+                            border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.45f)),
+                            modifier = Modifier.clickable { showArrowTargetDialog = true }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "$dailyArrowTarget",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = GoldPrimary
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "سهمية/يوم" else "beads/day",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Preset chips
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf(33, 50, 100, 150, 300, 500).forEach { target ->
+                            val isSelected = dailyArrowTarget == target
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) BurgundyDeep else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                                    .border(1.dp, if (isSelected) GoldPrimary else Color.Transparent, RoundedCornerShape(8.dp))
+                                    .clickable { viewModel.setDailyArrowTarget(target) }
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "$target",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) GoldLight else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Custom Target Button
+                    OutlinedButton(
+                        onClick = { showArrowTargetDialog = true },
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = GoldPrimary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = AgpeyaStrings.customTargetBeads(lang),
+                            color = GoldPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+
+            if (showArrowTargetDialog) {
+                com.example.ui.components.DailyArrowTargetDialog(
+                    currentTarget = dailyArrowTarget,
+                    language = lang,
+                    onDismiss = { showArrowTargetDialog = false },
+                    onSaveTarget = { newTarget ->
+                        viewModel.setDailyArrowTarget(newTarget)
+                        showArrowTargetDialog = false
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))

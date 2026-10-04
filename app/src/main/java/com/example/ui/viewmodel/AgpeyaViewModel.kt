@@ -24,7 +24,7 @@ import java.util.Date
 import java.util.TimeZone
 
 enum class ReportPeriod {
-    DAILY, MONTHLY, YEARLY
+    DAILY, MONTHLY, QUARTERLY, SEMI_ANNUAL, YEARLY
 }
 
 class AgpeyaViewModel(application: Application) : AndroidViewModel(application) {
@@ -49,11 +49,30 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     private val _selectedMonth = MutableStateFlow(calendar.get(Calendar.MONTH) + 1)
     val selectedMonth: StateFlow<Int> = _selectedMonth.asStateFlow()
 
+    private val _selectedQuarter = MutableStateFlow(
+        when (calendar.get(Calendar.MONTH) + 1) {
+            in 1..3 -> 1
+            in 4..6 -> 2
+            in 7..9 -> 3
+            else -> 4
+        }
+    )
+    val selectedQuarter: StateFlow<Int> = _selectedQuarter.asStateFlow()
+
+    private val _selectedHalfYear = MutableStateFlow(if (calendar.get(Calendar.MONTH) + 1 <= 6) 1 else 2)
+    val selectedHalfYear: StateFlow<Int> = _selectedHalfYear.asStateFlow()
+
     private val _activePrayerForReading = MutableStateFlow<PrayerId?>(null)
     val activePrayerForReading: StateFlow<PrayerId?> = _activePrayerForReading.asStateFlow()
 
     val allLogs: StateFlow<List<PrayerLogEntity>>
     val totalCount: StateFlow<Int>
+
+    // Arrow Prayers (الصلوات السهمية)
+    val allArrowLogs: StateFlow<List<com.example.data.model.ArrowPrayerLogEntity>>
+    val totalArrowCount: StateFlow<Int>
+    private val _dailyArrowTarget = MutableStateFlow(33)
+    val dailyArrowTarget: StateFlow<Int> = _dailyArrowTarget.asStateFlow()
 
     // Room Database Caching State
     val totalCachedPrayerSections: StateFlow<Int>
@@ -115,6 +134,9 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     private val _selectedTimezoneId = MutableStateFlow(TimeZone.getDefault().id)
     val selectedTimezoneId: StateFlow<String> = _selectedTimezoneId.asStateFlow()
 
+    private val _timezoneSyncResult = MutableStateFlow<com.example.service.TimezoneSyncResult?>(null)
+    val timezoneSyncResult: StateFlow<com.example.service.TimezoneSyncResult?> = _timezoneSyncResult.asStateFlow()
+
     private val _notificationLeadTimeMinutes = MutableStateFlow(0)
     val notificationLeadTimeMinutes: StateFlow<Int> = _notificationLeadTimeMinutes.asStateFlow()
 
@@ -134,6 +156,7 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         _isAuthCompleted.value = repository.isAuthOnboardingCompleted()
         _userFullName.value = repository.getUserFullName()
         _fontSizeMultiplier.value = repository.getFontSizeMultiplier()
+        _dailyArrowTarget.value = repository.getDailyArrowPrayerTarget()
         _churchName.value = repository.getChurchName()
         _churchEmblem.value = repository.getChurchEmblem()
         _spiritualTheme.value = repository.getSpiritualBackgroundTheme()
@@ -150,6 +173,13 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         _quietHoursStartHour.value = repository.getQuietHoursStartHour()
         _quietHoursEndHour.value = repository.getQuietHoursEndHour()
 
+        // Automatically detect timezone and recalibrate prayer alarms if needed
+        val tzResult = com.example.service.AgpeyaTimezoneService.detectAndAdjustTimezone(
+            context = application,
+            isSystemBroadcast = false
+        )
+        _timezoneSyncResult.value = tzResult
+
         syncStatus = repository.syncManager.syncStatus
         syncKey = repository.syncManager.syncKey
         userEmail = repository.syncManager.userEmail
@@ -165,6 +195,18 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         )
 
         totalCount = repository.getTotalLogsCount().stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            0
+        )
+
+        allArrowLogs = repository.getAllArrowLogs().stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
+        totalArrowCount = repository.getTotalArrowPrayersCount().stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             0
@@ -303,8 +345,40 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         _selectedMonth.value = month
     }
 
+    fun setSelectedQuarter(quarter: Int) {
+        _selectedQuarter.value = quarter.coerceIn(1, 4)
+    }
+
+    fun setSelectedHalfYear(halfYear: Int) {
+        _selectedHalfYear.value = halfYear.coerceIn(1, 2)
+    }
+
     fun setSelectedYear(year: Int) {
         _selectedYear.value = year
+    }
+
+    fun logArrowPrayer(count: Int, prayerText: String = "يارب يسوع المسيح، ابن الله، ارحمني أنا الخاطئ") {
+        viewModelScope.launch {
+            repository.logArrowPrayer(count, prayerText)
+        }
+    }
+
+    fun setDailyArrowTarget(target: Int) {
+        val clean = target.coerceIn(1, 10000)
+        _dailyArrowTarget.value = clean
+        repository.saveDailyArrowPrayerTarget(clean)
+    }
+
+    fun recordArrowPrayerTap(prayerText: String = "«يارب يسوع المسيح، ابن الله، ارحمني أنا الخاطئ» (صلاة يسوع)") {
+        viewModelScope.launch {
+            repository.recordArrowPrayerTap(prayerText, 1)
+        }
+    }
+
+    fun deleteArrowLog(id: Long) {
+        viewModelScope.launch {
+            repository.deleteArrowLogById(id)
+        }
     }
 
     fun togglePrayerToday(prayerId: PrayerId) {
@@ -504,20 +578,27 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         _isAutoTimezoneSyncEnabled.value = enabled
         repository.setAutoTimezoneSyncEnabled(enabled)
         if (enabled) {
-            val defaultTz = TimeZone.getDefault().id
-            _selectedTimezoneId.value = defaultTz
-            repository.saveSelectedTimezoneId(defaultTz)
+            val result = com.example.service.AgpeyaTimezoneService.detectAndAdjustTimezone(
+                context = getApplication(),
+                isSystemBroadcast = false,
+                forceReschedule = true
+            )
+            _selectedTimezoneId.value = result.currentTimezoneId
+            _timezoneSyncResult.value = result
+            repository.saveSelectedTimezoneId(result.currentTimezoneId)
         }
     }
 
     fun setSelectedTimezoneId(tzId: String) {
         _selectedTimezoneId.value = tzId
         repository.saveSelectedTimezoneId(tzId)
+        AgpeyaAlarmScheduler.rescheduleAllActiveAlarms(getApplication())
     }
 
     fun setNotificationLeadTimeMinutes(minutes: Int) {
         _notificationLeadTimeMinutes.value = minutes
         repository.saveNotificationLeadTimeMinutes(minutes)
+        AgpeyaAlarmScheduler.rescheduleAllActiveAlarms(getApplication())
     }
 
     fun setQuietHoursEnabled(enabled: Boolean) {
@@ -541,7 +622,11 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun saveUserEmail(email: String?, onComplete: () -> Unit = {}) {
-        repository.setUserEmail(email, onComplete)
+        repository.setUserEmail(email) {
+            triggerSync()
+            repository.startRealtimeSync(viewModelScope)
+            onComplete()
+        }
     }
 
     fun setFontSizeMultiplier(multiplier: Float) {
@@ -550,8 +635,15 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         repository.saveFontSizeMultiplier(clamped)
     }
 
-    fun syncAlarmsWithLocalTimezone() {
-        AgpeyaAlarmScheduler.rescheduleAllActiveAlarms(getApplication())
+    fun syncAlarmsWithLocalTimezone(): com.example.service.TimezoneSyncResult {
+        val result = com.example.service.AgpeyaTimezoneService.detectAndAdjustTimezone(
+            context = getApplication(),
+            isSystemBroadcast = false,
+            forceReschedule = true
+        )
+        _timezoneSyncResult.value = result
+        _selectedTimezoneId.value = result.currentTimezoneId
+        return result
     }
 
     fun saveChurchEmblem(emblemCode: String) {
@@ -588,8 +680,9 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
 
     fun getCurrentTimezoneInfo(): String {
         val tz = TimeZone.getDefault()
-        val displayName = tz.getDisplayName(tz.inDaylightTime(Date()), TimeZone.LONG)
-        val offsetHours = tz.rawOffset / (1000 * 60 * 60)
+        val isDst = tz.inDaylightTime(Date())
+        val displayName = tz.getDisplayName(isDst, TimeZone.LONG)
+        val offsetHours = (tz.rawOffset + (if (isDst) tz.dstSavings else 0)) / (1000 * 60 * 60)
         val sign = if (offsetHours >= 0) "+$offsetHours" else "$offsetHours"
         return "$displayName (UTC$sign)"
     }

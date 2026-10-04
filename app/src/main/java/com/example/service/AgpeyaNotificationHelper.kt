@@ -164,4 +164,41 @@ object AgpeyaNotificationHelper {
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(999, builder.build())
     }
+
+    fun showTimezoneChangedNotification(
+        context: Context,
+        tzDisplayName: String,
+        gmtOffset: String,
+        lang: AppLanguage
+    ) {
+        createNotificationChannel(context)
+
+        val title = AgpeyaStrings.timezoneAutoAdjustedTitle(lang)
+        val body = AgpeyaStrings.timezoneAutoAdjustedBody(tzDisplayName, gmtOffset, lang)
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("EXTRA_NAVIGATE_TO", "SETTINGS")
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            888,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(888, builder.build())
+    }
 }

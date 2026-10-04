@@ -128,7 +128,7 @@ object AgpeyaStrings {
         AppLanguage.HINDI -> "التقارير والإعدادات"
     }
 
-    // Daily / Monthly / Yearly
+    // Daily / Monthly / Quarterly / Semi-Annual / Yearly
     fun reportDaily(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "يومي"
         AppLanguage.COPTIC -> "Ⲙ̀ⲙⲏⲛⲓ"
@@ -157,6 +157,34 @@ object AgpeyaStrings {
         AppLanguage.HINDI -> "मासिक"
     }
 
+    fun reportQuarterly(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "ربع سنوي"
+        AppLanguage.COPTIC -> "Ϧⲉⲛ ⲅ̅ ⲛ̀ⲁⲃⲟⲧ"
+        AppLanguage.ENGLISH -> "Quarterly"
+        AppLanguage.FRENCH -> "Trimestriel"
+        AppLanguage.SPANISH -> "Trimestral"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Vierteljährlich"
+        AppLanguage.ITALIAN -> "Trimestrale"
+        AppLanguage.CHINESE -> "季度视图"
+        AppLanguage.JAPANESE -> "四半期"
+        AppLanguage.KOREAN -> "분기별"
+        AppLanguage.HINDI -> "त्रैमासिक"
+    }
+
+    fun reportSemiAnnual(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "نصف سنوي"
+        AppLanguage.COPTIC -> "Ⲫⲁϣⲓ ⲛ̀ⲣⲟⲙⲡⲓ"
+        AppLanguage.ENGLISH -> "Semi-Annual"
+        AppLanguage.FRENCH -> "Semestriel"
+        AppLanguage.SPANISH -> "Semestral"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Halbjährlich"
+        AppLanguage.ITALIAN -> "Semestrale"
+        AppLanguage.CHINESE -> "半年度"
+        AppLanguage.JAPANESE -> "半期"
+        AppLanguage.KOREAN -> "반기별"
+        AppLanguage.HINDI -> "अर्धवार्षिक"
+    }
+
     fun reportYearly(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "سنوي"
         AppLanguage.COPTIC -> "Ⲛ̀ⲣⲟⲙⲡⲓ"
@@ -169,6 +197,436 @@ object AgpeyaStrings {
         AppLanguage.JAPANESE -> "年別"
         AppLanguage.KOREAN -> "연간"
         AppLanguage.HINDI -> "वार्षिक"
+    }
+
+    fun arrowPrayersTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الصلوات السهمية وصلاة يسوع"
+        AppLanguage.COPTIC -> "Ⲛⲓⲉⲩⲭⲏ ⲛ̀ⲥⲟⲑⲛⲉϥ"
+        AppLanguage.ENGLISH -> "Arrow Prayers & Jesus Prayer"
+        AppLanguage.FRENCH -> "Prières Jaculatoires & Prière de Jésus"
+        AppLanguage.SPANISH -> "Oraciones Jaculatorias y Oración de Jesús"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Stoßgebete & Jesusgebet"
+        AppLanguage.ITALIAN -> "Giaculatorie e Preghiera di Gesù"
+        AppLanguage.CHINESE -> "短祷与耶稣祷文"
+        AppLanguage.JAPANESE -> "射祷とイエスの祈り"
+        AppLanguage.KOREAN -> "화살 기도 및 예수 기도"
+        AppLanguage.HINDI -> "लघु प्रार्थनाएँ व यीशु प्रार्थना"
+    }
+
+    fun dailyArrowTargetTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الهدف اليومي للصلوات السهمية"
+        AppLanguage.COPTIC -> "Ⲡⲓⲥⲱⲛⲧ ⲙ̀ⲙⲏⲛⲓ ⲛ̀ⲛⲓⲉⲩⲭⲏ ⲛ̀ⲥⲟⲑⲛⲉϥ"
+        AppLanguage.ENGLISH -> "Daily Arrow Prayers Target"
+        AppLanguage.FRENCH -> "Objectif quotidien de prières jaculatoires"
+        AppLanguage.SPANISH -> "Meta diaria de oraciones jaculatorias"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Tagesziel für Stoßgebete"
+        AppLanguage.ITALIAN -> "Obiettivo giornaliero giaculatorie"
+        AppLanguage.CHINESE -> "每日短祷目标"
+        AppLanguage.JAPANESE -> "毎日の射祷目標"
+        AppLanguage.KOREAN -> "일일 화살기도 목표"
+        AppLanguage.HINDI -> "दैनिक लघु प्रार्थना लक्ष्य"
+    }
+
+    fun dailyArrowTargetSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "حدد عدد الصلوات السهمية المستهدفة كل يوم لمتابعة إنجازك الروحي"
+        AppLanguage.COPTIC -> "Ⲕⲱ ⲙ̀ⲡⲓⲏⲡ ⲛ̀ⲛⲓⲉⲩⲭⲏ ⲙ̀ⲫⲟⲟⲩ ⲉ̀ⲡⲓⲧⲁϫⲣⲟ"
+        AppLanguage.ENGLISH -> "Set a daily target count of ejaculatory prayers to track your spiritual consistency"
+        AppLanguage.FRENCH -> "Définissez un objectif quotidien de prières jaculatoires"
+        AppLanguage.SPANISH -> "Establece un objetivo diario de oraciones breves para tu devoción"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Legen Sie ein tägliches Ziel für Stoßgebete fest"
+        AppLanguage.ITALIAN -> "Imposta un obiettivo giornaliero di giaculatorie per la tua vita spirituale"
+        AppLanguage.CHINESE -> "设定每日短祷目标数量，追踪灵修长进"
+        AppLanguage.JAPANESE -> "毎日の射祷目標数を設定して霊的成長を記録"
+        AppLanguage.KOREAN -> "매일 화살기도 목표 횟수를 설정하여 영적 훈련을 기록하세요"
+        AppLanguage.HINDI -> "प्रतिदिन लघु प्रार्थना लक्ष्य निर्धारित करें"
+    }
+
+    fun dailyArrowTargetAchieved(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "🎉 مبارك! اكتمل الهدف اليومي للصلوات السهمية"
+        AppLanguage.COPTIC -> "🎉 Ⲁϥϫⲱⲕ ⲉ̀ⲃⲟⲗ ⲡⲓⲥⲱⲛⲧ ⲙ̀ⲙⲏⲛⲓ!"
+        AppLanguage.ENGLISH -> "🎉 Blessed! Daily Arrow Prayers Target Achieved!"
+        AppLanguage.FRENCH -> "🎉 Béni ! Objectif quotidien de prières atteint !"
+        AppLanguage.SPANISH -> "🎉 ¡Bendición! ¡Meta diaria de oraciones alcanzada!"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "🎉 Gesegnet! Tagesziel für Stoßgebete erreicht!"
+        AppLanguage.ITALIAN -> "🎉 Benedetto! Obiettivo giornaliero raggiunto!"
+        AppLanguage.CHINESE -> "🎉 赞美神！今日短祷目标已圆满达成！"
+        AppLanguage.JAPANESE -> "🎉 感謝！本日の射祷目標を達成しました！"
+        AppLanguage.KOREAN -> "🎉 은혜롭습니다! 오늘 화살기도 목표를 달성했습니다!"
+        AppLanguage.HINDI -> "🎉 बधाई! आज का दैनिक प्रार्थना लक्ष्य पूरा हुआ!"
+    }
+
+    fun setTargetLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تعديل الهدف"
+        AppLanguage.COPTIC -> "Ϣⲓⲃϯ ⲡⲓⲥⲱⲛⲧ"
+        AppLanguage.ENGLISH -> "Set Target"
+        AppLanguage.FRENCH -> "Définir l'objectif"
+        AppLanguage.SPANISH -> "Ajustar meta"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Ziel festlegen"
+        AppLanguage.ITALIAN -> "Imposta obiettivo"
+        AppLanguage.CHINESE -> "调整目标"
+        AppLanguage.JAPANESE -> "目標を設定"
+        AppLanguage.KOREAN -> "목표 설정"
+        AppLanguage.HINDI -> "लक्ष्य निर्धारित करें"
+    }
+
+    fun remainingTowardsTarget(remaining: Int, lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "متبقي $remaining سهمية للوصول للهدف"
+        AppLanguage.COPTIC -> "Ⲥⲱϫⲡ $remaining ⲛ̀ⲉⲩⲭⲏ ⲉ̀ⲡⲓⲥⲱⲛⲧ"
+        AppLanguage.ENGLISH -> "$remaining prayers remaining to goal"
+        AppLanguage.FRENCH -> "Plus que $remaining prières pour atteindre l'objectif"
+        AppLanguage.SPANISH -> "Faltan $remaining oraciones para la meta"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Noch $remaining Gebete bis zum Ziel"
+        AppLanguage.ITALIAN -> "Mancano $remaining preghiere all'obiettivo"
+        AppLanguage.CHINESE -> "距离达成目标还剩 $remaining 遍短祷"
+        AppLanguage.JAPANESE -> "目標達成まであと $remaining 回"
+        AppLanguage.KOREAN -> "목표까지 $remaining 회 남음"
+        AppLanguage.HINDI -> "लक्ष्य तक पहुँचने के लिए $remaining प्रार्थनाएँ शेष हैं"
+    }
+
+    fun thirtyDayTrendsTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "اتجاهات ومعدل إتمام الصلوات خلال الـ 30 يوماً الماضية"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲁϫⲣⲟ ⲛ̀ⲛⲓⲉⲩⲭⲏ Ϧⲉⲛ ⲗ̅ ⲛ̀ⲉϩⲟⲟⲩ"
+        AppLanguage.ENGLISH -> "30-Day Prayer Completion Trends"
+        AppLanguage.FRENCH -> "Tendances d'achèvement des prières sur 30 jours"
+        AppLanguage.SPANISH -> "Tendencias de oración en los últimos 30 días"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Gebetsabschluss-Trends der letzten 30 Tage"
+        AppLanguage.ITALIAN -> "Tendenze di preghiera negli ultimi 30 giorni"
+        AppLanguage.CHINESE -> "近30天祷告完成趋势分析"
+        AppLanguage.JAPANESE -> "過去30日間の祈り達成傾向"
+        AppLanguage.KOREAN -> "최근 30일 기도 완수 트렌드"
+        AppLanguage.HINDI -> "पिछले 30 दिनों में प्रार्थना पूर्णता रुझान"
+    }
+
+    fun thirtyDayTrendsSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "رسم بياني تفاعلي يوضح وتيرة الصلوات، المتوسط المتحرك، ونسبة الالتزام الروحي"
+        AppLanguage.COPTIC -> "Ⲟⲩⲥⲙⲟⲧ ⲉϥⲟⲛϩ ⲉ̀ⲡⲓϫⲱⲕ ⲙ̀ⲙⲏⲛⲓ ⲛ̀ⲛⲓⲉⲩⲭⲏ"
+        AppLanguage.ENGLISH -> "Interactive visual analytics with smooth curves, 7-day moving average, and commitment metrics"
+        AppLanguage.FRENCH -> "Graphique interactif montrant le rythme des prières, moyenne mobile et régularité"
+        AppLanguage.SPANISH -> "Gráfico interactivo con curvas suaves, promedio móvil y métricas de devoción"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Interaktive grafische Auswertung mit gleitendem Durchschnitt und Konsistenz"
+        AppLanguage.ITALIAN -> "Grafico interattivo con andamento continuo, media mobile e fedeltà di preghiera"
+        AppLanguage.CHINESE -> "交互式可视化分析，包含平滑趋势线、7日移动平均线与属灵打卡率"
+        AppLanguage.JAPANESE -> "7日間移動平均線と継続率を備えたインタラクティブな視覚分析"
+        AppLanguage.KOREAN -> "7일 이동 평균선 및 영적 헌신 지표가 포함된 인터랙티브 시각 분석"
+        AppLanguage.HINDI -> "स्मूथ कर्व्स, 7-दिवसीय मूविंग एवरेज और निरंतरता के साथ इंटरैक्टिव चार्ट"
+    }
+
+    fun metricCanonicalPrayers(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "صلوات السواعي"
+        AppLanguage.COPTIC -> "Ⲛⲓⲉⲩⲭⲏ ⲛ̀ⲁϫⲡ"
+        AppLanguage.ENGLISH -> "Canonical Hours"
+        AppLanguage.FRENCH -> "Heures Canoniques"
+        AppLanguage.SPANISH -> "Horas Canónicas"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Stundengebete"
+        AppLanguage.ITALIAN -> "Ore Canoniche"
+        AppLanguage.CHINESE -> "时辰祷文"
+        AppLanguage.JAPANESE -> "時課の祈り"
+        AppLanguage.KOREAN -> "성무일도"
+        AppLanguage.HINDI -> "प्रार्थना के घंटे"
+    }
+
+    fun metricCompletionRate(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "نسبة الإتمام %"
+        AppLanguage.COPTIC -> "Ⲡⲓⲏⲡ ⲛ̀ϫⲱⲕ %"
+        AppLanguage.ENGLISH -> "Completion %"
+        AppLanguage.FRENCH -> "Taux de complétion %"
+        AppLanguage.SPANISH -> "Tasa de compleción %"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Abschlussrate %"
+        AppLanguage.ITALIAN -> "Completamento %"
+        AppLanguage.CHINESE -> "达成率 %"
+        AppLanguage.JAPANESE -> "達成率 %"
+        AppLanguage.KOREAN -> "완수율 %"
+        AppLanguage.HINDI -> "पूर्णता दर %"
+    }
+
+    fun metricMovingAverage(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "متوسط 7 أيام"
+        AppLanguage.COPTIC -> "Ⲡⲓⲙⲏϯ ⲛ̀ⲍ̅ ⲛ̀ⲉϩⲟⲟⲩ"
+        AppLanguage.ENGLISH -> "7-Day Moving Avg"
+        AppLanguage.FRENCH -> "Moyenne mobile 7 jours"
+        AppLanguage.SPANISH -> "Promedio móvil 7 días"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Gleitender 7-Tage-Schnitt"
+        AppLanguage.ITALIAN -> "Media mobile 7 giorni"
+        AppLanguage.CHINESE -> "7日移动均线"
+        AppLanguage.JAPANESE -> "7日間移動平均"
+        AppLanguage.KOREAN -> "7일 이동 평균"
+        AppLanguage.HINDI -> "7-दिवसीय औसत"
+    }
+
+    fun timezoneAutoAdjustedTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "✝️ تحديث التوقيت المحلي لصلوات الأجبية"
+        AppLanguage.COPTIC -> "✝️ Ⲧⲁϩⲟ ⲙ̀ⲡⲓⲥⲏⲟⲩ ⲛ̀ⲧⲟⲡⲟⲥ ⲛ̀ⲛⲓⲉⲩⲭⲏ"
+        AppLanguage.ENGLISH -> "✝️ Local Timezone Updated for Agpeya"
+        AppLanguage.FRENCH -> "✝️ Fuseau horaire mis à jour pour l'Agpeya"
+        AppLanguage.SPANISH -> "✝️ Zona horaria actualizada para la Agpeya"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "✝️ Lokale Zeitzone für Agpeya aktualisiert"
+        AppLanguage.ITALIAN -> "✝️ Fuso orario aggiornato per l'Agpeya"
+        AppLanguage.CHINESE -> "✝️ 日课经祈祷提醒时区已自动同步"
+        AppLanguage.JAPANESE -> "✝️ アグペヤ祈りの現地タイムゾーンを自動更新しました"
+        AppLanguage.KOREAN -> "✝️ 아그페야 기도 알람 현지 표준시 자동 업데이트"
+        AppLanguage.HINDI -> "✝️ अग्पेया स्थानीय समय क्षेत्र अद्यतित"
+    }
+
+    fun timezoneAutoAdjustedBody(tzName: String, gmtOffset: String, lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تم اكتشاف المنطقة الزمنية الجديدة ($tzName • $gmtOffset) وضبط مواعيد صلوات الأجبية تلقائياً بحسب التوقيت المحلي."
+        AppLanguage.COPTIC -> "Ⲁⲩϫⲓ ⲡⲓⲥⲏⲟⲩ ⲛ̀ⲃⲉⲣⲓ ($tzName • $gmtOffset) ⲉ̀ⲧⲁϩⲟ ⲛⲓⲉⲩⲭⲏ ⲧⲏⲣⲟⲩ."
+        AppLanguage.ENGLISH -> "Detected new timezone ($tzName • $gmtOffset). All Agpeya prayer reminders were automatically recalibrated to local time."
+        AppLanguage.FRENCH -> "Nouveau fuseau horaire détecté ($tzName • $gmtOffset). Les rappels de prière ont été ajustés à l'heure locale."
+        AppLanguage.SPANISH -> "Se detectó una nueva zona horaria ($tzName • $gmtOffset). Los recordatorios de oración se ajustaron a la hora local."
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Neue Zeitzone erkannt ($tzName • $gmtOffset). Alle Agpeya-Gebetserinnerungen wurden an die Ortszeit angepasst."
+        AppLanguage.ITALIAN -> "Rilevato nuovo fuso orario ($tzName • $gmtOffset). I promemoria di preghiera sono stati aggiornati all'ora locale."
+        AppLanguage.CHINESE -> "已检测到新时区（$tzName • $gmtOffset）。所有日课经祈祷提醒已自动校准至当地时间。"
+        AppLanguage.JAPANESE -> "新しいタイムゾーン（$tzName • $gmtOffset）を検出しました。アグペヤの祈祷アラームが現地時刻に自動調整されました。"
+        AppLanguage.KOREAN -> "새로운 표준시($tzName • $gmtOffset)를 감지했습니다. 모든 아그페야 기도 알람이 현지 시간에 맞춰 자동 재조정되었습니다."
+        AppLanguage.HINDI -> "नया समय क्षेत्र ($tzName • $gmtOffset) पहचाना गया। सभी प्रार्थना अलार्म स्वचालित रूप से स्थानीय समय अनुसार समायोजित किए गए।"
+    }
+
+    fun timezoneDetectSuccess(tzName: String, lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تم الكشف وضبط جميع تنبيهات صلوات الأجبية بنجاح على $tzName"
+        AppLanguage.COPTIC -> "Ⲁⲩⲧⲁϩⲟ ⲛⲓⲥⲟϩⲓ ⲧⲏⲣⲟⲩ ⲉ̀ϫⲉⲛ $tzName"
+        AppLanguage.ENGLISH -> "Successfully detected and aligned all Agpeya alarms to $tzName"
+        AppLanguage.FRENCH -> "Détection réussie et alarmes synchronisées sur $tzName"
+        AppLanguage.SPANISH -> "Detección exitosa y alarmas sincronizadas con $tzName"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Erfolgreich erkannt und alle Alarme auf $tzName ausgerichtet"
+        AppLanguage.ITALIAN -> "Rilevamento completato e allarmi sincronizzati su $tzName"
+        AppLanguage.CHINESE -> "已成功检测并同步所有祈祷提醒至 $tzName"
+        AppLanguage.JAPANESE -> "$tzName を正常に検出し、すべての祈祷アラームを同期しました"
+        AppLanguage.KOREAN -> "$tzName 감지 완료 및 모든 기도 알람 동기화 성공"
+        AppLanguage.HINDI -> "सफलतापूर्वक $tzName पर सभी अलार्म संरेखित किए गए"
+    }
+
+    fun customTargetBeads(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "هدف مخصص (أدخل العدد)"
+        AppLanguage.COPTIC -> "Ⲡⲓⲏⲡ ⲛ̀ⲧⲁⲕ"
+        AppLanguage.ENGLISH -> "Custom Target Count"
+        AppLanguage.FRENCH -> "Objectif personnalisé"
+        AppLanguage.SPANISH -> "Meta personalizada"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Benutzerdefiniertes Ziel"
+        AppLanguage.ITALIAN -> "Obiettivo personalizzato"
+        AppLanguage.CHINESE -> "自定义目标数量"
+        AppLanguage.JAPANESE -> "カスタム目標数"
+        AppLanguage.KOREAN -> "사용자 지정 목표 수"
+        AppLanguage.HINDI -> "कस्टम लक्ष्य"
+    }
+
+    fun crossDeviceSyncTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "المزامنة عبر الهواتف والأجهزة اللوحية (التابلت)"
+        AppLanguage.COPTIC -> "Ⲡⲓⲧⲱⲙⲧ ⲉ̀ϫⲉⲛ ⲛⲓⲥⲩⲥⲕⲉⲩⲏ ⲧⲏⲣⲟⲩ"
+        AppLanguage.ENGLISH -> "Cross-Device Sync (Phones & Tablets)"
+        AppLanguage.FRENCH -> "Synchronisation multi-appareils (Téléphones & Tablettes)"
+        AppLanguage.SPANISH -> "Sincronización multidispositivo (Teléfonos y Tabletas)"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Geräteübergreifende Synchronisierung (Handys & Tablets)"
+        AppLanguage.ITALIAN -> "Sincronizzazione tra dispositivi (Telefoni e Tablet)"
+        AppLanguage.CHINESE -> "多设备云端同步（手机与平板）"
+        AppLanguage.JAPANESE -> "端末間同期（スマートフォン・タブレット）"
+        AppLanguage.KOREAN -> "기기 간 동기화 (스마트폰 & 태블릿)"
+        AppLanguage.HINDI -> "क्रॉस-डिवाइस सिंक (फोन और टैबलेट)"
+    }
+
+    fun crossDeviceSyncSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "سجل الدخول بحسابك لمزامنة تقدم قراءة الصلوات وتفضيلات التنبيهات والأجراس فورياً عبر كافة هواتفك وأجهزتك اللوحية."
+        AppLanguage.COPTIC -> "Ϣⲱⲡ ⲉ̀ϧⲟⲩⲛ ⲉ̀ⲡⲉⲕⲗⲟⲅⲟⲥ ⲉ̀ⲧⲁϩⲟ ⲛⲓⲉⲩⲭⲏ ⲛⲉⲙ ⲛⲓⲥⲟϩⲓ ϧⲉⲛ ⲛⲉⲕⲥⲩⲥⲕⲉⲩⲏ."
+        AppLanguage.ENGLISH -> "Sign in to synchronize your prayer reading progress and alarm preferences seamlessly across all your phones and tablets."
+        AppLanguage.FRENCH -> "Connectez-vous pour synchroniser votre progression de prière et vos alertes sur tous vos téléphones et tablettes."
+        AppLanguage.SPANISH -> "Inicie sesión para sincronizar su progreso de oración y preferencias de alarma en todos sus teléfonos y tabletas."
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Melden Sie sich an, um Gebetsfortschritt und Weckereinstellungen auf all Ihren Handys und Tablets zu synchronisieren."
+        AppLanguage.ITALIAN -> "Accedi per sincronizzare i progressi di preghiera e le sveglie su tutti i tuoi telefoni e tablet."
+        AppLanguage.CHINESE -> "登录您的账户，在所有手机和平板电脑间无缝同步您的祈祷阅读进度与时课提醒偏好。"
+        AppLanguage.JAPANESE -> "アカウントでログインすると、お持ちのスマホやタブレット間で祈りの読経進捗とアラーム設定がシームレスに同期されます。"
+        AppLanguage.KOREAN -> "계정으로 로그인하여 모든 휴대폰과 태블릿에서 기도 진행 상황과 알람 설정을 실시간 동기화하세요."
+        AppLanguage.HINDI -> "अपने सभी फोन और टैबलेट पर प्रार्थना की प्रगति और अलार्म प्राथमिकताओं को सिंक करने के लिए साइन इन करें।"
+    }
+
+    fun syncCategoryPrayers(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "قراءات وسجل السواعي"
+        AppLanguage.COPTIC -> "Ⲛⲓⲉⲩⲭⲏ ⲛ̀ⲁϫⲡ"
+        AppLanguage.ENGLISH -> "Canonical Prayer Logs"
+        AppLanguage.FRENCH -> "Lectures des Heures"
+        AppLanguage.SPANISH -> "Lecturas Canónicas"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Stundengebete-Verlauf"
+        AppLanguage.ITALIAN -> "Letture delle Ore"
+        AppLanguage.CHINESE -> "时课经阅读进度"
+        AppLanguage.JAPANESE -> "時課の祈り履歴"
+        AppLanguage.KOREAN -> "시간경 기도 기록"
+        AppLanguage.HINDI -> "प्रार्थना पाठ इतिहास"
+    }
+
+    fun syncCategoryAlarms(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تفضيلات ومواعيد التنبيه"
+        AppLanguage.COPTIC -> "Ⲛⲓⲥⲟϩⲓ ⲛⲉⲙ ⲛⲓⲥⲏⲟⲩ"
+        AppLanguage.ENGLISH -> "Alarm Preferences & Times"
+        AppLanguage.FRENCH -> "Préférences d'alarmes"
+        AppLanguage.SPANISH -> "Preferencias de alarmas"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Alarmeinstellungen & Zeiten"
+        AppLanguage.ITALIAN -> "Preferenze e orari sveglie"
+        AppLanguage.CHINESE -> "提醒时间与铃声偏好"
+        AppLanguage.JAPANESE -> "アラーム時刻と設定"
+        AppLanguage.KOREAN -> "알람 시간 및 설정"
+        AppLanguage.HINDI -> "अलार्म प्राथमिकताएं"
+    }
+
+    fun syncCategoryArrows(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "الصلوات السهمية والمسبحة"
+        AppLanguage.COPTIC -> "Ⲛⲓⲉⲩⲭⲏ ⲛ̀ⲥⲟⲑⲛⲉϥ"
+        AppLanguage.ENGLISH -> "Arrow Prayers & Beads"
+        AppLanguage.FRENCH -> "Prières jaculatoires"
+        AppLanguage.SPANISH -> "Oraciones jaculatorias"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Stoßgebete & Gebetskette"
+        AppLanguage.ITALIAN -> "Giaculatorie e rosario"
+        AppLanguage.CHINESE -> "短祷与耶稣祷文念珠"
+        AppLanguage.JAPANESE -> "射祷とロザリオ"
+        AppLanguage.KOREAN -> "화살기도 및 묵주"
+        AppLanguage.HINDI -> "लघु प्रार्थनाएँ व माला"
+    }
+
+    fun syncNowSuccess(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تمت المزامنة بنجاح وتحديث كافة الصلوات والتنبيهات!"
+        AppLanguage.COPTIC -> "Ⲁⲩϫⲱⲕ ⲙ̀ⲡⲓⲧⲱⲙⲧ ϧⲉⲛ ⲟⲩϩⲓⲣⲏⲛⲏ!"
+        AppLanguage.ENGLISH -> "Sync completed! All prayer history and alarm schedules updated."
+        AppLanguage.FRENCH -> "Synchronisation terminée ! Prières et alarmes à jour."
+        AppLanguage.SPANISH -> "¡Sincronización completada! Oraciones y alarmas actualizadas."
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Synchronisation abgeschlossen! Alle Gebete und Alarme aktualisiert."
+        AppLanguage.ITALIAN -> "Sincronizzazione completata! Preghiere e sveglie aggiornate."
+        AppLanguage.CHINESE -> "同步完成！所有祈祷记录与提醒设置已更新。"
+        AppLanguage.JAPANESE -> "同期完了！すべての祈りの記録とアラームが更新されました。"
+        AppLanguage.KOREAN -> "동기화 완료! 모든 기도 기록과 알람 설정이 업데이트되었습니다."
+        AppLanguage.HINDI -> "सिंक संपन्न! सभी प्रार्थनाएं और अलार्म अपडेट हो गए।"
+    }
+
+    fun accountStatusLoggedIn(email: String, lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "متصل بحساب: $email"
+        AppLanguage.COPTIC -> "Ϣⲟⲡ ⲉ̀ϧⲟⲩⲛ: $email"
+        AppLanguage.ENGLISH -> "Connected Account: $email"
+        AppLanguage.FRENCH -> "Compte connecté : $email"
+        AppLanguage.SPANISH -> "Cuenta conectada: $email"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Verbundenes Konto: $email"
+        AppLanguage.ITALIAN -> "Account connesso: $email"
+        AppLanguage.CHINESE -> "已登录账户：$email"
+        AppLanguage.JAPANESE -> "接続中のアカウント：$email"
+        AppLanguage.KOREAN -> "연결된 계정: $email"
+        AppLanguage.HINDI -> "जुड़ा हुआ खाता: $email"
+    }
+
+    fun accountStatusGuest(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "وضع محلي (غير مسجل للمزامنة)"
+        AppLanguage.COPTIC -> "Ⲙⲟϣⲓ ⲙ̀ⲫⲣⲏϯ ⲛ̀ⲟⲩϣⲉⲙⲙⲟ"
+        AppLanguage.ENGLISH -> "Local Mode (Not signed in for sync)"
+        AppLanguage.FRENCH -> "Mode local (Non connecté pour la synchro)"
+        AppLanguage.SPANISH -> "Modo local (No conectado)"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Lokaler Modus (Nicht angemeldet)"
+        AppLanguage.ITALIAN -> "Modalità locale (Non connesso)"
+        AppLanguage.CHINESE -> "本地离线模式（未登录云同步）"
+        AppLanguage.JAPANESE -> "ローカルモード（未ログイン）"
+        AppLanguage.KOREAN -> "로컬 모드 (동기화 미연결)"
+        AppLanguage.HINDI -> "स्थानीय मोड (लॉग इन नहीं)"
+    }
+
+    fun canonicalPrayersLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "صلوات السواعي بالأجبية"
+        AppLanguage.COPTIC -> "Ⲛⲓⲁϫⲡ ⲛ̀ⲧⲉ ϯⲁϫⲡⲓⲁ"
+        AppLanguage.ENGLISH -> "Agpeya Canonical Hours"
+        AppLanguage.FRENCH -> "Heures Canoniques de l'Agpeya"
+        AppLanguage.SPANISH -> "Horas Canónicas de la Agpeya"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Agpeya-Stundengebete"
+        AppLanguage.ITALIAN -> "Ore Canoniche dell'Agpeya"
+        AppLanguage.CHINESE -> "日课经时课祷告"
+        AppLanguage.JAPANESE -> "アグペヤ時課の祈り"
+        AppLanguage.KOREAN -> "아그페야 정시 기도"
+        AppLanguage.HINDI -> "अग्पेया विहित प्रार्थनाएँ"
+    }
+
+    fun arrowPrayersLoggedLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "سهمية مسجلة"
+        AppLanguage.COPTIC -> "ⲉⲩⲭⲏ ⲉ̀ⲧⲁⲩⲥϧⲏⲧ"
+        AppLanguage.ENGLISH -> "arrow prayers logged"
+        AppLanguage.FRENCH -> "prières jaculatoires enregistrées"
+        AppLanguage.SPANISH -> "jaculatorias registradas"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Stoßgebete erfasst"
+        AppLanguage.ITALIAN -> "giaculatorie registrate"
+        AppLanguage.CHINESE -> "已记录短祷"
+        AppLanguage.JAPANESE -> "記録された射祷"
+        AppLanguage.KOREAN -> "기록된 화살기도"
+        AppLanguage.HINDI -> "दर्ज लघु प्रार्थनाएँ"
+    }
+
+    fun saveArrowPrayers(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "تسجيل الصلوات السهمية في التقرير"
+        AppLanguage.COPTIC -> "Ⲥϧⲁⲓ ⲛⲓⲉⲩⲭⲏ ϧⲉⲛ ⲡⲓⲗⲟⲅⲟⲥ"
+        AppLanguage.ENGLISH -> "Save Arrow Prayers to Report"
+        AppLanguage.FRENCH -> "Enregistrer les prières dans le rapport"
+        AppLanguage.SPANISH -> "Guardar oraciones en el informe"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Stoßgebete im Bericht speichern"
+        AppLanguage.ITALIAN -> "Salva giaculatorie nel report"
+        AppLanguage.CHINESE -> "将短祷保存至统计报告"
+        AppLanguage.JAPANESE -> "祈祷をレポートに記録"
+        AppLanguage.KOREAN -> "보고서에 화살기도 기록 저장"
+        AppLanguage.HINDI -> "रिपोर्ट में प्रार्थनाएँ सहेजें"
+    }
+
+    fun arrowPrayerSavedSuccess(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "✓ تم تسجيل الصلوات السهمية في التقرير بنجاح"
+        AppLanguage.COPTIC -> "✓ Ⲁⲩⲥϧⲁⲓ ⲛⲓⲉⲩⲭⲏ ⲕⲁⲗⲱⲥ"
+        AppLanguage.ENGLISH -> "✓ Arrow Prayers Successfully Saved to Report"
+        AppLanguage.FRENCH -> "✓ Prières jaculatoires enregistrées avec succès"
+        AppLanguage.SPANISH -> "✓ Oraciones guardadas con éxito en el informe"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "✓ Stoßgebete erfolgreich im Bericht gespeichert"
+        AppLanguage.ITALIAN -> "✓ Giaculatorie salvate con successo"
+        AppLanguage.CHINESE -> "✓ 短祷已成功保存至报表"
+        AppLanguage.JAPANESE -> "✓ 祈祷がレポートに正常に保存されました"
+        AppLanguage.KOREAN -> "✓ 화살기도가 보고서에 성공적으로 저장되었습니다"
+        AppLanguage.HINDI -> "✓ प्रार्थनाएँ सफलतापूर्वक सहेजी गईं"
+    }
+
+    fun quarterLabel(quarter: Int, lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> when (quarter) {
+            1 -> "الربع الأول (يناير - مارس)"
+            2 -> "الربع الثاني (أبريل - يونيو)"
+            3 -> "الربع الثالث (يوليو - سبتمبر)"
+            else -> "الربع الرابع (أكتوبر - ديسمبر)"
+        }
+        AppLanguage.COPTIC -> "Ⲡⲓⲟⲩⲁ ⲅ̅ ⲛ̀ⲁⲃⲟⲧ: $quarter"
+        AppLanguage.ENGLISH -> when (quarter) {
+            1 -> "Q1 (Jan - Mar)"
+            2 -> "Q2 (Apr - Jun)"
+            3 -> "Q3 (Jul - Sep)"
+            else -> "Q4 (Oct - Dec)"
+        }
+        AppLanguage.FRENCH -> when (quarter) {
+            1 -> "T1 (Jan - Mar)"
+            2 -> "T2 (Avr - Juin)"
+            3 -> "T3 (Juil - Sep)"
+            else -> "T4 (Oct - Déc)"
+        }
+        AppLanguage.SPANISH -> when (quarter) {
+            1 -> "T1 (Ene - Mar)"
+            2 -> "T2 (Abr - Jun)"
+            3 -> "T3 (Jul - Sep)"
+            else -> "T4 (Oct - Dic)"
+        }
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Q$quarter"
+        else -> "Q$quarter"
+    }
+
+    fun halfYearLabel(half: Int, lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> when (half) {
+            1 -> "النصف الأول (يناير - يونيو)"
+            else -> "النصف الثاني (يوليو - ديسمبر)"
+        }
+        AppLanguage.COPTIC -> "Ⲫⲁϣⲓ ⲛ̀ⲣⲟⲙⲡⲓ: $half"
+        AppLanguage.ENGLISH -> when (half) {
+            1 -> "H1 (Jan - Jun)"
+            else -> "H2 (Jul - Dec)"
+        }
+        AppLanguage.FRENCH -> when (half) {
+            1 -> "S1 (Jan - Juin)"
+            else -> "S2 (Juil - Déc)"
+        }
+        AppLanguage.SPANISH -> when (half) {
+            1 -> "S1 (Ene - Jun)"
+            else -> "S2 (Jul - Dic)"
+        }
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Halbjahr $half"
+        else -> "H$half"
     }
 
     // Action strings
