@@ -2148,5 +2148,137 @@ object AgpeyaStrings {
         AppLanguage.KOREAN -> "음성 동기화 자동 스크롤"
         AppLanguage.HINDI -> "ऑटो-स्क्रॉल और ध्वनि सिंक"
     }
+
+    // ==========================================
+    // ABOUT APP, DEVELOPER INFO & CONTACT STRINGS
+    // ==========================================
+
+    fun aboutAppTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "عن التطبيق والمطور"
+        AppLanguage.COPTIC -> "Ⲉⲑⲃⲉ ⲡⲓⲉⲫⲁⲣⲙⲟⲅⲏ"
+        AppLanguage.ENGLISH -> "About App & Developer"
+        AppLanguage.FRENCH -> "À propos de l'application"
+        AppLanguage.SPANISH -> "Acerca de la aplicación"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Über die App & Entwickler"
+        AppLanguage.ITALIAN -> "Informazioni sull'app"
+        AppLanguage.CHINESE -> "关于应用与开发者"
+        AppLanguage.JAPANESE -> "アプリと開発者について"
+        AppLanguage.KOREAN -> "앱 및 개발자 정보"
+        AppLanguage.HINDI -> "ऐप और डेवलपर के बारे में"
+    }
+
+    fun aboutAppSummary(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC ->
+            "تطبيق أرثوذكسي متكامل لصلوات الأجبية (كتاب السواعي السبع)، المزامير، التأملات الإنجيلية اليومية، التقويم القبطي والقطمارس، صلوات يسوع السهمية، والتنبيهات الدقيقة بأجراس الكنيسة القبطية، مع دعم المزامنة السحابية عبر الأجهزة والعمل بدون إنترنت (100% Offline)."
+        AppLanguage.COPTIC ->
+            "Ⲡⲓϫⲱⲙ ⲛ̀ⲧⲉ ϯⲁⲅⲡⲓⲁ ⲛ̀ⲟⲣⲑⲟⲇⲟⲝⲟⲥ ⲛⲉⲙ ⲛⲓⲯⲁⲗⲙⲟⲥ ⲛⲉⲙ ⲛⲓⲉⲩⲭⲏ ⲛ̀ⲥⲟⲑⲛⲉϥ ⲛⲉⲙ ⲡⲓⲕⲁⲧⲁⲙⲉⲣⲟⲥ."
+        AppLanguage.ENGLISH ->
+            "A comprehensive Orthodox Agpeya canonical prayer book app featuring the seven canonical hours, Psalms, daily scripture meditations, Coptic calendar & Katameros, Jesus arrow prayers, precise liturgical bell alarms, cross-device cloud sync, and 100% offline support."
+        AppLanguage.FRENCH ->
+            "Application orthodoxe complète de l'Agpeya comprenant les sept heures canoniques, les Psaumes, les méditations quotidiennes, le calendrier copte, les prières jaculatoires et la synchronisation multi-appareils."
+        AppLanguage.SPANISH ->
+            "Aplicación ortodoxa completa de la Agpeya con las siete horas canónicas, Salmos, meditaciones bíblicas, calendario copto, oraciones breves y sincronización entre dispositivos."
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN ->
+            "Umfassende orthodoxe Agpeya-Stundengebet-App mit den sieben kanonischen Horen, Psalmen, täglichen Bibelmeditationen, koptischem Kalender, Stoßgebeten und geräteübergreifender Synchronisation."
+        AppLanguage.ITALIAN ->
+            "Applicazione ortodossa completa dell'Agpeya con le sette ore canoniche, i Salmi, le meditazioni bibliche, il calendario copto e la sincronizzazione multi-dispositivo."
+        AppLanguage.CHINESE ->
+            "正统科普特时辰祈祷书（Agpeya）应用，包含每日七个祈祷时辰、诗篇、圣经默想、科普特历法及跨设备同步。"
+        AppLanguage.JAPANESE ->
+            "正教会アグペヤ（時課祈祷書）アプリ。7つの時課、詩編、毎日の聖書黙想、コプト暦、端末間同期をサポート。"
+        AppLanguage.KOREAN ->
+            "7개 성무일도 기도, 시편, 매일 성경 묵상, 콥트 달력 및 다중 기기 동기화를 지원하는 정교회 아그페야 기도서 앱."
+        AppLanguage.HINDI ->
+            "ऑर्थोडॉक्स अगपेया प्रार्थना पुस्तक ऐप जिसमें सातों प्रार्थना घंटे, भजन संहिता, दैनिक बाइबिल ध्यान और बहु-उपकरण सिंक शामिल हैं।"
+    }
+
+    fun developerCreditLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "إعداد وبرمجة وتطوير:"
+        AppLanguage.COPTIC -> "Ⲁϥⲑⲁⲙⲓⲟϥ ⲛ̀ϫⲉ:"
+        AppLanguage.ENGLISH -> "Developed & Created by:"
+        AppLanguage.FRENCH -> "Développé et créé par :"
+        AppLanguage.SPANISH -> "Desarrollado y creado por:"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Entwickelt & erstellt von:"
+        AppLanguage.ITALIAN -> "Sviluppato e creato da:"
+        AppLanguage.CHINESE -> "开发者与设计者："
+        AppLanguage.JAPANESE -> "開発・制作："
+        AppLanguage.KOREAN -> "개발 및 제작:"
+        AppLanguage.HINDI -> "डेवलपर और निर्माता:"
+    }
+
+    fun developerNameText(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "جورج يوسف"
+        AppLanguage.COPTIC -> "Ⲅⲉⲱⲣⲅⲓⲟⲥ Ⲓⲱⲥⲏⲫ (George Youssef)"
+        else -> "George Youssef"
+    }
+
+    fun contactDeveloperTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "طرق التواصل والدعم الفني"
+        AppLanguage.COPTIC -> "Ⲡⲓⲥⲁϫⲓ ⲛⲉⲙ ⲡⲓⲃⲟⲏⲑⲟⲥ"
+        AppLanguage.ENGLISH -> "Contact Developer & Support"
+        AppLanguage.FRENCH -> "Contacter le développeur & Support"
+        AppLanguage.SPANISH -> "Contactar al desarrollador y Soporte"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "Entwickler kontaktieren & Support"
+        AppLanguage.ITALIAN -> "Contatta lo sviluppatore e Supporto"
+        AppLanguage.CHINESE -> "联系开发者与支持"
+        AppLanguage.JAPANESE -> "開発者への連絡とサポート"
+        AppLanguage.KOREAN -> "개발자 연락처 및 기술 지원"
+        AppLanguage.HINDI -> "डेवलपर से संपर्क और सहायता"
+    }
+
+    fun developerEmailAddress(): String = "georgeyoussef393@gmail.com"
+
+    fun sendEmailButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مراسلة عبر البريد الإلكتروني"
+        AppLanguage.COPTIC -> "Ⲟⲩⲱⲣⲡ ⲛ̀ⲟⲩⲉⲡⲓⲥⲧⲟⲗⲏ"
+        AppLanguage.ENGLISH -> "Send Email Message"
+        AppLanguage.FRENCH -> "Envoyer un e-mail"
+        AppLanguage.SPANISH -> "Enviar correo electrónico"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "E-Mail senden"
+        AppLanguage.ITALIAN -> "Invia una e-mail"
+        AppLanguage.CHINESE -> "发送电子邮件"
+        AppLanguage.JAPANESE -> "メールを送信"
+        AppLanguage.KOREAN -> "이메일 보내기"
+        AppLanguage.HINDI -> "ईमेल भेजें"
+    }
+
+    fun copyEmailButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "نسخ البريد الإلكتروني"
+        AppLanguage.COPTIC -> "Ϣⲱⲡ ⲙ̀ⲡⲓⲉⲙⲁⲓⲗ"
+        AppLanguage.ENGLISH -> "Copy Email"
+        AppLanguage.FRENCH -> "Copier l'e-mail"
+        AppLanguage.SPANISH -> "Copiar correo"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "E-Mail kopieren"
+        AppLanguage.ITALIAN -> "Copia e-mail"
+        AppLanguage.CHINESE -> "复制邮箱"
+        AppLanguage.JAPANESE -> "メールアドレスをコピー"
+        AppLanguage.KOREAN -> "이메일 복사"
+        AppLanguage.HINDI -> "ईमेल कॉपी करें"
+    }
+
+    fun shareAppTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مشاركة التطبيق للبركة"
+        AppLanguage.COPTIC -> "Ⲫⲱϣ ⲙ̀ⲡⲓⲉⲫⲁⲣⲙⲟⲅⲏ"
+        AppLanguage.ENGLISH -> "Share App with Others"
+        AppLanguage.FRENCH -> "Partager l'application"
+        AppLanguage.SPANISH -> "Compartir aplicación"
+        AppLanguage.GERMAN, AppLanguage.AUSTRIAN_GERMAN, AppLanguage.SWISS_GERMAN -> "App teilen"
+        AppLanguage.ITALIAN -> "Condividi l'applicazione"
+        AppLanguage.CHINESE -> "分享应用"
+        AppLanguage.JAPANESE -> "アプリを共有"
+        AppLanguage.KOREAN -> "앱 공유하기"
+        AppLanguage.HINDI -> "ऐप साझा करें"
+    }
+
+    fun appReleaseDedication(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC ->
+            "✝️ مهدى لكنيسة الله وشعبه المبارك، ليكون عوناً لكل مؤمن في حفظ صلوات السواعي والمزامير بانتظام وخشوع."
+        AppLanguage.COPTIC ->
+            "✝️ Ⲉⲧⲁⲩⲧⲏⲓϥ ⲉ̀ϯⲉⲕⲕⲗⲏⲥⲓⲁ ⲛ̀ⲧⲉ Ⲫϯ ⲛⲉⲙ ⲡⲉϥⲗⲁⲟⲥ ⲉⲑⲟⲩⲁⲃ."
+        AppLanguage.ENGLISH ->
+            "✝️ Dedicated to the Church of God and His faithful believers, to aid in keeping the canonical hours and Psalms with reverence and consistency."
+        else ->
+            "✝️ Dedicated to the faithful believers, to aid in prayer and keeping the canonical hours with reverence."
+    }
 }
 

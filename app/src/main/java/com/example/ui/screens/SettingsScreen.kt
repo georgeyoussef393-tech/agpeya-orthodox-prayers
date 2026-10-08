@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import com.example.ui.components.OrthodoxGroundedSearchDialog
+import com.example.ui.components.AboutAppDialog
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.VolumeOff
@@ -188,6 +189,7 @@ fun SettingsScreen(
     var isEditingChurch by remember { mutableStateOf(false) }
     var churchInput by remember(churchName) { mutableStateOf(churchName ?: "") }
     var showPrivacyDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
     var showGroundedSearchDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
@@ -2395,9 +2397,103 @@ fun SettingsScreen(
             }
         }
 
-        // About & Google Play Privacy Policy Section
+        // About App & Developer Card
         item {
             Spacer(modifier = Modifier.height(20.dp))
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.5.dp, GoldPrimary.copy(alpha = 0.45f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showAboutDialog = true }
+                    .testTag("about_app_card")
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(GoldPrimary.copy(alpha = 0.2f))
+                        ) {
+                            CopticCrossCanvas(size = 26.dp, color = GoldPrimary)
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = AgpeyaStrings.aboutAppTitle(lang),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = GoldPrimary
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "${AgpeyaStrings.developerCreditLabel(lang)} ${AgpeyaStrings.developerNameText(lang)}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                        Text(
+                            text = "❯",
+                            color = GoldPrimary,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = AgpeyaStrings.aboutAppSummary(lang),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 18.sp,
+                        maxLines = 3
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                tint = GoldLight,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = AgpeyaStrings.developerEmailAddress(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = GoldLight,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        Text(
+                            text = if (lang == AppLanguage.ARABIC) "عرض التفاصيل والتواصل ←" else "View Details & Contact →",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = GoldPrimary
+                        )
+                    }
+                }
+            }
+        }
+
+        // About & Google Play Privacy Policy Section
+        item {
+            Spacer(modifier = Modifier.height(14.dp))
             Card(
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -2419,7 +2515,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (lang == AppLanguage.ARABIC) "سياسة الخصوصية ومعلومات التطبيق" else "Privacy Policy & App Info",
+                            text = if (lang == AppLanguage.ARABIC) "سياسة الخصوصية وأمان البيانات" else "Privacy Policy & Data Safety",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -2631,6 +2727,13 @@ fun SettingsScreen(
         OrthodoxGroundedSearchDialog(
             language = lang,
             onDismissRequest = { showGroundedSearchDialog = false }
+        )
+    }
+
+    if (showAboutDialog) {
+        AboutAppDialog(
+            language = lang,
+            onDismissRequest = { showAboutDialog = false }
         )
     }
 }
