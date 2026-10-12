@@ -69,6 +69,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.coptic.CopticCalendarHelper
@@ -119,6 +120,13 @@ fun CopticCalendarScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        // Sacred backdrop artwork with reverent lighting
+        SpiritualAtmosphereBackdrop(
+            theme = spiritualTheme,
+            opacity = (spiritualOpacity * 1.35f).coerceIn(0.40f, 0.85f),
+            enableCandleGlow = isCandleGlowEnabled
+        )
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 88.dp)
@@ -131,25 +139,23 @@ fun CopticCalendarScreen(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    BurgundyDeep,
-                                    Color(0xFF1E0B11)
+                                    BurgundyDeep.copy(alpha = 0.90f),
+                                    Color(0xFF1E0B11).copy(alpha = 0.85f)
                                 )
                             )
                         )
-                        .padding(horizontal = 16.dp, vertical = 20.dp)
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
                 ) {
                     SubtleCrossWatermark(modifier = Modifier.align(Alignment.CenterEnd))
 
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
                             .statusBarsPadding()
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 20.dp)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -172,7 +178,9 @@ fun CopticCalendarScreen(
                                     text = if (lang == AppLanguage.ARABIC) "التقويم القبطي والقطمارس اليومي" else "Coptic Calendar & Katameros",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
-                                    color = GoldLight
+                                    color = GoldLight,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = gregorianDateStr,

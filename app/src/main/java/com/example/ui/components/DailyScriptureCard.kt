@@ -95,19 +95,14 @@ fun DailyScriptureCard(
     var showHourSelector by remember { mutableStateOf(false) }
 
     Card(
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .border(
-                width = 1.dp,
-                color = GoldPrimary.copy(alpha = 0.35f),
-                shape = RoundedCornerShape(20.dp)
-            )
+            .padding(horizontal = 16.dp, vertical = 6.dp)
             .testTag("daily_scripture_card")
     ) {
         Column(modifier = Modifier.padding(18.dp)) {

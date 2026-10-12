@@ -115,8 +115,14 @@ class MainActivity : ComponentActivity() {
         val prayerCodeFromIntent = intent.getStringExtra("EXTRA_PRAYER_CODE")
 
         setContent {
-            AgpeyaTheme {
-                AgpeyaApp(initialPrayerCode = prayerCodeFromIntent)
+            val viewModel: AgpeyaViewModel = viewModel()
+            val themeMode by viewModel.themeMode.collectAsState()
+
+            AgpeyaTheme(themeMode = themeMode) {
+                AgpeyaApp(
+                    initialPrayerCode = prayerCodeFromIntent,
+                    viewModel = viewModel
+                )
             }
         }
     }
@@ -190,7 +196,7 @@ fun AgpeyaApp(
                 // Immersive spiritual backdrop that fills the entire background globally
                 SpiritualAtmosphereBackdrop(
                     theme = spiritualTheme,
-                    opacity = (spiritualOpacity * 0.70f).coerceAtMost(0.24f),
+                    opacity = (spiritualOpacity * 1.25f).coerceIn(0.35f, 0.85f),
                     enableCandleGlow = isCandleGlowEnabled,
                     overlayColor = MaterialTheme.colorScheme.background // Adapt to theme
                 )

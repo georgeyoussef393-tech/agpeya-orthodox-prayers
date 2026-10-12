@@ -172,6 +172,16 @@ class AgpeyaRepository(
         prefs.edit().putBoolean("spiritual_candle_glow_enabled", enabled).apply()
     }
 
+    // App Theme Mode (Dark, Light, System)
+    fun getThemeMode(): com.example.ui.theme.AppThemeMode {
+        val id = prefs.getString("app_theme_mode", com.example.ui.theme.AppThemeMode.SYSTEM.id)
+        return com.example.ui.theme.AppThemeMode.fromId(id)
+    }
+
+    fun saveThemeMode(mode: com.example.ui.theme.AppThemeMode) {
+        prefs.edit().putString("app_theme_mode", mode.id).apply()
+    }
+
     // Multilingual support preferences
     fun isBilingualEnabled(): Boolean {
         return prefs.getBoolean("multilingual_bilingual_enabled", false)

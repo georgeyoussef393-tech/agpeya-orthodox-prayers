@@ -43,7 +43,7 @@ fun SpiritualAtmosphereBackdrop(
         return
     }
 
-    val clampedOpacity = opacity.coerceIn(0.02f, 0.70f)
+    val clampedOpacity = opacity.coerceIn(0.12f, 0.85f)
 
     Box(modifier = modifier.fillMaxSize()) {
         // Base dark warm backdrop
@@ -65,16 +65,16 @@ fun SpiritualAtmosphereBackdrop(
             contentScale = ContentScale.Crop
         )
 
-        // Soft vertical and vignette gradients for 100% crystal text readability
+        // Soft vertical and vignette gradients for crystal text readability while letting art shine
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            overlayColor.copy(alpha = 0.70f),
-                            overlayColor.copy(alpha = 0.35f),
-                            overlayColor.copy(alpha = 0.85f)
+                            overlayColor.copy(alpha = 0.22f),
+                            overlayColor.copy(alpha = 0.08f),
+                            overlayColor.copy(alpha = 0.35f)
                         )
                     )
                 )

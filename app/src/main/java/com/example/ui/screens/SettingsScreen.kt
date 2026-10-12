@@ -30,8 +30,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Church
+import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
@@ -39,6 +41,7 @@ import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Person
@@ -84,6 +87,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audio.SpiritualSound
@@ -152,6 +156,7 @@ fun SettingsScreen(
     val totalCachedPrayerSections by viewModel.totalCachedPrayerSections.collectAsState()
     val totalCachedMeditations by viewModel.totalCachedMeditations.collectAsState()
     val isPreCachingInProgress by viewModel.isPreCachingInProgress.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
 
     val context = LocalContext.current
     val restoreLauncher = rememberLauncherForActivityResult(
@@ -245,6 +250,235 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // ==========================================
+        // QUICK CLOUD REGISTRATION & SYNC SHORTCUT
+        // ==========================================
+        item {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.5f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { viewModel.openAuthOnboarding() }
+                    .testTag("settings_quick_cloud_banner")
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(14.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(GoldPrimary.copy(alpha = 0.2f))
+                    ) {
+                        Icon(
+                            imageVector = if (!userEmail.isNullOrBlank()) Icons.Default.CloudDone else Icons.Default.CloudSync,
+                            contentDescription = null,
+                            tint = if (!userEmail.isNullOrBlank()) Color(0xFF4CAF50) else GoldPrimary,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "التسجيل والمزامنة السحابية" else "Cloud Registration & Sync",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = GoldPrimary
+                            )
+                            if (!userEmail.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "✅",
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                        Text(
+                            text = if (!userEmail.isNullOrBlank()) {
+                                if (lang == AppLanguage.ARABIC) "مسجل بحساب: $userEmail (اضغط للإدارة والتبديل)" else "Registered: $userEmail (Tap to manage)"
+                            } else {
+                                if (lang == AppLanguage.ARABIC) "اضغط هنا للتسجيل السحابي وحفظ صلواتك عبر الأجهزة" else "Tap here to sign in and sync prayers across devices"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Button(
+                        onClick = { viewModel.openAuthOnboarding() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = GoldPrimary,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text(
+                            text = if (!userEmail.isNullOrBlank()) {
+                                if (lang == AppLanguage.ARABIC) "إدارة" else "Manage"
+                            } else {
+                                if (lang == AppLanguage.ARABIC) "تسجيل" else "Sign In"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // ==========================================
+        // APP THEME MODE (DARK MODE / LIGHT MODE) CARD
+        // ==========================================
+        item {
+            Text(
+                text = if (lang == AppLanguage.ARABIC) "مظهر التطبيق (الوضع الداكن / الفاتح)" else "App Appearance (Dark / Light Mode)",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = GoldPrimary,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = if (lang == AppLanguage.ARABIC) "التحويل بين المظهر الداكن لراحة العين أثناء صلوات الليل والمظهر الفاتح للقراءة النهارية" else "Switch between dark theme for night contemplation and light theme for daytime reading",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("app_theme_mode_card")
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(GoldPrimary.copy(alpha = 0.18f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (themeMode == com.example.ui.theme.AppThemeMode.LIGHT) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                    contentDescription = null,
+                                    tint = GoldPrimary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "نمط الإضاءة الحالي" else "Current Theme Mode",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) themeMode.titleAr else themeMode.titleEn,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = GoldPrimary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+
+                        // Quick Toggle Button
+                        Button(
+                            onClick = { viewModel.toggleDarkLightMode() },
+                            colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.testTag("quick_toggle_theme_btn")
+                        ) {
+                            Icon(
+                                imageVector = if (themeMode == com.example.ui.theme.AppThemeMode.LIGHT) Icons.Default.DarkMode else Icons.Default.LightMode,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (themeMode == com.example.ui.theme.AppThemeMode.LIGHT) {
+                                    if (lang == AppLanguage.ARABIC) "تحويل لداكن 🌙" else "Switch Dark 🌙"
+                                } else {
+                                    if (lang == AppLanguage.ARABIC) "تحويل لفاتح ☀️" else "Switch Light ☀️"
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Three Options: Light, Dark, System
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(
+                            Triple(com.example.ui.theme.AppThemeMode.LIGHT, if (lang == AppLanguage.ARABIC) "فاتح ☀️" else "Light ☀️", "theme_chip_light"),
+                            Triple(com.example.ui.theme.AppThemeMode.DARK, if (lang == AppLanguage.ARABIC) "داكن 🌙" else "Dark 🌙", "theme_chip_dark"),
+                            Triple(com.example.ui.theme.AppThemeMode.SYSTEM, if (lang == AppLanguage.ARABIC) "تلقائي ⚙️" else "System ⚙️", "theme_chip_system")
+                        ).forEach { (mode, label, testTag) ->
+                            val isSelected = themeMode == mode
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(
+                                        if (isSelected) GoldPrimary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (isSelected) GoldPrimary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .clickable { viewModel.setThemeMode(mode) }
+                                    .padding(vertical = 10.dp)
+                                    .testTag(testTag),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
         }
 
         // Multilingual Support & Local Timezone Notification Preferences

@@ -117,6 +117,10 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     private val _isCandleGlowEnabled = MutableStateFlow(true)
     val isCandleGlowEnabled: StateFlow<Boolean> = _isCandleGlowEnabled.asStateFlow()
 
+    // Theme Mode (Dark, Light, System)
+    private val _themeMode = MutableStateFlow(com.example.ui.theme.AppThemeMode.SYSTEM)
+    val themeMode: StateFlow<com.example.ui.theme.AppThemeMode> = _themeMode.asStateFlow()
+
     // Multilingual & Dual-Language State
     private val _isBilingualEnabled = MutableStateFlow(false)
     val isBilingualEnabled: StateFlow<Boolean> = _isBilingualEnabled.asStateFlow()
@@ -162,6 +166,7 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         _spiritualTheme.value = repository.getSpiritualBackgroundTheme()
         _spiritualOpacity.value = repository.getSpiritualBackgroundOpacity()
         _isCandleGlowEnabled.value = repository.isCandleGlowEnabled()
+        _themeMode.value = repository.getThemeMode()
 
         _isBilingualEnabled.value = repository.isBilingualEnabled()
         _secondaryLanguage.value = repository.getSecondaryLanguage()
@@ -739,5 +744,19 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             repository.clearConfessedSpiritualNotes()
         }
+    }
+
+    fun setThemeMode(mode: com.example.ui.theme.AppThemeMode) {
+        _themeMode.value = mode
+        repository.saveThemeMode(mode)
+    }
+
+    fun toggleDarkLightMode() {
+        val nextMode = when (_themeMode.value) {
+            com.example.ui.theme.AppThemeMode.DARK -> com.example.ui.theme.AppThemeMode.LIGHT
+            com.example.ui.theme.AppThemeMode.LIGHT -> com.example.ui.theme.AppThemeMode.DARK
+            com.example.ui.theme.AppThemeMode.SYSTEM -> com.example.ui.theme.AppThemeMode.LIGHT
+        }
+        setThemeMode(nextMode)
     }
 }

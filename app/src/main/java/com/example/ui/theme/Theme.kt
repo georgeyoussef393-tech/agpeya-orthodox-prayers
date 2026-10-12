@@ -52,7 +52,12 @@ private val ChristianLightColorScheme = lightColorScheme(
 
 @Composable
 fun AgpeyaTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: AppThemeMode = AppThemeMode.SYSTEM,
+    darkTheme: Boolean = when (themeMode) {
+        AppThemeMode.LIGHT -> false
+        AppThemeMode.DARK -> true
+        AppThemeMode.SYSTEM -> isSystemInDarkTheme()
+    },
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (darkTheme) ChristianDarkColorScheme else ChristianLightColorScheme

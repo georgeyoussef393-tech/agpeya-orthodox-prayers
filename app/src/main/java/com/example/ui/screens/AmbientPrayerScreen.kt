@@ -20,9 +20,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,6 +35,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,6 +78,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.localization.AgpeyaStrings
@@ -163,6 +168,13 @@ fun AmbientPrayerScreen(
             .fillMaxSize()
             .statusBarsPadding()
     ) {
+        // Spiritual holy backdrop for the retreat so the icon & candle atmosphere shines through
+        SpiritualAtmosphereBackdrop(
+            theme = spiritualTheme,
+            opacity = (spiritualOpacity * 1.35f).coerceIn(0.40f, 0.85f),
+            enableCandleGlow = isCandleGlowEnabled
+        )
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -178,22 +190,24 @@ fun AmbientPrayerScreen(
                     CopticCrossCanvas(color = GoldPrimary, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = if (lang == AppLanguage.ARABIC) "خلوة" else "Retreat",
+                        text = if (lang == AppLanguage.ARABIC) "الخلوة" else "Retreat",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = GoldLight
+                        color = GoldPrimary
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     CopticCrossCanvas(color = GoldPrimary, modifier = Modifier.size(24.dp))
                 }
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = if (lang == AppLanguage.ARABIC) "«ادخل إلى مخدعك وأغلق بابك وصل إلى أبيك الذي في الخفاء»" else "“Enter into your closet, and when you have shut your door, pray to your Father”",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -209,9 +223,10 @@ fun AmbientPrayerScreen(
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
                     ),
-                    elevation = CardDefaults.cardElevation(1.dp),
+                    elevation = CardDefaults.cardElevation(2.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -233,18 +248,20 @@ fun AmbientPrayerScreen(
                                 text = if (lang == AppLanguage.ARABIC) "مؤقت الخلوة والتركيز الصامت" else "Quiet Meditation Timer",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Duration Chips
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        // Duration Chips - Scrollable LazyRow so they never overflow card bounds
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            listOf(5, 10, 15, 20, 30).forEach { mins ->
+                            items(listOf(5, 10, 15, 20, 30)) { mins ->
                                 FilterChip(
                                     selected = selectedDurationMinutes == mins,
                                     onClick = {
@@ -363,9 +380,10 @@ fun AmbientPrayerScreen(
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
                     ),
-                    elevation = CardDefaults.cardElevation(1.dp),
+                    elevation = CardDefaults.cardElevation(2.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
                     modifier = Modifier.fillMaxWidth().testTag("jesus_prayer_beads_card")
                 ) {
                     Column(
@@ -391,25 +409,31 @@ fun AmbientPrayerScreen(
                                     text = AgpeyaStrings.arrowPrayersTitle(lang),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = if (lang == AppLanguage.ARABIC) "مسبحة الصلوات السهمية لتسجيلها في التقارير الدورية" else "Sacred Arrow Prayers counter for daily & periodic reports",
+                                    text = if (lang == AppLanguage.ARABIC) "مسبحة الصلوات السهمية للتسجيل اليومي" else "Sacred Arrow Prayers counter",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 11.sp
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
+
+                            Spacer(modifier = Modifier.width(8.dp))
 
                             // Today's Arrow count badge
                             Surface(
                                 shape = RoundedCornerShape(10.dp),
-                                color = GoldPrimary.copy(alpha = 0.15f),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.4f))
+                                color = GoldPrimary.copy(alpha = 0.18f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.45f))
                             ) {
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                 ) {
                                     Text(
                                         text = "$todayArrowCount",
@@ -418,7 +442,7 @@ fun AmbientPrayerScreen(
                                         color = GoldPrimary
                                     )
                                     Text(
-                                        text = if (lang == AppLanguage.ARABIC) "سهمية اليوم" else "today",
+                                        text = if (lang == AppLanguage.ARABIC) "اليوم" else "today",
                                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -437,7 +461,7 @@ fun AmbientPrayerScreen(
                                 val isSelected = selectedArrowPrayerIndex == idx
                                 Surface(
                                     shape = RoundedCornerShape(10.dp),
-                                    color = if (isSelected) GoldPrimary.copy(alpha = 0.22f) else MaterialTheme.colorScheme.surface,
+                                    color = if (isSelected) GoldPrimary.copy(alpha = 0.22f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                                     border = androidx.compose.foundation.BorderStroke(
                                         1.dp,
                                         if (isSelected) GoldPrimary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
@@ -459,20 +483,22 @@ fun AmbientPrayerScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // Active Prayer Text Display
+                        // Active Prayer Text Display - Fully constrained, theme-aware text
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.3f)),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.4f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
                                 text = arrowPrayerPresets[selectedArrowPrayerIndex],
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                color = GoldLight,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 10.dp)
                             )
                         }
 
@@ -522,33 +548,33 @@ fun AmbientPrayerScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                        // Real-time Auto-Recording Status Banner
+                        // Real-time Auto-Recording Status Banner - Clean direct multiline text without overflowing Row
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = if (isTimerRunning) GoldPrimary.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, if (isTimerRunning) GoldPrimary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                            color = if (isTimerRunning) GoldPrimary.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.50f),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (isTimerRunning) GoldPrimary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                            ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                            ) {
-                                Text(
-                                    text = if (isTimerRunning) {
-                                        if (lang == AppLanguage.ARABIC) "🕊️ الخلوة نشطة — تُسجل كل نقرة في التقرير اليومي لحظياً" else "🕊️ Retreat Active — Every tap recorded to daily report instantly"
-                                    } else {
-                                        if (lang == AppLanguage.ARABIC) "✓ تُسجل النقرات واليوم تلقائياً في التقرير بجانب الصلوات اليومية" else "✓ Taps & date auto-recorded in report alongside daily prayers"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (isTimerRunning) GoldLight else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 11.sp,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
+                            Text(
+                                text = if (isTimerRunning) {
+                                    if (lang == AppLanguage.ARABIC) "🕊️ الخلوة نشطة — تُسجل كل نقرة في التقرير اليومي لحظياً" else "🕊️ Retreat Active — Every tap recorded to daily report instantly"
+                                } else {
+                                    if (lang == AppLanguage.ARABIC) "✓ تُسجل النقرات تلقائياً في التقرير مع الصلوات اليومية" else "✓ Taps auto-recorded in report alongside daily prayers"
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isTimerRunning) GoldPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 11.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -566,7 +592,7 @@ fun AmbientPrayerScreen(
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                                 ) {
                                     Text(
                                         text = if (lang == AppLanguage.ARABIC) "الهدف اليومي:" else "Daily Target:",
@@ -586,7 +612,7 @@ fun AmbientPrayerScreen(
                             OutlinedButton(
                                 onClick = { jesusPrayerCount = 0 },
                                 shape = RoundedCornerShape(10.dp),
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Text(
                                     text = if (lang == AppLanguage.ARABIC) "تصفير الجلسة" else "Reset Session",
@@ -622,7 +648,7 @@ fun AmbientPrayerScreen(
                             border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(46.dp)
+                                .defaultMinSize(minHeight = 48.dp)
                                 .testTag("save_arrow_prayers_btn")
                         ) {
                             Icon(
@@ -633,23 +659,29 @@ fun AmbientPrayerScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "${AgpeyaStrings.saveArrowPrayers(lang)} ${if (jesusPrayerCount > 0) "($jesusPrayerCount)" else ""}",
+                                text = if (lang == AppLanguage.ARABIC) {
+                                    "تسجيل الصلوات السهمية في التقرير ${if (jesusPrayerCount > 0) "($jesusPrayerCount)" else ""}"
+                                } else {
+                                    "${AgpeyaStrings.saveArrowPrayers(lang)} ${if (jesusPrayerCount > 0) "($jesusPrayerCount)" else ""}"
+                                },
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = GoldLight
+                                color = GoldLight,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
                 }
             }
 
-            // Rotating Patristic Quote Banner
+            // Rotating Patristic Quote Banner - Theme responsive
             item {
                 Spacer(modifier = Modifier.height(12.dp))
                 Surface(
-                    color = Color.Black.copy(alpha = 0.20f),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.70f),
                     shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.20f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -659,7 +691,7 @@ fun AmbientPrayerScreen(
                         Text(
                             text = patristicQuotes[activeQuoteIndex],
                             style = MaterialTheme.typography.bodyMedium,
-                            color = GoldLight,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center,
                             lineHeight = 22.sp
                         )

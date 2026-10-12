@@ -27,6 +27,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccessTime
@@ -71,6 +75,7 @@ import com.example.ui.components.DailyScriptureCard
 import com.example.ui.components.IchthysDivider
 import com.example.ui.components.PeaceDoveBadge
 import com.example.ui.components.PrayerReadingModal
+import com.example.ui.components.SpiritualAtmosphereBackdrop
 import com.example.ui.theme.BurgundyDeep
 import com.example.ui.theme.BurgundyLight
 import com.example.ui.theme.GoldLight
@@ -99,6 +104,9 @@ fun PrayersScreen(
     val isBilingual by viewModel.isBilingualEnabled.collectAsState()
     val secondaryLang by viewModel.secondaryLanguage.collectAsState()
     val fontSizeMultiplier by viewModel.fontSizeMultiplier.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
+    val userEmail by viewModel.userEmail.collectAsState()
+    val syncStatus by viewModel.syncStatus.collectAsState()
 
     val todayString = AgpeyaRepository.getTodayString()
     val todayLogs = remember(allLogs, todayString) {
@@ -124,6 +132,14 @@ fun PrayersScreen(
     )
 
     Box(modifier = modifier.fillMaxSize()) {
+        // Spiritual holy backdrop for the entire screen so the sacred image shines through
+        SpiritualAtmosphereBackdrop(
+            theme = spiritualTheme,
+            opacity = (spiritualOpacity * 1.5f).coerceIn(0.30f, 0.65f),
+            enableCandleGlow = isCandleGlowEnabled,
+            overlayColor = MaterialTheme.colorScheme.background
+        )
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 88.dp)
@@ -188,19 +204,55 @@ fun PrayersScreen(
                                 }
                             }
 
-                            IconButton(
-                                onClick = onNavigateToSettings,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(Color.Black.copy(alpha = 0.45f))
-                                    .testTag("top_bar_settings_btn")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Settings,
-                                    contentDescription = AgpeyaStrings.tabSettings(lang),
-                                    tint = GoldPrimary
-                                )
-                            }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(
+                                        onClick = { viewModel.openAuthOnboarding() },
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(Color.Black.copy(alpha = 0.45f))
+                                            .testTag("top_bar_cloud_auth_btn")
+                                    ) {
+                                        Icon(
+                                            imageVector = if (!userEmail.isNullOrBlank()) Icons.Default.CloudDone else Icons.Default.CloudSync,
+                                            contentDescription = if (lang == AppLanguage.ARABIC) "التسجيل السحابي والمزامنة" else "Cloud Sync & Registration",
+                                            tint = if (!userEmail.isNullOrBlank()) Color(0xFF4CAF50) else GoldPrimary
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    IconButton(
+                                        onClick = { viewModel.toggleDarkLightMode() },
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(Color.Black.copy(alpha = 0.45f))
+                                            .testTag("top_bar_theme_toggle_btn")
+                                    ) {
+                                        val isDarkActive = themeMode == com.example.ui.theme.AppThemeMode.DARK ||
+                                            (themeMode == com.example.ui.theme.AppThemeMode.SYSTEM)
+                                        Icon(
+                                            imageVector = if (isDarkActive) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                            contentDescription = if (isDarkActive) "Switch to Light Mode" else "Switch to Dark Mode",
+                                            tint = GoldPrimary
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    IconButton(
+                                        onClick = onNavigateToSettings,
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(Color.Black.copy(alpha = 0.45f))
+                                            .testTag("top_bar_settings_btn")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Settings,
+                                            contentDescription = AgpeyaStrings.tabSettings(lang),
+                                            tint = GoldPrimary
+                                        )
+                                    }
+                                }
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -233,20 +285,182 @@ fun PrayersScreen(
                 )
             }
 
+            // Cloud Registration & Sync Status Banner
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = if (!userEmail.isNullOrBlank()) Color(0xFF4CAF50).copy(alpha = 0.5f) else GoldPrimary.copy(alpha = 0.4f)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                        .testTag("prayers_cloud_sync_banner")
+                ) {
+                    if (userEmail.isNullOrBlank()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(CircleShape)
+                                        .background(GoldPrimary.copy(alpha = 0.18f))
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.CloudSync,
+                                        contentDescription = null,
+                                        tint = GoldPrimary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "التسجيل السحابي ومزامنة الصلوات" else "Cloud Registration & Sync",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "سجّل بريدك لحفظ صلواتك ومزامنتها سحابياً عبر أجهزتك" else "Sign in with email to sync prayers across all your devices",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 16.sp
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = { viewModel.openAuthOnboarding() },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = GoldPrimary,
+                                        contentColor = Color.Black
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(44.dp)
+                                        .testTag("btn_prayers_open_cloud_register")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.CloudSync,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "التسجيل السحابي الآن" else "Cloud Register",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+
+                                OutlinedButton(
+                                    onClick = onNavigateToSettings,
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.height(44.dp)
+                                ) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "الإعدادات" else "Settings",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF1E3A2F))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CloudDone,
+                                    contentDescription = null,
+                                    tint = Color(0xFF4CAF50),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "التسجيل السحابي مفعل" else "Cloud Synced",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF4CAF50)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "• ${AgpeyaStrings.syncStatusSynced(lang)}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Text(
+                                    text = userEmail ?: "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            OutlinedButton(
+                                onClick = { viewModel.openAuthOnboarding() },
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                modifier = Modifier.height(34.dp)
+                            ) {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "إدارة الحساب" else "Manage",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = GoldPrimary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Daily Canonical Prayers Progress Tracker Card
             item {
                 Card(
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MaterialTheme.colorScheme.surface
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
                         .testTag("today_progress_card")
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(18.dp)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -289,7 +503,7 @@ fun PrayersScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
 
                         LinearProgressIndicator(
                             progress = { animatedProgress },
@@ -405,35 +619,40 @@ private fun PrayerCardItem(
         } else {
             MaterialTheme.colorScheme.surface
         },
-        animationSpec = tween(durationMillis = 150, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
         label = "cardBg"
     )
 
     Card(
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = BorderStroke(
-            1.dp,
-            if (isPrayedToday) PeacefulGreen.copy(alpha = 0.4f) else GoldPrimary.copy(alpha = 0.25f)
-        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp, pressedElevation = 6.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
-            .pressBounce()
             .clickable { onOpenReading() }
             .testTag("prayer_card_${prayerId.code.lowercase()}")
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Header Row: Cross, Names, Time Badge
+        Column(modifier = Modifier.padding(18.dp)) {
+            // Header Row: Cross Badge, Prayer Titles, Prayer Time Badge
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                CopticCrossCanvas(
-                    size = 28.dp,
-                    color = if (isPrayedToday) PeacefulGreen else GoldPrimary
-                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isPrayedToday) PeacefulGreen.copy(alpha = 0.12f) else BurgundyDeep.copy(alpha = 0.10f)
+                        )
+                ) {
+                    CopticCrossCanvas(
+                        size = 22.dp,
+                        color = if (isPrayedToday) PeacefulGreen else BurgundyDeep
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(12.dp))
 
@@ -442,25 +661,32 @@ private fun PrayerCardItem(
                         text = prayerId.getDisplayName(lang),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = prayerId.copticTitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = GoldPrimary,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                // Time Badge
+                Spacer(modifier = Modifier.width(10.dp))
+
+                // Prayer Time Badge with balanced padding and unified shape
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.AccessTime,
@@ -468,7 +694,7 @@ private fun PrayerCardItem(
                             tint = if (setting.isEnabled) GoldPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(14.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
                         val formattedTime = String.format("%02d:%02d", setting.hour, setting.minute)
                         Text(
                             text = formattedTime,
@@ -481,21 +707,21 @@ private fun PrayerCardItem(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Spiritual Theme preview
+            // Spiritual Theme & Liturgical focus
             Text(
                 text = prayerId.getSpiritualTheme(lang),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                lineHeight = 17.sp
+                lineHeight = 19.sp
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Clean Action Buttons (Read Prayer + Toggle Prayed Status)
+            // Balanced Action Buttons: "قراءة الصلاة والتأمل" & Prayer status toggle
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -504,11 +730,11 @@ private fun PrayerCardItem(
                 Button(
                     onClick = onOpenReading,
                     colors = ButtonDefaults.buttonColors(containerColor = BurgundyDeep),
-                    shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .height(38.dp)
+                        .height(42.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.MenuBook,
@@ -521,24 +747,25 @@ private fun PrayerCardItem(
                         text = AgpeyaStrings.readPrayer(lang),
                         color = GoldLight,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
                 // Completion status button
                 if (isPrayedToday) {
                     Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = PeacefulGreen.copy(alpha = 0.18f),
-                        border = BorderStroke(1.dp, PeacefulGreen.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp),
+                        color = PeacefulGreen.copy(alpha = 0.15f),
                         modifier = Modifier
-                            .height(38.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
                             .clickable { onTogglePrayed() }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 12.dp)
+                            modifier = Modifier.padding(horizontal = 14.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Check,
@@ -546,35 +773,35 @@ private fun PrayerCardItem(
                                 tint = PeacefulGreen,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = if (lang == AppLanguage.ARABIC) "صليت اليوم ✓" else "Prayed ✓",
                                 color = PeacefulGreen,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 11.5.sp
+                                fontSize = 12.sp
                             )
                         }
                     }
                 } else {
                     OutlinedButton(
                         onClick = onTogglePrayed,
-                        shape = RoundedCornerShape(10.dp),
-                        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.5f)),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                        modifier = Modifier.height(38.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, GoldPrimary),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                        modifier = Modifier.height(42.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.CheckCircle,
                             contentDescription = null,
                             tint = GoldPrimary,
-                            modifier = Modifier.size(15.dp)
+                            modifier = Modifier.size(16.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
                         Text(
                             text = if (lang == AppLanguage.ARABIC) "تسجيل الصلاة" else "Mark Done",
                             color = GoldPrimary,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 11.5.sp
+                            fontSize = 12.sp
                         )
                     }
                 }

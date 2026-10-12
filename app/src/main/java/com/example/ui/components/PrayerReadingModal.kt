@@ -684,9 +684,9 @@ fun PrayerReadingModal(
                     // Sacred Reverence Background Backdrop
                     SpiritualAtmosphereBackdrop(
                         theme = currentSpiritualTheme,
-                        opacity = spiritualOpacity,
+                        opacity = (spiritualOpacity * 1.5f).coerceIn(0.28f, 0.65f),
                         enableCandleGlow = isCandleModeActive,
-                        overlayColor = activeBgColor
+                        overlayColor = activeBgColor.copy(alpha = 0.55f)
                     )
 
                     Column(
@@ -700,9 +700,9 @@ fun PrayerReadingModal(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (readingTheme.surfaceColor != Color.Unspecified) {
-                                readingTheme.surfaceColor.copy(alpha = 0.9f)
+                                readingTheme.surfaceColor.copy(alpha = 0.82f)
                             } else {
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.40f)
                             }
                         ),
                         modifier = Modifier
@@ -874,9 +874,9 @@ private fun DetailedPrayerSectionCard(
     secondaryLang: AppLanguage = AppLanguage.COPTIC
 ) {
     val cardColor = if (theme.surfaceColor != Color.Unspecified) {
-        theme.surfaceColor
+        theme.surfaceColor.copy(alpha = 0.88f)
     } else {
-        MaterialTheme.colorScheme.surface
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.88f)
     }
 
     val textColor = if (theme.textColor != Color.Unspecified) {
@@ -938,11 +938,14 @@ private fun DetailedPrayerSectionCard(
                     }
                 }
                 section.copticIntro?.let { coptic ->
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = coptic,
                         style = MaterialTheme.typography.bodySmall,
                         color = theme.rubricColor,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -1021,9 +1024,9 @@ private fun DetailedGospelBlock(
     secondaryLang: AppLanguage = AppLanguage.COPTIC
 ) {
     val cardColor = if (theme.surfaceColor != Color.Unspecified) {
-        theme.surfaceColor
+        theme.surfaceColor.copy(alpha = 0.88f)
     } else {
-        MaterialTheme.colorScheme.surface
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.88f)
     }
 
     val textColor = if (theme.textColor != Color.Unspecified) {

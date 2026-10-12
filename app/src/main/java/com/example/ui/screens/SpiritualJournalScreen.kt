@@ -118,6 +118,13 @@ fun SpiritualJournalScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        // Sacred backdrop artwork with reverent lighting
+        SpiritualAtmosphereBackdrop(
+            theme = spiritualTheme,
+            opacity = (spiritualOpacity * 1.35f).coerceIn(0.40f, 0.85f),
+            enableCandleGlow = isCandleGlowEnabled
+        )
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 96.dp)
@@ -130,19 +137,18 @@ fun SpiritualJournalScreen(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    BurgundyDeep,
-                                    Color(0xFF1E0B11)
+                                    BurgundyDeep.copy(alpha = 0.90f),
+                                    Color(0xFF1E0B11).copy(alpha = 0.85f)
                                 )
                             )
                         )
-                        .padding(horizontal = 16.dp, vertical = 20.dp)
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
                 ) {
                     SubtleCrossWatermark(modifier = Modifier.align(Alignment.CenterEnd))
 
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 20.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -321,9 +327,9 @@ fun SpiritualJournalScreen(
 
                     Card(
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        border = if (note.isPinned) androidx.compose.foundation.BorderStroke(1.5.dp, GoldPrimary) else null,
+                        border = if (note.isPinned) androidx.compose.foundation.BorderStroke(1.5.dp, GoldPrimary) else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 6.dp)
