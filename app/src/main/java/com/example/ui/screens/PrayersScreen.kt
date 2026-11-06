@@ -2,11 +2,16 @@ package com.example.ui.screens
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +38,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ViewInAr
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
@@ -49,12 +55,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -109,6 +118,12 @@ fun PrayersScreen(
     val syncStatus by viewModel.syncStatus.collectAsState()
 
     val todayString = AgpeyaRepository.getTodayString()
+    val isAr = lang == AppLanguage.ARABIC
+    val currentHourPrayer = remember { PrayerId.getCurrentPrayerForTime() }
+    val dualDateString = remember(todayString, isAr) {
+        com.example.data.coptic.CopticCalendarHelper.getFormattedDualDate(isArabic = isAr)
+    }
+
     val todayLogs = remember(allLogs, todayString) {
         allLogs.filter { it.dateString == todayString }
     }
@@ -266,6 +281,16 @@ fun PrayersScreen(
                         )
                     }
                 }
+            }
+
+            // Illuminated Coptic Header Banner
+            item {
+                com.example.ui.components.IlluminatedCopticHeaderBanner(
+                    title = AgpeyaStrings.appTitle(lang),
+                    subtitle = AgpeyaStrings.appSubtitle(lang),
+                    copticDateText = dualDateString,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                )
             }
 
             // Daily Orthodox Scripture Verse & Patristic Reflection
@@ -447,75 +472,15 @@ fun PrayersScreen(
                 }
             }
 
-            // Daily Canonical Prayers Progress Tracker Card
+
+
+            // Room Database: Hourly Prayers Daily & Weekly Progress Tracker
             item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                        .testTag("today_progress_card")
-                ) {
-                    Column(modifier = Modifier.padding(18.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = AgpeyaStrings.prayersTodayLabel(lang),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    PeaceDoveBadge(
-                                        text = AgpeyaStrings.peaceAndDiscipline(lang)
-                                    )
-                                }
-                                Text(
-                                    text = "$completedCanonicalCount / $totalCanonical ${AgpeyaStrings.completedPrayersTodaySuffix(lang)}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            // Percentage Badge
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(GoldPrimary)
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Text(
-                                    text = "${(animatedProgress * 100).toInt()}%",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Black
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        LinearProgressIndicator(
-                            progress = { animatedProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = GoldPrimary,
-                            trackColor = MaterialTheme.colorScheme.outlineVariant
-                        )
-                    }
-                }
+                com.example.ui.components.HourlyPrayersProgressTracker(
+                    viewModel = viewModel,
+                    onOpenPrayerReading = { prayerId -> viewModel.openPrayerReading(prayerId) },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                )
             }
 
             // Daily Arrow Prayers Target & Progress Ring Card
@@ -560,6 +525,7 @@ fun PrayersScreen(
             // Canonical Prayers List
             items(canonicalList, key = { it.code }) { prayerId ->
                 val isPrayed = prayedCodesToday.contains(prayerId.code)
+                val isCurrent = prayerId == currentHourPrayer
                 val setting = alarmSettings[prayerId.code] ?: PrayerAlarmSetting(
                     prayerCode = prayerId.code,
                     hour = prayerId.defaultHour,
@@ -572,6 +538,7 @@ fun PrayersScreen(
                     lang = lang,
                     setting = setting,
                     isPrayedToday = isPrayed,
+                    isCurrentPrayer = isCurrent,
                     onTogglePrayed = { viewModel.togglePrayerToday(prayerId) },
                     onOpenReading = { viewModel.openPrayerReading(prayerId) }
                 )
@@ -610,6 +577,7 @@ private fun PrayerCardItem(
     lang: AppLanguage,
     setting: PrayerAlarmSetting,
     isPrayedToday: Boolean,
+    isCurrentPrayer: Boolean = false,
     onTogglePrayed: () -> Unit,
     onOpenReading: () -> Unit
 ) {
@@ -623,10 +591,36 @@ private fun PrayerCardItem(
         label = "cardBg"
     )
 
+    val infiniteTransition = rememberInfiniteTransition(label = "current_prayer_pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1.0f,
+        targetValue = 1.045f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
+    val pulseGlowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 0.95f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_glow_alpha"
+    )
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp, pressedElevation = 6.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isCurrentPrayer && !isPrayedToday) 5.dp else 3.dp,
+            pressedElevation = 6.dp
+        ),
+        border = if (isCurrentPrayer && !isPrayedToday) {
+            BorderStroke(1.5.dp, GoldPrimary.copy(alpha = pulseGlowAlpha))
+        } else null,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
@@ -634,7 +628,7 @@ private fun PrayerCardItem(
             .testTag("prayer_card_${prayerId.code.lowercase()}")
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
-            // Header Row: Cross Badge, Prayer Titles, Prayer Time Badge
+            // Header Row: Cross Badge, Prayer Titles, Prayer Time Badge, Current Hour Badge
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -677,7 +671,36 @@ private fun PrayerCardItem(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+
+                if (isCurrentPrayer) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = GoldPrimary.copy(alpha = 0.15f),
+                        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = pulseGlowAlpha))
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(7.dp)
+                                    .clip(CircleShape)
+                                    .background(GoldPrimary.copy(alpha = pulseGlowAlpha))
+                            )
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "الساعة الحالية ⏰" else "Current Hour ⏰",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = GoldPrimary,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
 
                 // Prayer Time Badge with balanced padding and unified shape
                 Surface(
@@ -732,10 +755,34 @@ private fun PrayerCardItem(
                     colors = ButtonDefaults.buttonColors(containerColor = BurgundyDeep),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(42.dp)
+                    modifier = if (isCurrentPrayer) {
+                        Modifier
+                            .weight(1f)
+                            .height(42.dp)
+                            .graphicsLayer {
+                                scaleX = pulseScale
+                                scaleY = pulseScale
+                            }
+                            .border(
+                                width = 1.5.dp,
+                                color = GoldPrimary.copy(alpha = pulseGlowAlpha),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                    } else {
+                        Modifier
+                            .weight(1f)
+                            .height(42.dp)
+                    }
                 ) {
+                    if (isCurrentPrayer) {
+                        Box(
+                            modifier = Modifier
+                                .size(7.dp)
+                                .clip(CircleShape)
+                                .background(GoldLight.copy(alpha = pulseGlowAlpha))
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
                     Icon(
                         imageVector = Icons.Default.MenuBook,
                         contentDescription = null,

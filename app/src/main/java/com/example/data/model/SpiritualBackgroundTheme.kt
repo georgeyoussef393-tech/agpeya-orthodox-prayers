@@ -52,6 +52,24 @@ enum class SpiritualBackgroundTheme(
         drawableResId = R.drawable.agpeya_banner,
         defaultOpacity = 0.16f
     ),
+    ANCIENT_DARK_WOOD(
+        id = "ancient_dark_wood",
+        titleAr = "خشب أبنوس أثري 🪵",
+        titleEn = "Ancient Dark Mahogany Wood 🪵",
+        subtitleAr = "نقوش خشبية داكنة مع بريق مذهّب ونور هادئ",
+        subtitleEn = "Deep carved mahogany wood texture with subtle golden glow",
+        drawableResId = R.drawable.img_monastic_prayer_bg,
+        defaultOpacity = 0.28f
+    ),
+    WARM_CEDAR_WOOD(
+        id = "warm_cedar_wood",
+        titleAr = "خشب أرز قبطي دافئ 🪵",
+        titleEn = "Coptic Warm Cedar Wood 🪵",
+        subtitleAr = "ملمس خشبي دافئ يعكس الهدوء والخشوع في القلاية",
+        subtitleEn = "Warm monastic cedar wood grain atmosphere",
+        drawableResId = R.drawable.agpeya_banner,
+        defaultOpacity = 0.25f
+    ),
     PURE_MINIMAL(
         id = "pure_minimal",
         titleAr = "لون هادئ بدون صور",

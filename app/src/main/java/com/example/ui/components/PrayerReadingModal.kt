@@ -15,6 +15,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -78,9 +80,12 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -137,6 +142,10 @@ fun PrayerReadingModal(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+
+    var showQuickIndexSheet by remember { mutableStateOf(false) }
+    val sectionPositions = remember { mutableStateMapOf<Int, Float>() }
 
     var fullSections by remember(prayerId, lang) {
         mutableStateOf(AgpeyaHourDetails.getFullPrayerSections(prayerId, lang))
@@ -248,7 +257,7 @@ fun PrayerReadingModal(
                 tonalElevation = 6.dp
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                // Top Header with Title & Quick Global Controls
+                // Top Header with Title, Quick Index Button, Auto-Scroll & Close
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -262,41 +271,12 @@ fun PrayerReadingModal(
                         CopticCrossCanvas(size = 32.dp)
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = prayerId.getDisplayName(lang),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = readingTheme.accentColor.copy(alpha = 0.2f),
-                                    modifier = Modifier.padding(horizontal = 4.dp)
-                                ) {
-                                    Text(
-                                        text = if (lang == AppLanguage.ARABIC) "صلاة كاملة" else "Complete",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                        fontWeight = FontWeight.Bold,
-                                        color = readingTheme.accentColor,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                    )
-                                }
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = PeacefulGreen.copy(alpha = 0.18f),
-                                    modifier = Modifier.padding(horizontal = 2.dp)
-                                ) {
-                                    Text(
-                                        text = if (lang == AppLanguage.ARABIC) "✓ أوفلاين" else "✓ Offline",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                        fontWeight = FontWeight.Bold,
-                                        color = PeacefulGreen,
-                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                                    )
-                                }
-                            }
+                            Text(
+                                text = prayerId.getDisplayName(lang),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface
+                            )
                             Text(
                                 text = "${prayerId.copticTitle} • ${fullSections.size} ${if (lang == AppLanguage.ARABIC) "أقسام ليتورجية" else "Liturgical Sections"}",
                                 style = MaterialTheme.typography.bodySmall,
@@ -304,375 +284,78 @@ fun PrayerReadingModal(
                             )
                         }
 
-                        // Close Dialog Button
-                        IconButton(
-                            onClick = onDismiss,
-                            modifier = Modifier
-                                .size(34.dp)
-                                .clip(CircleShape)
-                                .background(activeBgColor)
-                                .testTag("close_prayer_reading_btn")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
-                                tint = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
-                }
+                        // Right Controls: Quick Index Button + Auto-Scroll Button + Close Button
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // 1. Prominent Quick Index Button ("فهرس الأقسام")
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = readingTheme.accentColor.copy(alpha = 0.18f),
+                                border = BorderStroke(1.dp, readingTheme.accentColor.copy(alpha = 0.5f)),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { showQuickIndexSheet = true }
+                                    .testTag("quick_index_btn")
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.MenuBook,
+                                        contentDescription = "Quick Index",
+                                        tint = readingTheme.accentColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = if (lang == AppLanguage.ARABIC) "فهرس الأقسام" else "Index",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = readingTheme.accentColor
+                                    )
+                                }
+                            }
 
-                // Dedicated Prayer Controls Toolbar (Auto-Scroll, Keep Screen Awake, Theme, Zoom)
-                Surface(
-                    color = activeSurfaceColor.copy(alpha = 0.85f),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // 1. Auto-Scroll Control Group
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(
-                                    if (isAutoScrolling) readingTheme.accentColor.copy(alpha = 0.25f)
-                                    else activeBgColor
-                                )
-                                .padding(horizontal = 6.dp, vertical = 3.dp)
-                        ) {
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // 2. Compact Auto-Scroll Toggle
                             IconButton(
                                 onClick = { isAutoScrolling = !isAutoScrolling },
-                                modifier = Modifier.size(30.dp)
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (isAutoScrolling) readingTheme.accentColor.copy(alpha = 0.25f)
+                                        else activeBgColor
+                                    )
+                                    .testTag("auto_scroll_toggle_btn")
                             ) {
                                 Icon(
                                     imageVector = if (isAutoScrolling) Icons.Default.Pause else Icons.Default.PlayArrow,
                                     contentDescription = "Toggle Auto-Scroll",
                                     tint = readingTheme.accentColor,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
 
-                            Text(
-                                text = if (isAutoScrolling) {
-                                    if (lang == AppLanguage.ARABIC) "تمرير تلقائي" else "Auto-Scroll"
-                                } else {
-                                    if (lang == AppLanguage.ARABIC) "تمرير" else "Scroll"
-                                },
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                                fontWeight = if (isAutoScrolling) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isAutoScrolling) readingTheme.accentColor else (if (readingTheme.textSecondaryColor != Color.Unspecified) readingTheme.textSecondaryColor else MaterialTheme.colorScheme.onSurfaceVariant),
-                                modifier = Modifier
-                                    .clickable { isAutoScrolling = !isAutoScrolling }
-                                    .padding(end = 4.dp)
-                            )
+                            Spacer(modifier = Modifier.width(8.dp))
 
-                            // Speed Selector
-                            Box {
-                                Surface(
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = readingTheme.accentColor.copy(alpha = 0.15f),
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .clickable { showSpeedMenu = true }
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = "${scrollSpeedMultiplier}x",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
-                                        fontWeight = FontWeight.Bold,
-                                        color = readingTheme.accentColor
-                                    )
-                                }
-
-                                DropdownMenu(
-                                    expanded = showSpeedMenu,
-                                    onDismissRequest = { showSpeedMenu = false }
-                                ) {
-                                    listOf(0.5f, 1.0f, 1.5f, 2.0f, 3.0f).forEach { speed ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    text = when (speed) {
-                                                        0.5f -> if (lang == AppLanguage.ARABIC) "٠.٥x (هادئ جداً)" else "0.5x (Very Slow)"
-                                                        1.0f -> if (lang == AppLanguage.ARABIC) "١.٠x (عادي)" else "1.0x (Normal)"
-                                                        1.5f -> if (lang == AppLanguage.ARABIC) "١.٥x (متوسط)" else "1.5x (Medium)"
-                                                        2.0f -> if (lang == AppLanguage.ARABIC) "٢.٠x (سريع)" else "2.0x (Fast)"
-                                                        else -> if (lang == AppLanguage.ARABIC) "٣.٠x (سريع جداً)" else "3.0x (Very Fast)"
-                                                    },
-                                                    fontWeight = if (scrollSpeedMultiplier == speed) FontWeight.Bold else FontWeight.Normal
-                                                )
-                                            },
-                                            onClick = {
-                                                scrollSpeedMultiplier = speed
-                                                showSpeedMenu = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Right Group: Candle Sanctuary Toggle + Keep Screen On + Theme Picker + Font Size
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            // Candle Sanctuary Mode Toggle
+                            // 3. Close Dialog Button
                             IconButton(
-                                onClick = {
-                                    isCandleModeActive = !isCandleModeActive
-                                },
+                                onClick = onDismiss,
                                 modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (isCandleModeActive) GoldPrimary.copy(alpha = 0.28f)
-                                        else activeBgColor
-                                    )
-                                    .testTag("candle_sanctuary_toggle_btn")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.AutoAwesome,
-                                    contentDescription = "Candle Sanctuary Mode",
-                                    tint = if (isCandleModeActive) GoldPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                    modifier = Modifier.size(17.dp)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            // 2. Keep Screen Awake Button
-                            IconButton(
-                                onClick = { keepScreenOn = !keepScreenOn },
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (keepScreenOn) readingTheme.accentColor.copy(alpha = 0.2f)
-                                        else activeBgColor
-                                    )
-                            ) {
-                                Icon(
-                                    imageVector = if (keepScreenOn) Icons.Filled.WbIncandescent else Icons.Outlined.WbIncandescent,
-                                    contentDescription = "Keep Screen On",
-                                    tint = if (keepScreenOn) readingTheme.accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                    modifier = Modifier.size(17.dp)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            // 3. Spiritual Atmosphere & Background Picker
-                            Box {
-                                IconButton(
-                                    onClick = { showAtmosphereMenu = true },
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (currentSpiritualTheme.drawableResId != null) readingTheme.accentColor.copy(alpha = 0.2f)
-                                            else activeBgColor
-                                        )
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Wallpaper,
-                                        contentDescription = "Spiritual Atmosphere",
-                                        tint = readingTheme.accentColor,
-                                        modifier = Modifier.size(17.dp)
-                                    )
-                                }
-
-                                DropdownMenu(
-                                    expanded = showAtmosphereMenu,
-                                    onDismissRequest = { showAtmosphereMenu = false }
-                                ) {
-                                    SpiritualBackgroundTheme.entries.forEach { theme ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Text(
-                                                        text = if (lang == AppLanguage.ARABIC) theme.titleAr else theme.titleEn,
-                                                        fontWeight = if (currentSpiritualTheme == theme) FontWeight.Bold else FontWeight.Normal,
-                                                        color = if (currentSpiritualTheme == theme) readingTheme.accentColor else MaterialTheme.colorScheme.onSurface
-                                                    )
-                                                }
-                                            },
-                                            onClick = {
-                                                currentSpiritualTheme = theme
-                                                onSpiritualThemeChange(theme)
-                                                showAtmosphereMenu = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            // 4. Reading Color Theme Selector
-                            Box {
-                                IconButton(
-                                    onClick = { showThemeMenu = true },
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .background(activeBgColor)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Palette,
-                                        contentDescription = "Reading Theme",
-                                        tint = readingTheme.accentColor,
-                                        modifier = Modifier.size(17.dp)
-                                    )
-                                }
-
-                                DropdownMenu(
-                                    expanded = showThemeMenu,
-                                    onDismissRequest = { showThemeMenu = false }
-                                ) {
-                                    PrayerReadingTheme.values().forEach { theme ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .size(14.dp)
-                                                            .clip(CircleShape)
-                                                            .background(
-                                                                if (theme.backgroundColor != Color.Unspecified) theme.backgroundColor
-                                                                else Color.Gray
-                                                            )
-                                                            .border(1.dp, theme.accentColor, CircleShape)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(
-                                                        text = if (lang == AppLanguage.ARABIC) theme.titleAr else theme.titleEn,
-                                                        fontWeight = if (readingTheme == theme) FontWeight.Bold else FontWeight.Normal
-                                                    )
-                                                }
-                                            },
-                                            onClick = {
-                                                readingTheme = theme
-                                                showThemeMenu = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            // 5. Font Size Zoom Toggle
-                            IconButton(
-                                onClick = {
-                                    val nextMultiplier = when {
-                                        currentFontSizeMultiplier < 1.15f -> 1.30f
-                                        currentFontSizeMultiplier < 1.45f -> 1.60f
-                                        else -> 1.0f
-                                    }
-                                    currentFontSizeMultiplier = nextMultiplier
-                                    onFontSizeMultiplierChange(nextMultiplier)
-                                },
-                                modifier = Modifier
-                                    .size(32.dp)
+                                    .size(34.dp)
                                     .clip(CircleShape)
                                     .background(activeBgColor)
+                                    .testTag("close_prayer_reading_btn")
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.FormatSize,
-                                    contentDescription = "Font size",
-                                    tint = readingTheme.accentColor,
-                                    modifier = Modifier.size(17.dp)
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close",
+                                    tint = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            // 6. Language Quick Switcher
-                            Box {
-                                IconButton(
-                                    onClick = { showLanguageMenu = true },
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .background(activeBgColor)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Translate,
-                                        contentDescription = "Language",
-                                        tint = readingTheme.accentColor,
-                                        modifier = Modifier.size(17.dp)
-                                    )
-                                }
-
-                                DropdownMenu(
-                                    expanded = showLanguageMenu,
-                                    onDismissRequest = { showLanguageMenu = false }
-                                ) {
-                                    AppLanguage.entries.forEach { appLang ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Text(
-                                                        text = "${appLang.flagEmoji}  ${appLang.nativeName}",
-                                                        fontWeight = if (lang == appLang) FontWeight.Bold else FontWeight.Normal,
-                                                        color = if (lang == appLang) readingTheme.accentColor else MaterialTheme.colorScheme.onSurface
-                                                    )
-                                                    if (lang == appLang) {
-                                                        Spacer(modifier = Modifier.width(8.dp))
-                                                        Icon(
-                                                            imageVector = Icons.Default.Check,
-                                                            contentDescription = "Selected",
-                                                            tint = readingTheme.accentColor,
-                                                            modifier = Modifier.size(16.dp)
-                                                        )
-                                                    }
-                                                }
-                                            },
-                                            onClick = {
-                                                onLanguageChange(appLang)
-                                                showLanguageMenu = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                HorizontalDivider(color = readingTheme.borderColor.copy(alpha = 0.3f))
-
-                // Quick Navigation Chips for Sections
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(activeBgColor)
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    itemsIndexed(fullSections) { index, section ->
-                        val chipBg = if (section.isGospel) {
-                            readingTheme.accentColor.copy(alpha = 0.22f)
-                        } else {
-                            activeSurfaceColor
-                        }
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = chipBg,
-                            border = if (section.isGospel) androidx.compose.foundation.BorderStroke(1.dp, readingTheme.accentColor) else null,
-                            modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                        ) {
-                            Text(
-                                text = "${index + 1}. ${section.getTitle(lang).take(18)}..",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = if (section.isGospel) FontWeight.Bold else FontWeight.Medium,
-                                color = if (section.isGospel) readingTheme.accentColor else (if (readingTheme.textSecondaryColor != Color.Unspecified) readingTheme.textSecondaryColor else MaterialTheme.colorScheme.onSurfaceVariant),
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
                         }
                     }
                 }
@@ -735,46 +418,51 @@ fun PrayerReadingModal(
 
                     // Iterate over each complete liturgical section
                     fullSections.forEachIndexed { index, section ->
-                        if (section.isGospel) {
-                            // Gospel Section with position measurement for automatic prayer recording
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .onGloballyPositioned { coordinates ->
-                                        gospelOffsetY = coordinates.positionInParent().y
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onGloballyPositioned { coordinates ->
+                                    val y = coordinates.positionInParent().y
+                                    sectionPositions[index] = y
+                                    if (section.isGospel) {
+                                        gospelOffsetY = y
                                     }
-                            ) {
-                                DetailedGospelBlock(
+                                }
+                        ) {
+                            if (section.isGospel) {
+                                Column {
+                                    DetailedGospelBlock(
+                                        section = section,
+                                        lang = lang,
+                                        multiplier = currentFontSizeMultiplier,
+                                        theme = readingTheme,
+                                        isBilingual = isBilingual,
+                                        secondaryLang = secondaryLang
+                                    )
+
+                                    Spacer(modifier = Modifier.height(14.dp))
+
+                                    // Interactive Gospel Completion & Automatic Prayer Log Card
+                                    GospelCompletionTrackerCard(
+                                        isPrayedToday = isPrayedToday,
+                                        prayerLog = prayerLog,
+                                        lang = lang,
+                                        onAutoMarkPrayed = onAutoMarkPrayed,
+                                        onTogglePrayed = onTogglePrayed,
+                                        theme = readingTheme
+                                    )
+                                }
+                            } else {
+                                DetailedPrayerSectionCard(
                                     section = section,
                                     lang = lang,
+                                    stepNumber = index + 1,
                                     multiplier = currentFontSizeMultiplier,
                                     theme = readingTheme,
                                     isBilingual = isBilingual,
                                     secondaryLang = secondaryLang
                                 )
                             }
-
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            // Interactive Gospel Completion & Automatic Prayer Log Card
-                            GospelCompletionTrackerCard(
-                                isPrayedToday = isPrayedToday,
-                                prayerLog = prayerLog,
-                                lang = lang,
-                                onAutoMarkPrayed = onAutoMarkPrayed,
-                                onTogglePrayed = onTogglePrayed,
-                                theme = readingTheme
-                            )
-                        } else {
-                            DetailedPrayerSectionCard(
-                                section = section,
-                                lang = lang,
-                                stepNumber = index + 1,
-                                multiplier = currentFontSizeMultiplier,
-                                theme = readingTheme,
-                                isBilingual = isBilingual,
-                                secondaryLang = secondaryLang
-                            )
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))
@@ -850,6 +538,158 @@ fun PrayerReadingModal(
                                     fontWeight = FontWeight.SemiBold,
                                     color = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Quick Index Selection Dialog Modal
+    if (showQuickIndexSheet) {
+        Dialog(
+            onDismissRequest = { showQuickIndexSheet = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = activeBgColor,
+                tonalElevation = 8.dp,
+                modifier = Modifier
+                    .fillMaxWidth(0.92f)
+                    .fillMaxHeight(0.80f)
+                    .padding(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(18.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.MenuBook,
+                                contentDescription = null,
+                                tint = readingTheme.accentColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "فهرس أقسام الصلاة" else "Prayer Sections Index",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        IconButton(
+                            onClick = { showQuickIndexSheet = false },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(activeSurfaceColor)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = readingTheme.accentColor,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        color = readingTheme.borderColor.copy(alpha = 0.3f)
+                    )
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(fullSections) { index, section ->
+                            val isGospel = section.isGospel
+                            Card(
+                                onClick = {
+                                    showQuickIndexSheet = false
+                                    val targetY = sectionPositions[index] ?: 0f
+                                    coroutineScope.launch {
+                                        scrollState.animateScrollTo(targetY.toInt().coerceAtLeast(0))
+                                    }
+                                },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isGospel) readingTheme.accentColor.copy(alpha = 0.18f) else activeSurfaceColor
+                                ),
+                                border = if (isGospel) BorderStroke(1.dp, readingTheme.accentColor) else BorderStroke(0.5.dp, readingTheme.borderColor.copy(alpha = 0.3f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = readingTheme.accentColor.copy(alpha = 0.2f),
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text(
+                                                text = "${index + 1}",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = readingTheme.accentColor
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.width(12.dp))
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = section.getTitle(lang),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = if (isGospel) FontWeight.Bold else FontWeight.SemiBold,
+                                            color = if (readingTheme.textColor != Color.Unspecified) readingTheme.textColor else MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        val subtitleText = section.getSubtitle(lang)
+                                        if (!subtitleText.isNullOrBlank()) {
+                                            Text(
+                                                text = subtitleText,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = readingTheme.accentColor.copy(alpha = 0.8f),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+
+                                    if (isGospel) {
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = GoldPrimary.copy(alpha = 0.25f),
+                                            modifier = Modifier.padding(start = 6.dp)
+                                        ) {
+                                            Text(
+                                                text = if (lang == AppLanguage.ARABIC) "✝ الإنجيل" else "✝ Gospel",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = GoldPrimary,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

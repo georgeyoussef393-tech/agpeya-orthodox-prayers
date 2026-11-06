@@ -34,16 +34,17 @@ class AgpeyaRepository(
     private val prayerTextDao: PrayerTextDao = AgpeyaDatabase.getDatabase(context).prayerTextDao(),
     private val meditationDao: MeditationDao = AgpeyaDatabase.getDatabase(context).meditationDao(),
     private val spiritualNoteDao: com.example.data.db.SpiritualNoteDao = AgpeyaDatabase.getDatabase(context).spiritualNoteDao(),
-    private val arrowPrayerDao: com.example.data.db.ArrowPrayerDao = AgpeyaDatabase.getDatabase(context).arrowPrayerDao()
+    private val arrowPrayerDao: com.example.data.db.ArrowPrayerDao = AgpeyaDatabase.getDatabase(context).arrowPrayerDao(),
+    private val hourlyPrayerDao: com.example.data.db.HourlyPrayerDao = AgpeyaDatabase.getDatabase(context).hourlyPrayerDao()
 ) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("agpeya_settings_prefs", Context.MODE_PRIVATE)
 
     val syncManager = FirestoreSyncManager(context)
 
-    // Auth & Onboarding state - defaults to true so downloaded app matches preview directly
+    // Auth & Onboarding state - defaults to false so initial launch asks for login/phone/email
     fun isAuthOnboardingCompleted(): Boolean {
-        return prefs.getBoolean("auth_onboarding_completed", true)
+        return prefs.getBoolean("auth_onboarding_completed", false)
     }
 
     fun setAuthOnboardingCompleted(completed: Boolean) {
@@ -56,6 +57,14 @@ class AgpeyaRepository(
 
     fun setUserEmail(email: String?, onComplete: () -> Unit = {}) {
         syncManager.setUserEmail(email, onComplete)
+    }
+
+    fun getUserPhone(): String? {
+        return syncManager.userPhone.value ?: prefs.getString("user_phone", null)
+    }
+
+    fun setUserPhone(phone: String?, onComplete: () -> Unit = {}) {
+        syncManager.setUserPhone(phone, onComplete)
     }
 
     // User Full Name (الاسم ثلاثي أو رباعي)
@@ -331,18 +340,131 @@ class AgpeyaRepository(
             minute = cal.get(Calendar.MINUTE)
         )
         val id = dao.insertLog(log)
+        // Keep hourly_prayer_completions table in sync
+        val completion = com.example.data.model.HourlyPrayerCompletionEntity(
+            prayerCode = prayerId.code,
+            dateString = dateString,
+            timestamp = timestamp,
+            year = cal.get(Calendar.YEAR),
+            month = cal.get(Calendar.MONTH) + 1,
+            dayOfMonth = cal.get(Calendar.DAY_OF_MONTH),
+            dayOfWeek = cal.get(Calendar.DAY_OF_WEEK),
+            weekOfYear = cal.get(Calendar.WEEK_OF_YEAR),
+            durationMinutes = 15,
+            isCompleted = true
+        )
+        hourlyPrayerDao.insertCompletion(completion)
+
         // Upload to Firestore for cross-device sync
         syncManager.uploadPrayerLog(log.copy(id = id))
+
+        // Immediately dismiss any active notification in the status bar for this prayer
+        com.example.service.AgpeyaNotificationHelper.cancelPrayerNotification(context, prayerId)
+
         return id
     }
 
     suspend fun removePrayerOnDate(prayerCode: String, dateString: String) {
         dao.deletePrayerOnDate(prayerCode, dateString)
+        hourlyPrayerDao.deleteCompletion(prayerCode, dateString)
         syncManager.deletePrayerLog(prayerCode, dateString)
     }
 
     suspend fun deleteLogById(id: Long) {
         dao.deleteLogById(id)
+    }
+
+    // ==========================================
+    // Hourly Prayers Progress Tracking (Room Database)
+    // ==========================================
+
+    fun getHourlyCompletionsForDate(dateString: String): Flow<List<com.example.data.model.HourlyPrayerCompletionEntity>> =
+        hourlyPrayerDao.getCompletionsForDate(dateString)
+
+    fun getHourlyCompletionsForWeek(year: Int, weekOfYear: Int): Flow<List<com.example.data.model.HourlyPrayerCompletionEntity>> =
+        hourlyPrayerDao.getCompletionsForWeek(year, weekOfYear)
+
+    fun getHourlyCompletionsForDates(dates: List<String>): Flow<List<com.example.data.model.HourlyPrayerCompletionEntity>> =
+        hourlyPrayerDao.getCompletionsForDates(dates)
+
+    suspend fun recordHourlyPrayerCompletion(
+        prayerId: PrayerId,
+        dateString: String = getTodayString(),
+        durationMinutes: Int = 15,
+        notes: String? = null,
+        timestamp: Long = System.currentTimeMillis()
+    ): Long {
+        val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
+        val completion = com.example.data.model.HourlyPrayerCompletionEntity(
+            prayerCode = prayerId.code,
+            dateString = dateString,
+            timestamp = timestamp,
+            year = cal.get(Calendar.YEAR),
+            month = cal.get(Calendar.MONTH) + 1,
+            dayOfMonth = cal.get(Calendar.DAY_OF_MONTH),
+            dayOfWeek = cal.get(Calendar.DAY_OF_WEEK),
+            weekOfYear = cal.get(Calendar.WEEK_OF_YEAR),
+            durationMinutes = durationMinutes,
+            isCompleted = true,
+            notes = notes
+        )
+        val id = hourlyPrayerDao.insertCompletion(completion)
+
+        val existingCount = dao.getCountForPrayerOnDate(prayerId.code, dateString)
+        if (existingCount == 0) {
+            val log = PrayerLogEntity(
+                prayerCode = prayerId.code,
+                timestamp = timestamp,
+                dateString = dateString,
+                year = cal.get(Calendar.YEAR),
+                month = cal.get(Calendar.MONTH) + 1,
+                day = cal.get(Calendar.DAY_OF_MONTH),
+                hour = cal.get(Calendar.HOUR_OF_DAY),
+                minute = cal.get(Calendar.MINUTE)
+            )
+            val logId = dao.insertLog(log)
+            syncManager.uploadPrayerLog(log.copy(id = logId))
+        }
+        return id
+    }
+
+    suspend fun removeHourlyPrayerCompletion(prayerCode: String, dateString: String) {
+        hourlyPrayerDao.deleteCompletion(prayerCode, dateString)
+        dao.deletePrayerOnDate(prayerCode, dateString)
+        syncManager.deletePrayerLog(prayerCode, dateString)
+    }
+
+    suspend fun toggleHourlyPrayerCompletion(
+        prayerId: PrayerId,
+        dateString: String = getTodayString()
+    ) {
+        val existing = hourlyPrayerDao.getCompletion(prayerId.code, dateString)
+        if (existing != null) {
+            removeHourlyPrayerCompletion(prayerId.code, dateString)
+        } else {
+            recordHourlyPrayerCompletion(prayerId, dateString)
+        }
+    }
+
+    suspend fun syncPastLogsToHourlyCompletions() = withContext(Dispatchers.IO) {
+        val allLogs = dao.getAllLogsList()
+        if (allLogs.isEmpty()) return@withContext
+        val entities = allLogs.map { log ->
+            val cal = Calendar.getInstance().apply { timeInMillis = log.timestamp }
+            com.example.data.model.HourlyPrayerCompletionEntity(
+                prayerCode = log.prayerCode,
+                dateString = log.dateString,
+                timestamp = log.timestamp,
+                year = log.year,
+                month = log.month,
+                dayOfMonth = log.day,
+                dayOfWeek = cal.get(Calendar.DAY_OF_WEEK),
+                weekOfYear = cal.get(Calendar.WEEK_OF_YEAR),
+                durationMinutes = 15,
+                isCompleted = true
+            )
+        }
+        hourlyPrayerDao.insertCompletions(entities)
     }
 
     // ==========================================
@@ -533,13 +655,14 @@ class AgpeyaRepository(
      * reads from liturgical repository, stores into Room DB, and returns the list.
      */
     suspend fun getOrCachePrayerSections(prayerId: PrayerId, lang: AppLanguage): List<PrayerSectionItem> = withContext(Dispatchers.IO) {
+        val sections = AgpeyaHourDetails.getFullPrayerSections(prayerId, lang)
         val cached = prayerTextDao.getSectionsForPrayerDirect(prayerId.code, lang.code)
-        if (cached.isNotEmpty()) {
+        if (cached.isNotEmpty() && cached.size == sections.size) {
             return@withContext cached.map { it.toPrayerSectionItem() }
         }
 
-        // Cache miss: Load authentic liturgical order and store in Room
-        val sections = AgpeyaHourDetails.getFullPrayerSections(prayerId, lang)
+        // Cache miss or section list updated: clear stale cache and store fresh sections in Room
+        prayerTextDao.clearSectionsForPrayer(prayerId.code, lang.code)
         val entities = sections.mapIndexed { index, section ->
             CachedPrayerSectionEntity.fromPrayerSectionItem(
                 item = section,

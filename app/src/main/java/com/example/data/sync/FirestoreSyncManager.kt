@@ -48,6 +48,9 @@ class FirestoreSyncManager(private val context: Context) {
     private val _userEmail = MutableStateFlow(prefs.getString("user_email", null))
     val userEmail: StateFlow<String?> = _userEmail.asStateFlow()
 
+    private val _userPhone = MutableStateFlow(prefs.getString("user_phone", null))
+    val userPhone: StateFlow<String?> = _userPhone.asStateFlow()
+
     private val _userFullName = MutableStateFlow(prefs.getString("user_full_name", null))
     val userFullName: StateFlow<String?> = _userFullName.asStateFlow()
 
@@ -71,6 +74,10 @@ class FirestoreSyncManager(private val context: Context) {
     }
 
     private fun resolveInitialSyncKey(): String {
+        val savedPhone = prefs.getString("user_phone", null)
+        if (!savedPhone.isNullOrBlank()) {
+            return normalizePhoneToKey(savedPhone)
+        }
         val savedEmail = prefs.getString("user_email", null)
         if (!savedEmail.isNullOrBlank()) {
             return normalizeEmailToKey(savedEmail)
@@ -91,6 +98,57 @@ class FirestoreSyncManager(private val context: Context) {
                 .replace(".", "_")
                 .replace("-", "_")
                 .replace("+", "_")
+        }
+
+        fun normalizePhoneToKey(phone: String): String {
+            val digits = phone.replace("[^0-9]".toRegex(), "")
+            return "ph_" + digits
+        }
+    }
+
+    fun setUserPhone(phone: String?, onComplete: () -> Unit = {}) {
+        val trimmed = phone?.trim()
+        if (!trimmed.isNullOrBlank()) {
+            val key = normalizePhoneToKey(trimmed)
+            prefs.edit()
+                .putString("user_phone", trimmed)
+                .putString("user_email", "$trimmed (هاتف)")
+                .putString("user_sync_key", key)
+                .apply()
+            _userPhone.value = trimmed
+            _userEmail.value = "$trimmed (هاتف)"
+            _syncKey.value = key
+        } else {
+            prefs.edit()
+                .remove("user_phone")
+                .remove("user_email")
+                .remove("user_sync_key")
+                .apply()
+            _userPhone.value = null
+            _userEmail.value = null
+            val fallbackKey = getOrGenerateSyncKey()
+            _syncKey.value = fallbackKey
+        }
+        stopRealtimeListener()
+        onComplete()
+    }
+
+    fun authenticateWithPhone(
+        phone: String,
+        fullName: String? = null,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        val cleanPhone = phone.trim()
+        val digits = cleanPhone.replace("[^0-9]".toRegex(), "")
+        if (digits.length < 8) {
+            onResult(false, "رقم الهاتف يجب أن يتكون من 8 أرقام على الأقل")
+            return
+        }
+        if (!fullName.isNullOrBlank()) {
+            setUserFullName(fullName)
+        }
+        setUserPhone(cleanPhone) {
+            onResult(true, null)
         }
     }
 

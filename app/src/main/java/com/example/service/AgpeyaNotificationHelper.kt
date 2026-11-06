@@ -201,4 +201,18 @@ object AgpeyaNotificationHelper {
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(888, builder.build())
     }
+
+    /**
+     * Immediately cancels and dismisses any active notification for a specific prayer from the notification shade.
+     */
+    fun cancelPrayerNotification(context: Context, prayerId: PrayerId) {
+        try {
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancel(prayerId.ordinal + 100)
+            Log.d("AgpeyaNotificationHelper", "Cancelled active notification for ${prayerId.code}")
+        } catch (e: Exception) {
+            Log.w("AgpeyaNotificationHelper", "Error cancelling notification for ${prayerId.code}: ${e.message}")
+        }
+    }
 }

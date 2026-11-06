@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.data.model.ArrowPrayerLogEntity
 import com.example.data.model.CachedMeditationEntity
 import com.example.data.model.CachedPrayerSectionEntity
+import com.example.data.model.HourlyPrayerCompletionEntity
 import com.example.data.model.PrayerLogEntity
 import com.example.data.model.SpiritualNoteEntity
 
@@ -16,9 +17,10 @@ import com.example.data.model.SpiritualNoteEntity
         ArrowPrayerLogEntity::class,
         CachedPrayerSectionEntity::class,
         CachedMeditationEntity::class,
-        SpiritualNoteEntity::class
+        SpiritualNoteEntity::class,
+        HourlyPrayerCompletionEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AgpeyaDatabase : RoomDatabase() {
@@ -27,6 +29,7 @@ abstract class AgpeyaDatabase : RoomDatabase() {
     abstract fun prayerTextDao(): PrayerTextDao
     abstract fun meditationDao(): MeditationDao
     abstract fun spiritualNoteDao(): SpiritualNoteDao
+    abstract fun hourlyPrayerDao(): HourlyPrayerDao
 
     companion object {
         @Volatile

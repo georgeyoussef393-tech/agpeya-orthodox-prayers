@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -49,10 +51,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,11 +91,18 @@ fun AuthOnboardingScreen(
 ) {
     val lang by viewModel.currentLanguage.collectAsState()
     val savedEmail by viewModel.userEmail.collectAsState()
+    val savedPhone by viewModel.userPhone.collectAsState()
+    val savedFullName by viewModel.userFullName.collectAsState()
     val savedChurchName by viewModel.churchName.collectAsState()
     val focusManager = LocalFocusManager.current
 
-    var emailInput by remember(savedEmail) { mutableStateOf(savedEmail ?: "") }
+    // Auth Mode: 0 = Phone Number (رقم الهاتف), 1 = Email (البريد الإلكتروني)
+    var selectedAuthMode by remember { mutableIntStateOf(if (!savedPhone.isNullOrBlank()) 0 else 1) }
+
+    var phoneInput by remember(savedPhone) { mutableStateOf(savedPhone ?: "") }
+    var emailInput by remember(savedEmail) { mutableStateOf(savedEmail?.replace(" (هاتف)", "") ?: "") }
     var passwordInput by remember { mutableStateOf("") }
+    var fullNameInput by remember(savedFullName) { mutableStateOf(savedFullName ?: "") }
     var churchNameInput by remember(savedChurchName) { mutableStateOf(savedChurchName ?: "") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
@@ -119,405 +131,593 @@ fun AuthOnboardingScreen(
                     .padding(horizontal = 20.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-            // Top Navigation Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedButton(
-                    onClick = { viewModel.continueAsGuest() },
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                    modifier = Modifier.testTag("btn_skip_to_prayers")
+                // Top Navigation Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = if (lang == AppLanguage.ARABIC) "← العودة لصلوات الأجبية" else "← Back to Prayers",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = GoldPrimary
-                    )
-                }
-
-                Text(
-                    text = if (lang == AppLanguage.ARABIC) "تخطي والدخول كضيف" else "Skip / Guest",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .clickable { viewModel.continueAsGuest() }
-                        .padding(8.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Sacred Orthodox Header Emblem
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(GoldLight, GoldPrimary, BurgundyDeep)
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MenuBook,
-                    contentDescription = null,
-                    tint = Color.Black,
-                    modifier = Modifier.size(44.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = AgpeyaStrings.authWelcomeTitle(lang),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = GoldPrimary,
-                textAlign = TextAlign.Center,
-                lineHeight = 28.sp
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = AgpeyaStrings.authWelcomeSubtitle(lang),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                lineHeight = 20.sp
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // ── STEP 1: LANGUAGE SELECTION ──────────────────────────────────
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.25f)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("onboarding_language_card")
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Language,
-                            contentDescription = null,
-                            tint = GoldPrimary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
+                    OutlinedButton(
+                        onClick = { viewModel.continueAsGuest() },
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                        modifier = Modifier.testTag("btn_skip_to_prayers")
+                    ) {
                         Text(
-                            text = AgpeyaStrings.stepSelectLanguage(lang),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            text = if (lang == AppLanguage.ARABIC) "← الدخول لصلوات الأجبية" else "← Back to Prayers",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = GoldPrimary
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = if (lang == AppLanguage.ARABIC) "تخطي والدخول كضيف" else "Skip / Guest",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .clickable { viewModel.continueAsGuest() }
+                            .padding(8.dp)
+                    )
+                }
 
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        AppLanguage.entries.forEach { languageOption ->
-                            val isSelected = lang == languageOption
+                Spacer(modifier = Modifier.height(10.dp))
 
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(
-                                        if (isSelected) GoldPrimary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                                    )
-                                    .border(
-                                        width = if (isSelected) 2.dp else 1.dp,
-                                        color = if (isSelected) GoldLight else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                    .clickable {
-                                        viewModel.setLanguage(languageOption)
+                // Sacred Coptic Cross Emblem
+                Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    GoldLight,
+                                    GoldPrimary,
+                                    BurgundyDeep
+                                )
+                            )
+                        )
+                        .border(2.dp, GoldLight, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    com.example.ui.components.CopticCrossCanvas(
+                        size = 56.dp,
+                        color = Color.Black,
+                        ringColor = GoldLight
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = if (lang == AppLanguage.ARABIC) "تسجيل الدخول والتخزين السحابي" else AgpeyaStrings.authWelcomeTitle(lang),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = GoldPrimary,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 28.sp
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = if (lang == AppLanguage.ARABIC) {
+                        "سجّل رقم هاتفك أو بريدك الإلكتروني لحفظ صلواتك سحابياً واسترجاعها فوراً عند تغيير الجهاز"
+                    } else {
+                        AgpeyaStrings.authWelcomeSubtitle(lang)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // ── STEP 1: LANGUAGE SELECTION ──────────────────────────────────
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.25f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("onboarding_language_card")
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = AgpeyaStrings.stepSelectLanguage(lang),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            AppLanguage.entries.forEach { languageOption ->
+                                val isSelected = lang == languageOption
+
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(
+                                            if (isSelected) GoldPrimary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                        )
+                                        .border(
+                                            width = if (isSelected) 2.dp else 1.dp,
+                                            color = if (isSelected) GoldLight else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                        .clickable {
+                                            viewModel.setLanguage(languageOption)
+                                        }
+                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                        .testTag("lang_chip_${languageOption.code}")
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Default.CheckCircle,
+                                                contentDescription = null,
+                                                tint = Color.Black,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                        }
+                                        Text(
+                                            text = "${languageOption.flagEmoji}  ${languageOption.nativeName}",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface
+                                        )
                                     }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                                    .testTag("lang_chip_${languageOption.code}")
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (isSelected) {
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // ── STEP 2: PHONE & EMAIL CLOUD AUTHENTICATION ───────────────
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("onboarding_auth_card")
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CloudDone,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "الخطوة الثانية: اختيار طريقة التسجيل السحابي" else AgpeyaStrings.stepAccountSync(lang),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Tab Switcher between Phone & Email Auth
+                        TabRow(
+                            selectedTabIndex = selectedAuthMode,
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = GoldPrimary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                        ) {
+                            Tab(
+                                selected = selectedAuthMode == 0,
+                                onClick = {
+                                    selectedAuthMode = 0
+                                    errorMessage = null
+                                },
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
-                                            imageVector = Icons.Default.CheckCircle,
+                                            imageVector = Icons.Default.Phone,
                                             contentDescription = null,
-                                            tint = Color.Black,
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = if (lang == AppLanguage.ARABIC) "رقم الهاتف" else "Phone Number",
+                                            fontWeight = if (selectedAuthMode == 0) FontWeight.Bold else FontWeight.Normal,
+                                            fontSize = 13.sp
+                                        )
                                     }
-                                    Text(
-                                        text = "${languageOption.flagEmoji}  ${languageOption.nativeName}",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface
-                                    )
                                 }
-                            }
+                            )
+                            Tab(
+                                selected = selectedAuthMode == 1,
+                                onClick = {
+                                    selectedAuthMode = 1
+                                    errorMessage = null
+                                },
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Email,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = if (lang == AppLanguage.ARABIC) "البريد الإلكتروني" else "Email Address",
+                                            fontWeight = if (selectedAuthMode == 1) FontWeight.Bold else FontWeight.Normal,
+                                            fontSize = 13.sp
+                                        )
+                                    }
+                                }
+                            )
                         }
-                    }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-            // ── STEP 2: EMAIL SIGN-IN & CLOUD SYNCHRONIZATION ───────────────
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.25f)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("onboarding_auth_card")
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.CloudDone,
-                            contentDescription = null,
-                            tint = GoldPrimary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = AgpeyaStrings.stepAccountSync(lang),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Text(
-                        text = AgpeyaStrings.authEmailDescription(lang),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 18.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    // Email Field
-                    OutlinedTextField(
-                        value = emailInput,
-                        onValueChange = {
-                            emailInput = it
-                            errorMessage = null
-                        },
-                        label = { Text(AgpeyaStrings.emailAddressLabel(lang)) },
-                        placeholder = { Text("example@gmail.com") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = null,
-                                tint = GoldPrimary
-                            )
-                        },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Next
-                        ),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = GoldPrimary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                            focusedLabelColor = GoldPrimary
-                        ),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("auth_email_input")
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Password Field (Optional)
-                    OutlinedTextField(
-                        value = passwordInput,
-                        onValueChange = { passwordInput = it },
-                        label = { Text(AgpeyaStrings.passwordOptionalLabel(lang)) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = null,
-                                tint = GoldPrimary
-                            )
-                        },
-                        trailingIcon = {
-                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                        // Shared Full Name Input Field (الاسم ثلاثي أو رباعي لتوثيق الصلوات)
+                        OutlinedTextField(
+                            value = fullNameInput,
+                            onValueChange = {
+                                fullNameInput = it
+                                errorMessage = null
+                            },
+                            label = {
+                                Text(if (lang == AppLanguage.ARABIC) "الاسم ثلاثي أو رباعي (لتوثيق صلواتك وتقاريرك)" else "Full Name (3 or 4 names)")
+                            },
+                            placeholder = {
+                                Text(if (lang == AppLanguage.ARABIC) "مثال: مينا يوسف بطرس جرجس" else "e.g. Mina Youssef Boutros")
+                            },
+                            leadingIcon = {
                                 Icon(
-                                    imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = "Toggle password",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = GoldPrimary
+                                )
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            ),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = GoldPrimary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                focusedLabelColor = GoldPrimary
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("auth_full_name_input")
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        if (selectedAuthMode == 0) {
+                            // ── PHONE NUMBER AUTH FIELDS ──
+                            OutlinedTextField(
+                                value = phoneInput,
+                                onValueChange = {
+                                    phoneInput = it
+                                    errorMessage = null
+                                },
+                                label = { Text(if (lang == AppLanguage.ARABIC) "رقم الهاتف للتخزين السحابي" else "Phone Number for Cloud Sync") },
+                                placeholder = { Text(if (lang == AppLanguage.ARABIC) "01001234567 أو +201001234567" else "+20 100 123 4567") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Phone,
+                                        contentDescription = null,
+                                        tint = GoldPrimary
+                                    )
+                                },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Phone,
+                                    imeAction = ImeAction.Next
+                                ),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = GoldPrimary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    focusedLabelColor = GoldPrimary
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("auth_phone_input")
+                            )
+                        } else {
+                            // ── EMAIL AUTH FIELDS ──
+                            OutlinedTextField(
+                                value = emailInput,
+                                onValueChange = {
+                                    emailInput = it
+                                    errorMessage = null
+                                },
+                                label = { Text(AgpeyaStrings.emailAddressLabel(lang)) },
+                                placeholder = { Text("example@gmail.com") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Email,
+                                        contentDescription = null,
+                                        tint = GoldPrimary
+                                    )
+                                },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Email,
+                                    imeAction = ImeAction.Next
+                                ),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = GoldPrimary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    focusedLabelColor = GoldPrimary
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("auth_email_input")
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            OutlinedTextField(
+                                value = passwordInput,
+                                onValueChange = { passwordInput = it },
+                                label = { Text(AgpeyaStrings.passwordOptionalLabel(lang)) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = null,
+                                        tint = GoldPrimary
+                                    )
+                                },
+                                trailingIcon = {
+                                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                        Icon(
+                                            imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                            contentDescription = "Toggle password",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                },
+                                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Password,
+                                    imeAction = ImeAction.Next
+                                ),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = GoldPrimary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    focusedLabelColor = GoldPrimary
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("auth_password_input")
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Church / Ministry Field (Optional)
+                        OutlinedTextField(
+                            value = churchNameInput,
+                            onValueChange = { churchNameInput = it },
+                            label = { Text(AgpeyaStrings.churchNameOptionalLabel(lang)) },
+                            placeholder = { Text(AgpeyaStrings.churchNamePlaceholder(lang)) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Church,
+                                    contentDescription = null,
+                                    tint = GoldPrimary
+                                )
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = GoldPrimary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                focusedLabelColor = GoldPrimary
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("auth_church_name_input")
+                        )
+
+                        // Error notice
+                        AnimatedVisibility(visible = errorMessage != null) {
+                            errorMessage?.let { msg ->
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Text(
+                                    text = msg,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
-                        },
-                        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Next
-                        ),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = GoldPrimary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                            focusedLabelColor = GoldPrimary
-                        ),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("auth_password_input")
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Church / Ministry Field (Optional - requested by user)
-                    OutlinedTextField(
-                        value = churchNameInput,
-                        onValueChange = { churchNameInput = it },
-                        label = { Text(AgpeyaStrings.churchNameOptionalLabel(lang)) },
-                        placeholder = { Text(AgpeyaStrings.churchNamePlaceholder(lang)) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Church,
-                                contentDescription = null,
-                                tint = GoldPrimary
-                            )
-                        },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = GoldPrimary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                            focusedLabelColor = GoldPrimary
-                        ),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("auth_church_name_input")
-                    )
-
-                    // Error notice
-                    AnimatedVisibility(visible = errorMessage != null) {
-                        errorMessage?.let { msg ->
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Text(
-                                text = msg,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                                fontWeight = FontWeight.SemiBold
-                            )
                         }
-                    }
 
-                    // Success notice
-                    AnimatedVisibility(visible = successNotice != null) {
-                        successNotice?.let { msg ->
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Text(
-                                text = msg,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF4CAF50),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // Sign In & Sync Button
-                    Button(
-                        onClick = {
-                            val trimmedEmail = emailInput.trim()
-                            if (trimmedEmail.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
-                                errorMessage = AgpeyaStrings.emailRequiredPrompt(lang)
-                                return@Button
+                        // Success notice
+                        AnimatedVisibility(visible = successNotice != null) {
+                            successNotice?.let { msg ->
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Text(
+                                    text = msg,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF4CAF50),
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
+                        }
 
-                            focusManager.clearFocus()
-                            isLoading = true
-                            errorMessage = null
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                            viewModel.signInWithEmail(
-                                email = trimmedEmail,
-                                password = passwordInput.ifBlank { null },
-                                churchName = churchNameInput.ifBlank { null }
-                            ) { success, err ->
-                                isLoading = false
-                                if (!success) {
-                                    errorMessage = err ?: "Sign-in error"
+                        // Cloud Storage Recovery Guarantee Info Box
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                            ),
+                            border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.25f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CloudDone,
+                                    contentDescription = null,
+                                    tint = GoldPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) {
+                                        "☁️ يتم حفظ صلواتك سحابياً فوراً. عند تغيير الهاتف أو الدخول من جهاز آخر، أعد إدخال بياناتك وستعود جميع صلواتك السابقة."
+                                    } else {
+                                        "☁️ Instant cloud backup: if you change your phone or switch devices, simply sign in to recover all your prayer logs."
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 16.sp
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Primary Sign In & Sync Button
+                        Button(
+                            onClick = {
+                                focusManager.clearFocus()
+                                isLoading = true
+                                errorMessage = null
+
+                                if (selectedAuthMode == 0) {
+                                    // Phone Auth Flow
+                                    val trimmedPhone = phoneInput.trim()
+                                    if (trimmedPhone.isBlank()) {
+                                        isLoading = false
+                                        errorMessage = if (lang == AppLanguage.ARABIC) "برجاء إدخال رقم الهاتف للتسجيل" else "Phone number required"
+                                        return@Button
+                                    }
+                                    viewModel.signInWithPhone(
+                                        phone = trimmedPhone,
+                                        fullName = fullNameInput.ifBlank { null },
+                                        churchName = churchNameInput.ifBlank { null }
+                                    ) { success, err ->
+                                        isLoading = false
+                                        if (!success) {
+                                            errorMessage = err ?: "حدث خطأ أثناء التسجيل برقم الهاتف"
+                                        }
+                                    }
+                                } else {
+                                    // Email Auth Flow
+                                    val trimmedEmail = emailInput.trim()
+                                    if (trimmedEmail.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+                                        isLoading = false
+                                        errorMessage = AgpeyaStrings.emailRequiredPrompt(lang)
+                                        return@Button
+                                    }
+                                    viewModel.signInWithEmail(
+                                        email = trimmedEmail,
+                                        password = passwordInput.ifBlank { null },
+                                        fullName = fullNameInput.ifBlank { null },
+                                        churchName = churchNameInput.ifBlank { null }
+                                    ) { success, err ->
+                                        isLoading = false
+                                        if (!success) {
+                                            errorMessage = err ?: "حدث خطأ أثناء التسجيل بالبريد الإلكتروني"
+                                        }
+                                    }
                                 }
+                            },
+                            enabled = !isLoading,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = GoldPrimary,
+                                contentColor = Color.Black
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .testTag("btn_sign_in_and_sync")
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Color.Black
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
                             }
-                        },
-                        enabled = !isLoading,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = GoldPrimary,
-                            contentColor = Color.Black
-                        ),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                            .testTag("btn_sign_in_and_sync")
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp,
+                            Text(
+                                text = if (selectedAuthMode == 0) {
+                                    if (lang == AppLanguage.ARABIC) "تسجيل الدخول برقم الهاتف وتفعيل المزامنة" else "Sign In with Phone & Sync"
+                                } else {
+                                    AgpeyaStrings.signInAndSyncButton(lang)
+                                },
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
                                 color = Color.Black
                             )
-                            Spacer(modifier = Modifier.width(10.dp))
                         }
-                        Text(
-                            text = AgpeyaStrings.signInAndSyncButton(lang),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
-                    }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    // Continue as Guest (Offline)
-                    OutlinedButton(
-                        onClick = {
-                            viewModel.continueAsGuest(churchName = churchNameInput.ifBlank { null })
-                        },
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .testTag("btn_continue_as_guest")
-                    ) {
-                        Text(
-                            text = AgpeyaStrings.continueAsGuestButton(lang),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        // Continue as Guest (Offline Mode)
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.continueAsGuest(churchName = churchNameInput.ifBlank { null })
+                            },
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .testTag("btn_continue_as_guest")
+                        ) {
+                            Text(
+                                text = AgpeyaStrings.continueAsGuestButton(lang),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
-}
 }

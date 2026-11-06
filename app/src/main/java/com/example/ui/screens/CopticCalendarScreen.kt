@@ -217,7 +217,7 @@ fun CopticCalendarScreen(
                                 ) { _ ->
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(
-                                            text = "${copticDate.day} ${if (lang == AppLanguage.ARABIC) copticDate.monthNameAr else copticDate.monthNameEn} ${copticDate.yearAM} ش",
+                                            text = "${copticDate.day} ${if (lang == AppLanguage.ARABIC) copticDate.monthNameAr else copticDate.monthNameEn} ${copticDate.yearAM} شـ",
                                             style = MaterialTheme.typography.headlineMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = GoldPrimary,
@@ -229,6 +229,25 @@ fun CopticCalendarScreen(
                                             color = Color.White.copy(alpha = 0.85f),
                                             textAlign = TextAlign.Center
                                         )
+
+                                        val feast = if (lang == AppLanguage.ARABIC) copticDate.feastNameAr else copticDate.feastNameEn
+                                        if (!feast.isNullOrBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Surface(
+                                                color = GoldPrimary.copy(alpha = 0.22f),
+                                                shape = RoundedCornerShape(12.dp),
+                                                border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.6f))
+                                            ) {
+                                                Text(
+                                                    text = "⭐ $feast",
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = GoldLight,
+                                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
+                                        }
                                     }
                                 }
 

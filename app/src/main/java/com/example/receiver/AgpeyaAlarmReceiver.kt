@@ -25,32 +25,41 @@ class AgpeyaAlarmReceiver : BroadcastReceiver() {
         val lang = repository.getSavedLanguage()
 
         if (setting.isEnabled) {
-            val isQuiet = repository.isQuietHoursEnabled()
-            val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-            val quietStart = repository.getQuietHoursStartHour()
-            val quietEnd = repository.getQuietHoursEndHour()
-
-            val inQuietWindow = if (isQuiet) {
-                if (quietStart > quietEnd) {
-                    currentHour >= quietStart || currentHour < quietEnd
-                } else {
-                    currentHour in quietStart until quietEnd
-                }
-            } else {
-                false
+            val todayString = AgpeyaRepository.getTodayString()
+            val isAlreadyPrayedToday = kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) {
+                repository.isPrayerPrayedOnDate(prayerId.code, todayString)
             }
 
-            val effectiveSound = if (inQuietWindow) false else setting.soundEnabled
-            val effectiveVibrate = if (inQuietWindow) false else setting.vibrateEnabled
+            if (isAlreadyPrayedToday) {
+                Log.d("AgpeyaAlarmReceiver", "Skipping alarm notification for ${prayerId.code} because user already completed it today ($todayString).")
+            } else {
+                val isQuiet = repository.isQuietHoursEnabled()
+                val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+                val quietStart = repository.getQuietHoursStartHour()
+                val quietEnd = repository.getQuietHoursEndHour()
 
-            AgpeyaNotificationHelper.showPrayerNotification(
-                context = context,
-                prayerId = prayerId,
-                lang = lang,
-                soundEnabled = effectiveSound,
-                vibrateEnabled = effectiveVibrate,
-                soundId = setting.soundId
-            )
+                val inQuietWindow = if (isQuiet) {
+                    if (quietStart > quietEnd) {
+                        currentHour >= quietStart || currentHour < quietEnd
+                    } else {
+                        currentHour in quietStart until quietEnd
+                    }
+                } else {
+                    false
+                }
+
+                val effectiveSound = if (inQuietWindow) false else setting.soundEnabled
+                val effectiveVibrate = if (inQuietWindow) false else setting.vibrateEnabled
+
+                AgpeyaNotificationHelper.showPrayerNotification(
+                    context = context,
+                    prayerId = prayerId,
+                    lang = lang,
+                    soundEnabled = effectiveSound,
+                    vibrateEnabled = effectiveVibrate,
+                    soundId = setting.soundId
+                )
+            }
 
             // Reschedule for next day at the configured hour and minute
             val targetHour = if (hour >= 0) hour else setting.hour

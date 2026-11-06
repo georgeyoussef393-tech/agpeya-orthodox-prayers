@@ -68,6 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.coptic.CopticCalendarHelper
 import com.example.data.model.DailyVerseMeditation
 import com.example.data.model.PrayerId
 import com.example.localization.AgpeyaStrings
@@ -93,6 +94,12 @@ fun DailyScriptureCard(
 ) {
     var isReflectionExpanded by remember { mutableStateOf(true) }
     var showHourSelector by remember { mutableStateOf(false) }
+
+    val isArabic = language == AppLanguage.ARABIC
+    val liveCopticDateStr = remember(isArabic) {
+        val cDate = CopticCalendarHelper.getCopticDate()
+        CopticCalendarHelper.getFormattedCopticDate(cDate, isArabic)
+    }
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -142,11 +149,20 @@ fun DailyScriptureCard(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(
-                            text = AgpeyaStrings.orthodoxBibleEgypt(language),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = GoldPrimary
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = AgpeyaStrings.orthodoxBibleEgypt(language),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = GoldPrimary
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "• $liveCopticDateStr",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = BurgundyDeep
+                            )
+                        }
                     }
                 }
 

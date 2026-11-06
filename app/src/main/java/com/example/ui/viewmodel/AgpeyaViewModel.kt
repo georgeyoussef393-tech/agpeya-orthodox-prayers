@@ -5,6 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.alarm.AgpeyaAlarmScheduler
 import com.example.data.db.AgpeyaDatabase
+import com.example.data.model.HourlyPrayerCompletionEntity
+import com.example.data.model.HourlyPrayerDailySummary
+import com.example.data.model.HourlyPrayerWeeklyProgress
 import com.example.data.model.PrayerAlarmSetting
 import com.example.data.model.PrayerId
 import com.example.data.model.PrayerLogEntity
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -74,6 +78,11 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     private val _dailyArrowTarget = MutableStateFlow(33)
     val dailyArrowTarget: StateFlow<Int> = _dailyArrowTarget.asStateFlow()
 
+    // Hourly Prayer Completion Progress Tracking (Room Database)
+    val allHourlyCompletions: StateFlow<List<HourlyPrayerCompletionEntity>>
+    val todayHourlyCompletions: StateFlow<List<HourlyPrayerCompletionEntity>>
+    val weeklyHourlyProgress: StateFlow<HourlyPrayerWeeklyProgress>
+
     // Room Database Caching State
     val totalCachedPrayerSections: StateFlow<Int>
     val totalCachedMeditations: StateFlow<Int>
@@ -85,6 +94,7 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     val syncStatus: StateFlow<SyncStatus>
     val syncKey: StateFlow<String>
     val userEmail: StateFlow<String?>
+    val userPhone: StateFlow<String?>
     val lastSyncTime: StateFlow<Long>
     val isRealtimeSyncActive: StateFlow<Boolean>
 
@@ -188,6 +198,7 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         syncStatus = repository.syncManager.syncStatus
         syncKey = repository.syncManager.syncKey
         userEmail = repository.syncManager.userEmail
+        userPhone = repository.syncManager.userPhone
         lastSyncTime = repository.syncManager.lastSyncTimestamp
         isRealtimeSyncActive = repository.syncManager.isRealtimeSyncActive
 
@@ -235,9 +246,31 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
             emptyList()
         )
 
+        allHourlyCompletions = repository.getHourlyCompletionsForWeek(calendar.get(Calendar.YEAR), calendar.get(Calendar.WEEK_OF_YEAR)).stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
+        val todayStr = AgpeyaRepository.getTodayString()
+        todayHourlyCompletions = repository.getHourlyCompletionsForDate(todayStr).stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
+
+        weeklyHourlyProgress = allHourlyCompletions.map { list ->
+            computeWeeklyProgress(list)
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            computeWeeklyProgress(emptyList())
+        )
+
         // Pre-populate offline Room cache and load daily meditation
         viewModelScope.launch {
             repository.ensureAllOfflineDataCached()
+            repository.syncPastLogsToHourlyCompletions()
             val meditation = repository.getDailyMeditation()
             _dailyVerse.value = meditation
         }
@@ -247,6 +280,98 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         triggerSync()
     }
 
+    private fun computeWeeklyProgress(allCompletions: List<HourlyPrayerCompletionEntity>): HourlyPrayerWeeklyProgress {
+        val cal = Calendar.getInstance()
+        val currentYear = cal.get(Calendar.YEAR)
+        val currentWeek = cal.get(Calendar.WEEK_OF_YEAR)
+        val todayStr = AgpeyaRepository.getTodayString()
+
+        // Calculate 7 days of the current week starting from Sunday to Saturday
+        val weekCal = (cal.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+        }
+
+        val dayNamesAr = listOf("الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت")
+        val dayNamesEn = listOf("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+
+        val dailySummaries = mutableListOf<HourlyPrayerDailySummary>()
+        var totalWeekly = 0
+
+        for (i in 0 until 7) {
+            val dateStr = AgpeyaRepository.formatDate(weekCal.time)
+            val dOfWeek = weekCal.get(Calendar.DAY_OF_WEEK)
+            val dOfMonth = weekCal.get(Calendar.DAY_OF_MONTH)
+            val dayIndex = (dOfWeek - 1).coerceIn(0, 6)
+
+            val dayCompletions = allCompletions.filter { it.dateString == dateStr }
+            val completedCodes = dayCompletions.map { it.prayerCode }.toSet()
+            val completedCount = completedCodes.count { it != PrayerId.VEIL.code }
+            totalWeekly += completedCount
+
+            dailySummaries.add(
+                HourlyPrayerDailySummary(
+                    dateString = dateStr,
+                    dayNameEn = dayNamesEn[dayIndex],
+                    dayNameAr = dayNamesAr[dayIndex],
+                    dayOfMonth = dOfMonth,
+                    dayOfWeek = dOfWeek,
+                    isToday = (dateStr == todayStr),
+                    completedCount = completedCount,
+                    totalPossibleCount = 7,
+                    completedPrayerCodes = completedCodes
+                )
+            )
+            weekCal.add(Calendar.DAY_OF_YEAR, 1)
+        }
+
+        val rate = (totalWeekly.toFloat() / 49f).coerceIn(0f, 1f)
+
+        // Calculate streak of consecutive days with prayers up to today
+        var streak = 0
+        val streakCal = (cal.clone() as Calendar)
+        for (d in 0 until 30) {
+            val dStr = AgpeyaRepository.formatDate(streakCal.time)
+            val count = allCompletions.count { it.dateString == dStr && it.prayerCode != PrayerId.VEIL.code }
+            if (count > 0) {
+                streak++
+            } else if (d > 0) {
+                break
+            }
+            streakCal.add(Calendar.DAY_OF_YEAR, -1)
+        }
+
+        val bestDay = dailySummaries.maxByOrNull { it.completedCount }
+
+        return HourlyPrayerWeeklyProgress(
+            year = currentYear,
+            weekOfYear = currentWeek,
+            days = dailySummaries,
+            totalWeeklyCompleted = totalWeekly,
+            totalWeeklyPossible = 49,
+            weeklyCompletionRate = rate,
+            currentStreakDays = streak,
+            bestDayNameAr = bestDay?.dayNameAr,
+            mostPrayedHourCode = allCompletions.groupBy { it.prayerCode }.maxByOrNull { it.value.size }?.key
+        )
+    }
+
+    fun toggleHourlyPrayer(prayerId: PrayerId, dateString: String = AgpeyaRepository.getTodayString()) {
+        viewModelScope.launch {
+            repository.toggleHourlyPrayerCompletion(prayerId, dateString)
+        }
+    }
+
+    fun markHourlyPrayerCompleted(prayerId: PrayerId, durationMinutes: Int = 15, notes: String? = null) {
+        viewModelScope.launch {
+            repository.recordHourlyPrayerCompletion(
+                prayerId = prayerId,
+                dateString = AgpeyaRepository.getTodayString(),
+                durationMinutes = durationMinutes,
+                notes = notes
+            )
+        }
+    }
+
     fun saveChurchName(name: String?) {
         val trimmed = name?.trim()
         val cleanName = if (trimmed.isNullOrBlank()) null else trimmed
@@ -254,11 +379,37 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         repository.saveChurchName(cleanName)
     }
 
-    fun signInWithEmail(email: String, password: String? = null, churchName: String? = null, onResult: (Boolean, String?) -> Unit) {
+    fun signInWithPhone(phone: String, fullName: String? = null, churchName: String? = null, onResult: (Boolean, String?) -> Unit) {
+        val clean = phone.trim()
+        if (clean.isBlank()) {
+            onResult(false, "رقم الهاتف مطلوب")
+            return
+        }
+        if (!fullName.isNullOrBlank()) {
+            saveUserFullName(fullName)
+        }
+        if (!churchName.isNullOrBlank()) {
+            saveChurchName(churchName)
+        }
+        repository.syncManager.authenticateWithPhone(clean, fullName) { success, error ->
+            if (success) {
+                repository.setAuthOnboardingCompleted(true)
+                _isAuthCompleted.value = true
+                triggerSync()
+                repository.startRealtimeSync(viewModelScope)
+            }
+            onResult(success, error)
+        }
+    }
+
+    fun signInWithEmail(email: String, password: String? = null, fullName: String? = null, churchName: String? = null, onResult: (Boolean, String?) -> Unit) {
         val clean = email.trim()
         if (clean.isBlank()) {
-            onResult(false, "Email required")
+            onResult(false, "البريد الإلكتروني مطلوب")
             return
+        }
+        if (!fullName.isNullOrBlank()) {
+            saveUserFullName(fullName)
         }
         if (!churchName.isNullOrBlank()) {
             saveChurchName(churchName)

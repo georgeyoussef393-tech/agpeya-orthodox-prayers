@@ -394,4 +394,34 @@ object CopticCalendarHelper {
             katamerosGospelAr = "يوحنا 15: 1-8 (أنا الكرمة الحقيقية وأنتم الأغصان، الذي يثبت في وأنا فيه يأتي بثمر كثير)"
         )
     }
+
+    /**
+     * Formats the Coptic Date into a clean readable string according to language
+     */
+    fun getFormattedCopticDate(copticDate: CopticDate, isArabic: Boolean): String {
+        return if (isArabic) {
+            "${copticDate.day} ${copticDate.monthNameAr} ${copticDate.yearAM} شـ"
+        } else {
+            "${copticDate.day} ${copticDate.monthNameEn} ${copticDate.yearAM} AM"
+        }
+    }
+
+    /**
+     * Formats current Gregorian date according to language
+     */
+    fun getFormattedGregorianDate(calendar: java.util.Calendar = java.util.Calendar.getInstance(), isArabic: Boolean): String {
+        val locale = if (isArabic) java.util.Locale("ar") else java.util.Locale.ENGLISH
+        val sdf = java.text.SimpleDateFormat("EEEE d MMMM yyyy", locale)
+        return sdf.format(calendar.time) + if (isArabic) " مـ" else " AD"
+    }
+
+    /**
+     * Formats both Gregorian and Coptic dates synchronized together
+     */
+    fun getFormattedDualDate(calendar: java.util.Calendar = java.util.Calendar.getInstance(), isArabic: Boolean): String {
+        val gregStr = getFormattedGregorianDate(calendar, isArabic)
+        val copticDate = getCopticDate(calendar)
+        val copticStr = getFormattedCopticDate(copticDate, isArabic)
+        return "$gregStr • $copticStr"
+    }
 }

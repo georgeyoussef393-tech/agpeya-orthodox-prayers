@@ -86,6 +86,7 @@ import com.example.ui.components.charts.DailyTimelineChart
 import com.example.ui.components.charts.DonutSlice
 import com.example.ui.components.charts.HeatmapDayData
 import com.example.ui.components.charts.PrayerActivityHeatmap
+import com.example.ui.components.charts.PrayerCompletionDashboard
 import com.example.ui.components.charts.PrayerFrequencyBarChart
 import com.example.ui.components.charts.PrayerRadialDonutChart
 import com.example.ui.components.charts.PrayerTrendAreaChart
@@ -452,6 +453,16 @@ private fun DailyReportView(
                 }
             }
 
+            Spacer(modifier = Modifier.height(14.dp))
+        }
+
+        // Room Database: Hourly Prayers Daily & Weekly Progress Tracker
+        item {
+            com.example.ui.components.HourlyPrayersProgressTracker(
+                viewModel = viewModel,
+                onOpenPrayerReading = { prayerId -> viewModel.openPrayerReading(prayerId) },
+                modifier = Modifier.fillMaxWidth()
+            )
             Spacer(modifier = Modifier.height(14.dp))
         }
 
@@ -1076,9 +1087,9 @@ private fun MonthlyReportView(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // 30-Day Rolling Prayer Trend Chart (D3 / Recharts-inspired Spline & Area Fill)
+        // Interactive Visual Dashboard (Last Week & Last Month Prayer Completion History)
         item {
-            ThirtyDayPrayerTrendChart(
+            PrayerCompletionDashboard(
                 allLogs = allLogs,
                 allArrowLogs = allArrowLogs,
                 language = lang,

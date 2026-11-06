@@ -1,6 +1,7 @@
 package com.example.data.model
 
 import com.example.localization.AppLanguage
+import java.util.Calendar
 
 enum class PrayerId(
     val code: String,
@@ -389,5 +390,20 @@ enum class PrayerId(
     companion object {
         val canonicalPrayers = listOf(PRIME, TERCE, SEXT, NONE, VESPERS, COMPLINE, MIDNIGHT, VEIL)
         fun fromCode(code: String): PrayerId = entries.find { it.code.equals(code, ignoreCase = true) } ?: PRIME
+
+        fun getCurrentPrayerForTime(
+            hourOfDay: Int = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        ): PrayerId {
+            return when (hourOfDay) {
+                in 0..5 -> MIDNIGHT
+                in 6..8 -> PRIME
+                in 9..11 -> TERCE
+                in 12..14 -> SEXT
+                in 15..16 -> NONE
+                in 17..20 -> VESPERS
+                in 21..23 -> COMPLINE
+                else -> PRIME
+            }
+        }
     }
 }
