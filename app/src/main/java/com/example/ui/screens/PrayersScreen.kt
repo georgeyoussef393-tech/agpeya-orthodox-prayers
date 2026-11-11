@@ -37,7 +37,9 @@ import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.PhoneIphone
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ViewInAr
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -84,6 +86,7 @@ import com.example.ui.components.DailyScriptureCard
 import com.example.ui.components.IchthysDivider
 import com.example.ui.components.PeaceDoveBadge
 import com.example.ui.components.PrayerReadingModal
+import com.example.ui.components.ShareIosDialog
 import com.example.ui.components.SpiritualAtmosphereBackdrop
 import com.example.ui.theme.BurgundyDeep
 import com.example.ui.theme.BurgundyLight
@@ -116,6 +119,7 @@ fun PrayersScreen(
     val themeMode by viewModel.themeMode.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
+    var showShareIosDialog by remember { mutableStateOf(false) }
 
     val todayString = AgpeyaRepository.getTodayString()
     val isAr = lang == AppLanguage.ARABIC
@@ -221,6 +225,22 @@ fun PrayersScreen(
 
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(
+                                        onClick = { showShareIosDialog = true },
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(Color.Black.copy(alpha = 0.45f))
+                                            .testTag("top_bar_share_ios_btn")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Share,
+                                            contentDescription = if (lang == AppLanguage.ARABIC) "مشاركة التطبيق للآيفون" else "Share with iPhone",
+                                            tint = GoldLight
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    IconButton(
                                         onClick = { viewModel.openAuthOnboarding() },
                                         modifier = Modifier
                                             .clip(CircleShape)
@@ -308,6 +328,86 @@ fun PrayersScreen(
                         viewModel.openPrayerReading(prayerId)
                     }
                 )
+            }
+
+            // iPhone & Web Share Card (Direct send to friends with iPhone)
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = BurgundyDeep.copy(alpha = 0.90f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                    border = BorderStroke(1.2.dp, GoldPrimary.copy(alpha = 0.6f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                        .testTag("card_share_iphone_banner")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(GoldPrimary.copy(alpha = 0.22f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PhoneIphone,
+                                contentDescription = null,
+                                tint = GoldLight,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "مشاركة التطبيق لزملائك (آيفون وأندرويد)" else "Share with iPhone Friends",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = GoldLight
+                            )
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "إرسال رابط البرنامج لفتحه على الآيفون مجاناً" else "Send link to open on iPhone for free",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.85f),
+                                fontSize = 11.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
+                            onClick = { showShareIosDialog = true },
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = null,
+                                tint = BurgundyDeep,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "مشاركة" else "Share",
+                                color = BurgundyDeep,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
             }
 
             // Cloud Registration & Sync Status Banner
@@ -567,6 +667,14 @@ fun PrayersScreen(
             onAutoMarkPrayed = { viewModel.markPrayerAsPrayedToday(prayerId) },
             onTogglePrayed = { viewModel.togglePrayerToday(prayerId) },
             onDismiss = { viewModel.closePrayerReading() }
+        )
+    }
+
+    // Share with iPhone & Android Friends Dialog
+    if (showShareIosDialog) {
+        ShareIosDialog(
+            language = lang,
+            onDismiss = { showShareIosDialog = false }
         )
     }
 }

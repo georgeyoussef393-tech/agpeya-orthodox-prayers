@@ -184,6 +184,52 @@ class FirestoreSyncManager(private val context: Context) {
             prefs.edit().remove("user_full_name").apply()
             _userFullName.value = null
         }
+        uploadUserProfileToFirestore()
+    }
+
+    fun setUserChurchAndService(church: String?, service: String?) {
+        if (!church.isNullOrBlank()) {
+            prefs.edit().putString("user_church_name", church.trim()).apply()
+        } else {
+            prefs.edit().remove("user_church_name").apply()
+        }
+        if (!service.isNullOrBlank()) {
+            prefs.edit().putString("user_service_name", service.trim()).apply()
+        } else {
+            prefs.edit().remove("user_service_name").apply()
+        }
+        uploadUserProfileToFirestore()
+    }
+
+    /**
+     * Uploads user profile (Full Name, Phone, Email, Church Name, Service Name)
+     * to Firestore under the user document for periodic and live sync.
+     */
+    fun uploadUserProfileToFirestore() {
+        if (!isFirebaseReady()) return
+        val db = firestore ?: return
+        val currentKey = _syncKey.value
+        val now = System.currentTimeMillis()
+
+        val profileData = hashMapOf<String, Any>(
+            "fullName" to (prefs.getString("user_full_name", null) ?: ""),
+            "email" to (_userEmail.value ?: ""),
+            "phone" to (_userPhone.value ?: ""),
+            "churchName" to (prefs.getString("user_church_name", null) ?: ""),
+            "serviceName" to (prefs.getString("user_service_name", null) ?: ""),
+            "syncKey" to currentKey,
+            "updatedAt" to now
+        )
+
+        db.collection("users")
+            .document(currentKey)
+            .set(profileData, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "User profile synced with Firestore: $currentKey")
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Failed to upload user profile to Firestore: ${e.message}")
+            }
     }
 
     fun authenticateWithEmail(
@@ -643,6 +689,31 @@ class FirestoreSyncManager(private val context: Context) {
                 } else if (localAlarmSettings.isNotEmpty()) {
                     uploadAlarmSettings(localLanguageCode, localAlarmSettings)
                 }
+            }
+
+            // 4. Sync User Profile (Full Name, Phone, Email, Church Name, Service Name)
+            try {
+                val userDocRef = db.collection("users").document(currentKey)
+                val userDoc = userDocRef.get().await()
+                if (userDoc.exists()) {
+                    val remoteFullName = userDoc.getString("fullName")
+                    val remoteChurch = userDoc.getString("churchName")
+                    val remoteService = userDoc.getString("serviceName")
+
+                    if (!remoteFullName.isNullOrBlank() && prefs.getString("user_full_name", null).isNullOrBlank()) {
+                        prefs.edit().putString("user_full_name", remoteFullName).apply()
+                        _userFullName.value = remoteFullName
+                    }
+                    if (!remoteChurch.isNullOrBlank() && prefs.getString("user_church_name", null).isNullOrBlank()) {
+                        prefs.edit().putString("user_church_name", remoteChurch).apply()
+                    }
+                    if (!remoteService.isNullOrBlank() && prefs.getString("user_service_name", null).isNullOrBlank()) {
+                        prefs.edit().putString("user_service_name", remoteService).apply()
+                    }
+                }
+                uploadUserProfileToFirestore()
+            } catch (e: Exception) {
+                Log.w(TAG, "Profile sync warning: ${e.message}")
             }
 
             val now = System.currentTimeMillis()

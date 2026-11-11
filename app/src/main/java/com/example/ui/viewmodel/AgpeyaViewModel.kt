@@ -110,9 +110,13 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     private val _fontSizeMultiplier = MutableStateFlow(1.0f)
     val fontSizeMultiplier: StateFlow<Float> = _fontSizeMultiplier.asStateFlow()
 
-    // Optional Church / Ministry Name
+    // Church Name
     private val _churchName = MutableStateFlow<String?>(null)
     val churchName: StateFlow<String?> = _churchName.asStateFlow()
+
+    // Service / Ministry Name (اسم الخدمة)
+    private val _serviceName = MutableStateFlow<String?>(null)
+    val serviceName: StateFlow<String?> = _serviceName.asStateFlow()
 
     private val _churchEmblem = MutableStateFlow("coptic_cross")
     val churchEmblem: StateFlow<String> = _churchEmblem.asStateFlow()
@@ -172,6 +176,7 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         _fontSizeMultiplier.value = repository.getFontSizeMultiplier()
         _dailyArrowTarget.value = repository.getDailyArrowPrayerTarget()
         _churchName.value = repository.getChurchName()
+        _serviceName.value = repository.getServiceName()
         _churchEmblem.value = repository.getChurchEmblem()
         _spiritualTheme.value = repository.getSpiritualBackgroundTheme()
         _spiritualOpacity.value = repository.getSpiritualBackgroundOpacity()
@@ -379,7 +384,20 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         repository.saveChurchName(cleanName)
     }
 
-    fun signInWithPhone(phone: String, fullName: String? = null, churchName: String? = null, onResult: (Boolean, String?) -> Unit) {
+    fun saveServiceName(name: String?) {
+        val trimmed = name?.trim()
+        val cleanName = if (trimmed.isNullOrBlank()) null else trimmed
+        _serviceName.value = cleanName
+        repository.saveServiceName(cleanName)
+    }
+
+    fun signInWithPhone(
+        phone: String,
+        fullName: String? = null,
+        churchName: String? = null,
+        serviceName: String? = null,
+        onResult: (Boolean, String?) -> Unit
+    ) {
         val clean = phone.trim()
         if (clean.isBlank()) {
             onResult(false, "رقم الهاتف مطلوب")
@@ -390,6 +408,9 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         }
         if (!churchName.isNullOrBlank()) {
             saveChurchName(churchName)
+        }
+        if (!serviceName.isNullOrBlank()) {
+            saveServiceName(serviceName)
         }
         repository.syncManager.authenticateWithPhone(clean, fullName) { success, error ->
             if (success) {
@@ -402,7 +423,14 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun signInWithEmail(email: String, password: String? = null, fullName: String? = null, churchName: String? = null, onResult: (Boolean, String?) -> Unit) {
+    fun signInWithEmail(
+        email: String,
+        password: String? = null,
+        fullName: String? = null,
+        churchName: String? = null,
+        serviceName: String? = null,
+        onResult: (Boolean, String?) -> Unit
+    ) {
         val clean = email.trim()
         if (clean.isBlank()) {
             onResult(false, "البريد الإلكتروني مطلوب")
@@ -413,6 +441,9 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         }
         if (!churchName.isNullOrBlank()) {
             saveChurchName(churchName)
+        }
+        if (!serviceName.isNullOrBlank()) {
+            saveServiceName(serviceName)
         }
         repository.syncManager.authenticateWithEmail(clean, password) { success, error ->
             if (success) {
@@ -425,9 +456,12 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun continueAsGuest(churchName: String? = null) {
+    fun continueAsGuest(churchName: String? = null, serviceName: String? = null) {
         if (!churchName.isNullOrBlank()) {
             saveChurchName(churchName)
+        }
+        if (!serviceName.isNullOrBlank()) {
+            saveServiceName(serviceName)
         }
         repository.setAuthOnboardingCompleted(true)
         _isAuthCompleted.value = true

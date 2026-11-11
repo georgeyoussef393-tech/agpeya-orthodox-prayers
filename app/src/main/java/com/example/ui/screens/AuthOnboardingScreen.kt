@@ -94,6 +94,7 @@ fun AuthOnboardingScreen(
     val savedPhone by viewModel.userPhone.collectAsState()
     val savedFullName by viewModel.userFullName.collectAsState()
     val savedChurchName by viewModel.churchName.collectAsState()
+    val savedServiceName by viewModel.serviceName.collectAsState()
     val focusManager = LocalFocusManager.current
 
     // Auth Mode: 0 = Phone Number (رقم الهاتف), 1 = Email (البريد الإلكتروني)
@@ -104,6 +105,7 @@ fun AuthOnboardingScreen(
     var passwordInput by remember { mutableStateOf("") }
     var fullNameInput by remember(savedFullName) { mutableStateOf(savedFullName ?: "") }
     var churchNameInput by remember(savedChurchName) { mutableStateOf(savedChurchName ?: "") }
+    var serviceNameInput by remember(savedServiceName) { mutableStateOf(savedServiceName ?: "") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -539,6 +541,37 @@ fun AuthOnboardingScreen(
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            ),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = GoldPrimary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                focusedLabelColor = GoldPrimary
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("auth_church_name_input")
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Service / Ministry Field (Optional)
+                        OutlinedTextField(
+                            value = serviceNameInput,
+                            onValueChange = { serviceNameInput = it },
+                            label = { Text(if (lang == AppLanguage.ARABIC) "اسم الخدمة (مثل: خدمة إعداد خدام / خدمة ثانوي / شماس)" else "Ministry / Service (e.g. Youth Servant, Deacon)") },
+                            placeholder = { Text(if (lang == AppLanguage.ARABIC) "مثال: خدمة ثانوي / إعداد خدام / كشافة / ألحان" else "e.g. Youth Ministry / Deacon") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.MenuBook,
+                                    contentDescription = null,
+                                    tint = GoldPrimary
+                                )
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
                                 imeAction = ImeAction.Done
                             ),
                             keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
@@ -550,7 +583,7 @@ fun AuthOnboardingScreen(
                             shape = RoundedCornerShape(14.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .testTag("auth_church_name_input")
+                                .testTag("auth_service_name_input")
                         )
 
                         // Error notice
@@ -634,7 +667,8 @@ fun AuthOnboardingScreen(
                                     viewModel.signInWithPhone(
                                         phone = trimmedPhone,
                                         fullName = fullNameInput.ifBlank { null },
-                                        churchName = churchNameInput.ifBlank { null }
+                                        churchName = churchNameInput.ifBlank { null },
+                                        serviceName = serviceNameInput.ifBlank { null }
                                     ) { success, err ->
                                         isLoading = false
                                         if (!success) {
@@ -653,7 +687,8 @@ fun AuthOnboardingScreen(
                                         email = trimmedEmail,
                                         password = passwordInput.ifBlank { null },
                                         fullName = fullNameInput.ifBlank { null },
-                                        churchName = churchNameInput.ifBlank { null }
+                                        churchName = churchNameInput.ifBlank { null },
+                                        serviceName = serviceNameInput.ifBlank { null }
                                     ) { success, err ->
                                         isLoading = false
                                         if (!success) {
@@ -698,7 +733,10 @@ fun AuthOnboardingScreen(
                         // Continue as Guest (Offline Mode)
                         OutlinedButton(
                             onClick = {
-                                viewModel.continueAsGuest(churchName = churchNameInput.ifBlank { null })
+                                viewModel.continueAsGuest(
+                                    churchName = churchNameInput.ifBlank { null },
+                                    serviceName = serviceNameInput.ifBlank { null }
+                                )
                             },
                             shape = RoundedCornerShape(14.dp),
                             modifier = Modifier

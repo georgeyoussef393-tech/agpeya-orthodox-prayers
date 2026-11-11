@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PictureAsPdf
@@ -144,10 +145,12 @@ fun SettingsScreen(
     val lastSyncTime by viewModel.lastSyncTime.collectAsState()
     val isRealtimeSyncActive by viewModel.isRealtimeSyncActive.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
+    val userPhone by viewModel.userPhone.collectAsState()
     val userFullName by viewModel.userFullName.collectAsState()
     val fontSizeMultiplier by viewModel.fontSizeMultiplier.collectAsState()
     val dailyArrowTarget by viewModel.dailyArrowTarget.collectAsState()
     val churchName by viewModel.churchName.collectAsState()
+    val serviceName by viewModel.serviceName.collectAsState()
     val churchEmblem by viewModel.churchEmblem.collectAsState()
     val allLogs by viewModel.allLogs.collectAsState()
     val spiritualTheme by viewModel.spiritualTheme.collectAsState()
@@ -193,6 +196,9 @@ fun SettingsScreen(
 
     var isEditingChurch by remember { mutableStateOf(false) }
     var churchInput by remember(churchName) { mutableStateOf(churchName ?: "") }
+
+    var isEditingService by remember { mutableStateOf(false) }
+    var serviceInput by remember(serviceName) { mutableStateOf(serviceName ?: "") }
     var showPrivacyDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showGroundedSearchDialog by remember { mutableStateOf(false) }
@@ -1235,6 +1241,73 @@ fun SettingsScreen(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Service / Ministry Name Row (editable)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MenuBook,
+                            contentDescription = null,
+                            tint = GoldPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        if (isEditingService) {
+                            OutlinedTextField(
+                                value = serviceInput,
+                                onValueChange = { serviceInput = it },
+                                label = { Text(if (lang == AppLanguage.ARABIC) "اسم الخدمة (مثل: خدمة إعداد خدام / خدمة ثانوي)" else "Ministry / Service Name") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = {
+                                    viewModel.saveServiceName(serviceInput.ifBlank { null })
+                                    isEditingService = false
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Save",
+                                    tint = GoldPrimary
+                                )
+                            }
+                        } else {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "اسم الخدمة الكنسية المُسجلة" else "Registered Ministry / Service",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = if (!serviceName.isNullOrBlank()) serviceName!! else if (lang == AppLanguage.ARABIC) "أدخل اسم الخدمة لتضمينها بتقاريرك" else "Add your ministry name for reports",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (!serviceName.isNullOrBlank()) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (!serviceName.isNullOrBlank()) GoldLight else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            }
+                            IconButton(
+                                onClick = { isEditingService = true },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Service Name",
+                                    tint = GoldPrimary
+                                )
+                            }
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = AgpeyaStrings.churchEmblemTitle(lang),
@@ -1417,9 +1490,10 @@ fun SettingsScreen(
                             onClick = {
                                 PrayerPdfExporter.generateAndSharePdf(
                                     context = context,
-                                    userEmail = userEmail,
-                                    userName = userEmail?.substringBefore("@"),
+                                    userEmail = userEmail ?: userPhone,
+                                    userName = userFullName ?: userEmail?.substringBefore("@") ?: userPhone,
                                     churchName = churchName,
+                                    serviceName = serviceName,
                                     churchEmblem = churchEmblem,
                                     syncKey = syncKey,
                                     lang = lang,
@@ -2377,7 +2451,7 @@ fun SettingsScreen(
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1f),
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
-                            border = if (allSoundActive && allVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder
+                            border = if (allSoundActive && allVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder(true)
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(imageVector = Icons.Default.NotificationsActive, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(16.dp))
@@ -2394,7 +2468,7 @@ fun SettingsScreen(
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1f),
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
-                            border = if (!anySoundActive && allVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder
+                            border = if (!anySoundActive && allVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder(true)
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(imageVector = Icons.Outlined.Vibration, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(16.dp))
@@ -2411,7 +2485,7 @@ fun SettingsScreen(
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1f),
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
-                            border = if (allSoundActive && !anyVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder
+                            border = if (allSoundActive && !anyVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder(true)
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(imageVector = Icons.Default.VolumeUp, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(16.dp))
@@ -2428,7 +2502,7 @@ fun SettingsScreen(
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1f),
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
-                            border = if (!anySoundActive && !anyVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder
+                            border = if (!anySoundActive && !anyVibrateActive) BorderStroke(1.5.dp, GoldPrimary) else ButtonDefaults.outlinedButtonBorder(true)
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(imageVector = Icons.Default.VolumeOff, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(16.dp))
@@ -2910,7 +2984,9 @@ fun SettingsScreen(
                                 • الاهتزاز (VIBRATE): لإصدار اهتزاز لمسي هادئ عند الصلاة وأثناء التسبيح.
                                 
                                 4. الدعم الفني والتواصل:
+                                • مطور التطبيق: جورج يوسف (George Youssef)
                                 • البريد الإلكتروني للمطور: georgeyoussef393@gmail.com
+                                • رقم الهاتف / واتساب: +20 1222563688
                                 • التطبيق مجاني وخالٍ تماماً من أي إعلانات تجارية.
                                 """.trimIndent()
                             } else {
@@ -2931,7 +3007,9 @@ fun SettingsScreen(
                                 • Vibration: For gentle haptic feedback during prayer beads and alarms.
                                 
                                 4. Developer & Support:
+                                • Developer: George Youssef
                                 • Developer Contact: georgeyoussef393@gmail.com
+                                • Phone / WhatsApp: +20 1222563688
                                 • The application is free and completely ad-free.
                                 """.trimIndent()
                             },

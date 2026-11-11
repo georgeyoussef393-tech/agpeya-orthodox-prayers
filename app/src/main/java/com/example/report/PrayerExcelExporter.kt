@@ -23,6 +23,8 @@ object PrayerExcelExporter {
         context: Context,
         userEmail: String?,
         userName: String?,
+        churchName: String? = null,
+        serviceName: String? = null,
         syncKey: String?,
         lang: AppLanguage,
         allLogs: List<PrayerLogEntity>,
@@ -36,7 +38,16 @@ object PrayerExcelExporter {
             FileWriter(csvFile).use { writer ->
                 // Header Information
                 writer.append("=== Orthodox Agpeya Prayer Progress Report ===\n")
-                writer.append("User," + (userEmail ?: userName ?: "Worshipper") + "\n")
+                writer.append("User," + (userName ?: userEmail ?: "Worshipper") + "\n")
+                if (!userEmail.isNullOrBlank() && userEmail != userName) {
+                    writer.append("Email/Phone,$userEmail\n")
+                }
+                if (!churchName.isNullOrBlank()) {
+                    writer.append("Church,\"$churchName\"\n")
+                }
+                if (!serviceName.isNullOrBlank()) {
+                    writer.append("Ministry/Service,\"$serviceName\"\n")
+                }
                 if (!syncKey.isNullOrBlank()) {
                     writer.append("Sync Key,$syncKey\n")
                 }
@@ -96,12 +107,24 @@ object PrayerExcelExporter {
         context: Context,
         userEmail: String?,
         userName: String?,
+        churchName: String? = null,
+        serviceName: String? = null,
         syncKey: String?,
         lang: AppLanguage,
         allLogs: List<PrayerLogEntity>,
         allArrowLogs: List<ArrowPrayerLogEntity> = emptyList()
     ) {
-        val csvFile = generateCsvFile(context, userEmail, userName, syncKey, lang, allLogs, allArrowLogs) ?: return
+        val csvFile = generateCsvFile(
+            context = context,
+            userEmail = userEmail,
+            userName = userName,
+            churchName = churchName,
+            serviceName = serviceName,
+            syncKey = syncKey,
+            lang = lang,
+            allLogs = allLogs,
+            allArrowLogs = allArrowLogs
+        ) ?: return
 
         try {
             val contentUri = FileProvider.getUriForFile(

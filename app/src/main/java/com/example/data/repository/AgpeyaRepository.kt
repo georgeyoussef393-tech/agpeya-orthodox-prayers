@@ -92,7 +92,7 @@ class AgpeyaRepository(
         prefs.edit().putFloat("reading_font_size_multiplier", clamped).apply()
     }
 
-    // Church Name (Optional User Ministry / Church)
+    // Church Name (User Church)
     fun getChurchName(): String? {
         return prefs.getString("user_church_name", null)
     }
@@ -104,6 +104,22 @@ class AgpeyaRepository(
         } else {
             prefs.edit().putString("user_church_name", clean).apply()
         }
+        syncManager.setUserChurchAndService(getChurchName(), getServiceName())
+    }
+
+    // Service / Ministry Name (اسم الخدمة)
+    fun getServiceName(): String? {
+        return prefs.getString("user_service_name", null)
+    }
+
+    fun saveServiceName(serviceName: String?) {
+        val clean = serviceName?.trim()
+        if (clean.isNullOrBlank()) {
+            prefs.edit().remove("user_service_name").apply()
+        } else {
+            prefs.edit().putString("user_service_name", clean).apply()
+        }
+        syncManager.setUserChurchAndService(getChurchName(), getServiceName())
     }
 
     // Church Emblem / Logo Badge Code (coptic_cross, st_mark_lion, st_mary_dove, monastic_anchor)

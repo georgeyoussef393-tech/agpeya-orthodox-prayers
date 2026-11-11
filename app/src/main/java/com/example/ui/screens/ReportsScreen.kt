@@ -128,8 +128,12 @@ fun ReportsScreen(
     val dailyArrowTarget by viewModel.dailyArrowTarget.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
+    val userPhone by viewModel.userPhone.collectAsState()
+    val userFullName by viewModel.userFullName.collectAsState()
     val churchName by viewModel.churchName.collectAsState()
+    val serviceName by viewModel.serviceName.collectAsState()
     val syncKey by viewModel.syncKey.collectAsState()
+    val resolvedUserName = userFullName ?: userEmail?.substringBefore("@") ?: userPhone
     val context = LocalContext.current
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -236,9 +240,10 @@ fun ReportsScreen(
                             val periodLabel = tabTitles[selectedTabIndex]
                             PrayerPdfExporter.generateAndSharePdf(
                                 context = context,
-                                userEmail = userEmail,
-                                userName = userEmail?.substringBefore("@"),
+                                userEmail = userEmail ?: userPhone,
+                                userName = resolvedUserName,
                                 churchName = churchName,
+                                serviceName = serviceName,
                                 syncKey = syncKey,
                                 lang = lang,
                                 periodName = periodLabel,
@@ -1999,8 +2004,12 @@ private fun HistoryLogView(
     var selectedFilterIndex by remember { mutableIntStateOf(0) } // 0: All, 1: Canonical, 2: Arrow
 
     val userEmail by viewModel.userEmail.collectAsState()
+    val userPhone by viewModel.userPhone.collectAsState()
+    val userFullName by viewModel.userFullName.collectAsState()
     val churchName by viewModel.churchName.collectAsState()
+    val serviceName by viewModel.serviceName.collectAsState()
     val syncKey by viewModel.syncKey.collectAsState()
+    val resolvedUserName = userFullName ?: userEmail?.substringBefore("@") ?: userPhone
     val context = LocalContext.current
 
     val filterLabels = listOf(
@@ -2100,8 +2109,10 @@ private fun HistoryLogView(
                             onClick = {
                                 com.example.report.PrayerExcelExporter.generateAndShareCsv(
                                     context = context,
-                                    userEmail = userEmail,
-                                    userName = userEmail?.substringBefore("@"),
+                                    userEmail = userEmail ?: userPhone,
+                                    userName = resolvedUserName,
+                                    churchName = churchName,
+                                    serviceName = serviceName,
                                     syncKey = syncKey,
                                     lang = lang,
                                     allLogs = allLogs,
@@ -2135,9 +2146,10 @@ private fun HistoryLogView(
                             onClick = {
                                 PrayerPdfExporter.generateAndSharePdf(
                                     context = context,
-                                    userEmail = userEmail,
-                                    userName = userEmail?.substringBefore("@"),
+                                    userEmail = userEmail ?: userPhone,
+                                    userName = resolvedUserName,
                                     churchName = churchName,
+                                    serviceName = serviceName,
                                     syncKey = syncKey,
                                     lang = lang,
                                     periodName = AgpeyaStrings.prayersLogHistory(lang),

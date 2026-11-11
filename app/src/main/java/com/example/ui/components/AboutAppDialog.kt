@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Verified
@@ -65,6 +66,7 @@ fun AboutAppDialog(
 ) {
     val context = LocalContext.current
     val email = AgpeyaStrings.developerEmailAddress()
+    val phone = AgpeyaStrings.developerPhoneNumber()
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -243,7 +245,95 @@ fun AboutAppDialog(
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Phone Number Display Container
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface)
+                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Phone,
+                                    contentDescription = null,
+                                    tint = GoldPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = phone,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Action: Direct Call & WhatsApp
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        val callIntent = Intent(Intent.ACTION_DIAL).apply {
+                                            data = Uri.parse(AgpeyaStrings.developerPhoneDialUri())
+                                        }
+                                        try {
+                                            context.startActivity(callIntent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, phone, Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.weight(1f).testTag("btn_call_phone")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Phone,
+                                        contentDescription = null,
+                                        tint = Color.Black,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = AgpeyaStrings.callPhoneButton(language),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        val waIntent = Intent(Intent.ACTION_VIEW).apply {
+                                            data = Uri.parse(AgpeyaStrings.developerWhatsAppUri())
+                                        }
+                                        try {
+                                            context.startActivity(waIntent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, phone, Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.weight(1f).testTag("btn_whatsapp")
+                                ) {
+                                    Text(
+                                        text = AgpeyaStrings.whatsAppButton(language),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = GoldPrimary
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
 
                             // Action: Send Email
                             Button(
@@ -325,9 +415,9 @@ fun AboutAppDialog(
                                             putExtra(
                                                 Intent.EXTRA_TEXT,
                                                 if (language == AppLanguage.ARABIC) {
-                                                    "✝️ أدعوك لاستخدام تطبيق صلوات الأجبية الأرثوذكسية (كتاب السواعي السبع، المزامير، التنبيهات، والصلوات السهمية).\nإعداد وتطوير: جورج يوسف (George Youssef)\nللتواصل: $email"
+                                                    "✝️ أدعوك لاستخدام تطبيق صلوات الأجبية الأرثوذكسية (كتاب السواعي السبع، المزامير، التنبيهات، والصلوات السهمية).\n📱 لفتح التطبيق على الآيفون والكمبيوتر مجاناً:\nhttps://ais-pre-njl23o6fhya5j6qzsynppp-332368260274.europe-west2.run.app\n(على الآيفون افتح الرابط في Safari واضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية»)\nإعداد وتطوير: جورج يوسف (George Youssef)\nالبريد: $email\nهاتف / واتساب: $phone"
                                                 } else {
-                                                    "✝️ Discover the Orthodox Agpeya Prayers App (The Seven Canonical Hours, Psalms, and Alarms).\nDeveloped by George Youssef.\nContact: $email"
+                                                    "✝️ Discover the Orthodox Agpeya Prayers App (The Seven Canonical Hours, Psalms, and Alarms).\n📱 Open on iPhone & Web for free:\nhttps://ais-pre-njl23o6fhya5j6qzsynppp-332368260274.europe-west2.run.app\n(On iPhone: Open in Safari, tap Share and select 'Add to Home Screen')\nDeveloped by: George Youssef\nEmail: $email\nPhone / WhatsApp: $phone"
                                                 }
                                             )
                                         }

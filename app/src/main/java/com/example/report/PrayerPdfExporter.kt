@@ -29,6 +29,7 @@ object PrayerPdfExporter {
         userEmail: String?,
         userName: String?,
         churchName: String? = null,
+        serviceName: String? = null,
         syncKey: String?,
         lang: AppLanguage,
         periodName: String,
@@ -36,13 +37,19 @@ object PrayerPdfExporter {
         allArrowLogs: List<com.example.data.model.ArrowPrayerLogEntity> = emptyList()
     ): String {
         val sb = StringBuilder()
-        val displayName = userEmail ?: userName ?: if (lang == AppLanguage.ARABIC) "المصلي" else "Worshipper"
+        val displayName = userName ?: userEmail ?: if (lang == AppLanguage.ARABIC) "المصلي" else "Worshipper"
         sb.appendLine("==================================================")
         sb.appendLine(if (lang == AppLanguage.ARABIC) "تقرير الصلوات الأرثوذكسية - صلوات السواعي والصلوات السهمية" else "Orthodox Agpeya & Arrow Prayers Progress Report")
         sb.appendLine("==================================================")
-        sb.appendLine("${if (lang == AppLanguage.ARABIC) "المستخدم المسجل" else "Logged-in User"}: $displayName")
+        sb.appendLine("${if (lang == AppLanguage.ARABIC) "الاسم المسجل" else "Logged-in User"}: $displayName")
+        if (!userEmail.isNullOrBlank() && userEmail != displayName) {
+            sb.appendLine("${if (lang == AppLanguage.ARABIC) "البريد / الهاتف" else "Email / Phone"}: $userEmail")
+        }
         if (!churchName.isNullOrBlank()) {
-            sb.appendLine("${if (lang == AppLanguage.ARABIC) "الكنيسة / الخدمة" else "Church / Ministry"}: $churchName")
+            sb.appendLine("${if (lang == AppLanguage.ARABIC) "اسم الكنيسة" else "Church"}: $churchName")
+        }
+        if (!serviceName.isNullOrBlank()) {
+            sb.appendLine("${if (lang == AppLanguage.ARABIC) "اسم الخدمة" else "Ministry / Service"}: $serviceName")
         }
         syncKey?.let { sb.appendLine("${if (lang == AppLanguage.ARABIC) "معرف المزامنة" else "Sync Key"}: $it") }
         sb.appendLine("${if (lang == AppLanguage.ARABIC) "نوع التقرير" else "Report Period"}: $periodName")
@@ -75,6 +82,7 @@ object PrayerPdfExporter {
         userEmail: String?,
         userName: String?,
         churchName: String? = null,
+        serviceName: String? = null,
         churchEmblem: String = "coptic_cross",
         syncKey: String?,
         lang: AppLanguage,
@@ -94,6 +102,7 @@ object PrayerPdfExporter {
                 userEmail = userEmail,
                 userName = userName,
                 churchName = churchName,
+                serviceName = serviceName,
                 churchEmblem = churchEmblem,
                 syncKey = syncKey,
                 lang = lang,
@@ -127,6 +136,7 @@ object PrayerPdfExporter {
         userEmail: String?,
         userName: String?,
         churchName: String? = null,
+        serviceName: String? = null,
         churchEmblem: String = "coptic_cross",
         syncKey: String?,
         lang: AppLanguage,
@@ -140,6 +150,7 @@ object PrayerPdfExporter {
             userEmail = userEmail,
             userName = userName,
             churchName = churchName,
+            serviceName = serviceName,
             churchEmblem = churchEmblem,
             syncKey = syncKey,
             lang = lang,
@@ -195,6 +206,7 @@ object PrayerPdfExporter {
         userEmail: String?,
         userName: String?,
         churchName: String?,
+        serviceName: String?,
         churchEmblem: String = "coptic_cross",
         syncKey: String?,
         lang: AppLanguage,
@@ -234,21 +246,28 @@ object PrayerPdfExporter {
         paint.textSize = 11.5f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         paint.color = android.graphics.Color.rgb(240, 220, 160)
-        val subtitle = if (!churchName.isNullOrBlank()) {
-            if (lang == AppLanguage.ARABIC) "الكنيسة / الخدمة: $churchName" else "Church / Ministry: $churchName"
-        } else {
-            if (lang == AppLanguage.ARABIC) "تقرير التقدم الروحي وإتمام صلوات السواعي والصلوات السهمية" else "Spiritual Progress Report: Canonical & Arrow Prayers"
+        val subtitle = buildString {
+            if (!churchName.isNullOrBlank()) {
+                append(if (lang == AppLanguage.ARABIC) "كنيسة: $churchName" else "Church: $churchName")
+            }
+            if (!serviceName.isNullOrBlank()) {
+                if (isNotEmpty()) append(" | ")
+                append(if (lang == AppLanguage.ARABIC) "خدمة: $serviceName" else "Ministry: $serviceName")
+            }
+            if (isEmpty()) {
+                append(if (lang == AppLanguage.ARABIC) "تقرير التقدم الروحي وإتمام صلوات السواعي والصلوات السهمية" else "Spiritual Progress Report: Canonical & Arrow Prayers")
+            }
         }
         canvas.drawText(subtitle, 25f, 65f, paint)
 
-        // User & Account Details Card Box (y = 102 to 192)
+        // User & Account Details Card Box (y = 100 to 196)
         paint.color = android.graphics.Color.rgb(255, 255, 255)
-        canvas.drawRoundRect(28f, 102f, 567f, 192f, 10f, 10f, paint)
+        canvas.drawRoundRect(28f, 100f, 567f, 196f, 10f, 10f, paint)
 
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1.2f
         paint.color = android.graphics.Color.rgb(212, 175, 55)
-        canvas.drawRoundRect(28f, 102f, 567f, 192f, 10f, 10f, paint)
+        canvas.drawRoundRect(28f, 100f, 567f, 196f, 10f, 10f, paint)
         paint.style = Paint.Style.FILL
 
         // User Info inside Card
@@ -260,29 +279,35 @@ object PrayerPdfExporter {
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
 
         val userLabel = if (lang == AppLanguage.ARABIC) "اسم صاحب الحساب المُسجل:" else "Registered User Name:"
-        val emailLabel = if (lang == AppLanguage.ARABIC) "البريد الإلكتروني المُسجل:" else "Registered Account Email:"
-        val churchLabel = if (lang == AppLanguage.ARABIC) "الكنيسة / الخدمة المُسجلة:" else "Registered Church / Ministry:"
+        val emailLabel = if (lang == AppLanguage.ARABIC) "البريد / الهاتف المُسجل:" else "Registered Email / Phone:"
+        val churchLabel = if (lang == AppLanguage.ARABIC) "اسم الكنيسة المُسجلة:" else "Registered Church:"
+        val serviceLabel = if (lang == AppLanguage.ARABIC) "اسم الخدمة المُسجلة:" else "Registered Ministry / Service:"
         val reportDateLabel = if (lang == AppLanguage.ARABIC) "تاريخ إصدار التقرير:" else "Report Issued On:"
         val periodLabel = if (lang == AppLanguage.ARABIC) "نطاق المتابعة:" else "Reporting Period:"
 
         val nowFormatted = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
 
-        canvas.drawText("$userLabel $displayName", 42f, 122f, paint)
+        canvas.drawText("$userLabel $displayName", 42f, 118f, paint)
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         paint.color = android.graphics.Color.rgb(60, 60, 60)
-        canvas.drawText("$emailLabel $effectiveEmail", 42f, 139f, paint)
+        canvas.drawText("$emailLabel $effectiveEmail", 42f, 134f, paint)
 
+        var curInfoY = 150f
         if (!churchName.isNullOrBlank()) {
             paint.color = android.graphics.Color.rgb(107, 20, 38)
             paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            canvas.drawText("$churchLabel $churchName", 42f, 156f, paint)
-            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
-            paint.color = android.graphics.Color.rgb(100, 100, 100)
-            canvas.drawText("$reportDateLabel $nowFormatted", 42f, 173f, paint)
-        } else {
-            paint.color = android.graphics.Color.rgb(100, 100, 100)
-            canvas.drawText("$reportDateLabel $nowFormatted", 42f, 158f, paint)
+            canvas.drawText("$churchLabel $churchName", 42f, curInfoY, paint)
+            curInfoY += 16f
         }
+        if (!serviceName.isNullOrBlank()) {
+            paint.color = android.graphics.Color.rgb(107, 20, 38)
+            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            canvas.drawText("$serviceLabel $serviceName", 42f, curInfoY, paint)
+            curInfoY += 16f
+        }
+        paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+        paint.color = android.graphics.Color.rgb(100, 100, 100)
+        canvas.drawText("$reportDateLabel $nowFormatted", 42f, curInfoY, paint)
 
         canvas.drawText("$periodLabel $periodName", 335f, 122f, paint)
         syncKey?.let {

@@ -2227,6 +2227,21 @@ object AgpeyaStrings {
     }
 
     fun developerEmailAddress(): String = "georgeyoussef393@gmail.com"
+    fun developerPhoneNumber(): String = "+20 1222563688"
+    fun developerPhoneDialUri(): String = "tel:+201222563688"
+    fun developerWhatsAppUri(): String = "https://wa.me/201222563688"
+
+    fun callPhoneButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "اتصال هاتفياً"
+        AppLanguage.COPTIC -> "Ϣⲁϫⲓ ϩⲓ ⲡⲓⲧⲏⲗⲉⲫⲱⲛⲟⲛ"
+        else -> "Call Phone"
+    }
+
+    fun whatsAppButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مراسلة عبر واتساب"
+        AppLanguage.COPTIC -> "Ⲟⲩⲱⲣⲡ ϩⲓ ⲡⲓ-WhatsApp"
+        else -> "WhatsApp"
+    }
 
     fun sendEmailButton(lang: AppLanguage): String = when (lang) {
         AppLanguage.ARABIC, AppLanguage.SYRIAN_ARABIC, AppLanguage.SYRIAC -> "مراسلة عبر البريد الإلكتروني"
