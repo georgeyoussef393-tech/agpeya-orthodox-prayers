@@ -76,6 +76,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.CredentialManager
+import com.example.data.sync.GoogleSignInHelper
 import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
 import com.example.ui.theme.BurgundyDeep
@@ -95,7 +99,11 @@ fun AuthOnboardingScreen(
     val savedFullName by viewModel.userFullName.collectAsState()
     val savedChurchName by viewModel.churchName.collectAsState()
     val savedServiceName by viewModel.serviceName.collectAsState()
+    val isGoogleSignedIn by viewModel.isGoogleSignedIn.collectAsState()
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = remember { CredentialManager.create(context) }
 
     // Auth Mode: 0 = Phone Number (رقم الهاتف), 1 = Email (البريد الإلكتروني)
     var selectedAuthMode by remember { mutableIntStateOf(if (!savedPhone.isNullOrBlank()) 0 else 1) }
@@ -318,6 +326,67 @@ fun AuthOnboardingScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Google Sign-In via Credential Manager for secure Cloud Firestore Sync
+                        Button(
+                            onClick = {
+                                focusManager.clearFocus()
+                                isLoading = true
+                                errorMessage = null
+                                GoogleSignInHelper.onGoogleSignInClicked(
+                                    context = context,
+                                    credentialManager = credentialManager,
+                                    scope = coroutineScope,
+                                    onAuthSuccess = { email, displayName ->
+                                        isLoading = false
+                                        viewModel.onGoogleSignInCompleted(
+                                            email = email,
+                                            displayName = displayName,
+                                            fullName = fullNameInput.ifBlank { null },
+                                            churchName = churchNameInput.ifBlank { null },
+                                            serviceName = serviceNameInput.ifBlank { null },
+                                            completeOnboarding = true
+                                        )
+                                    },
+                                    onAuthError = { err ->
+                                        isLoading = false
+                                        errorMessage = err
+                                    },
+                                    onAuthCancelled = {
+                                        isLoading = false
+                                    }
+                                )
+                            },
+                            enabled = !isLoading,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isGoogleSignedIn) Color(0xFF2E7D32) else Color.White,
+                                contentColor = if (isGoogleSignedIn) Color.White else Color.Black
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.5f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .testTag("btn_google_sign_in")
+                        ) {
+                            Icon(
+                                imageVector = if (isGoogleSignedIn) Icons.Default.CheckCircle else Icons.Default.CloudDone,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = if (isGoogleSignedIn) {
+                                    if (lang == AppLanguage.ARABIC) "متصل بحساب Google — اضغط للمتابعة والمزامنة" else "Connected with Google — Continue & Sync"
+                                } else {
+                                    if (lang == AppLanguage.ARABIC) "تسجيل الدخول بحساب Google للمزامنة السحابية" else "Sign in with Google for Cloud Sync"
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
@@ -749,6 +818,29 @@ fun AuthOnboardingScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Normal,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        var showOnboardingPrivacy by remember { mutableStateOf(false) }
+                        androidx.compose.material3.TextButton(
+                            onClick = { showOnboardingPrivacy = true },
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .testTag("btn_onboarding_privacy_policy")
+                        ) {
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "🔒 سياسة الخصوصية وأمان البيانات" else "🔒 Privacy Policy & Data Safety",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = GoldPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        if (showOnboardingPrivacy) {
+                            com.example.ui.components.PrivacyPolicyDialog(
+                                language = lang,
+                                onDismissRequest = { showOnboardingPrivacy = false }
                             )
                         }
                     }

@@ -1,0 +1,236 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user profile and spiritual report identity stored under /users/{userId}.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the user."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "User full name for reports."
+        },
+        "email": {
+          "type": "string",
+          "description": "Contact email address."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact phone number."
+        },
+        "churchName": {
+          "type": "string",
+          "description": "Church name for spiritual reports."
+        },
+        "serviceName": {
+          "type": "string",
+          "description": "Ministry or service name for spiritual reports."
+        },
+        "syncKey": {
+          "type": "string",
+          "description": "User sync identifier."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when last updated (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "fullName",
+        "email",
+        "phone",
+        "churchName",
+        "serviceName",
+        "syncKey",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PrayerLog": {
+      "title": "PrayerLog",
+      "description": "Canonical Agpeya prayer completion log entry.",
+      "type": "object",
+      "properties": {
+        "prayerCode": {
+          "type": "string",
+          "description": "Canonical prayer identifier code (e.g. prime, terce)."
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Epoch milliseconds when prayer was logged."
+        },
+        "dateString": {
+          "type": "string",
+          "description": "Date string in yyyy-MM-dd format."
+        },
+        "year": {
+          "type": "integer"
+        },
+        "month": {
+          "type": "integer"
+        },
+        "day": {
+          "type": "integer"
+        },
+        "hour": {
+          "type": "integer"
+        },
+        "minute": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "prayerCode",
+        "timestamp",
+        "dateString",
+        "year",
+        "month",
+        "day",
+        "hour",
+        "minute",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ArrowPrayerLog": {
+      "title": "ArrowPrayerLog",
+      "description": "Arrow prayers / Jesus Prayer bead session log entry.",
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer"
+        },
+        "prayerText": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "integer"
+        },
+        "dateString": {
+          "type": "string"
+        },
+        "year": {
+          "type": "integer"
+        },
+        "month": {
+          "type": "integer"
+        },
+        "quarter": {
+          "type": "integer"
+        },
+        "halfYear": {
+          "type": "integer"
+        },
+        "day": {
+          "type": "integer"
+        },
+        "hour": {
+          "type": "integer"
+        },
+        "minute": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "count",
+        "prayerText",
+        "timestamp",
+        "dateString",
+        "year",
+        "month",
+        "quarter",
+        "halfYear",
+        "day",
+        "hour",
+        "minute",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AgpeyaSettings": {
+      "title": "AgpeyaSettings",
+      "description": "User language and prayer alarm preferences.",
+      "type": "object",
+      "properties": {
+        "languageCode": {
+          "type": "string"
+        },
+        "alarms": {
+          "type": "object"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "languageCode",
+        "alarms",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Authenticated user profile document."
+    },
+    "/users/{userId}/prayer_logs/{logId}": {
+      "schema": {
+        "$ref": "#/entities/PrayerLog"
+      },
+      "description": "Canonical prayer logs owned by the user."
+    },
+    "/users/{userId}/arrow_prayer_logs/{logId}": {
+      "schema": {
+        "$ref": "#/entities/ArrowPrayerLog"
+      },
+      "description": "Arrow prayer session logs owned by the user."
+    },
+    "/users/{userId}/settings/{settingId}": {
+      "schema": {
+        "$ref": "#/entities/AgpeyaSettings"
+      },
+      "description": "User language and alarm preferences owned by the user."
+    }
+  }
+}

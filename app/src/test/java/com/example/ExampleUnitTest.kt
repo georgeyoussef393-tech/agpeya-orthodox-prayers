@@ -111,6 +111,69 @@ class ExampleUnitTest {
     assertTrue(arTwoHours.contains("2") && arTwoHours.contains("30"))
     assertTrue(enTwoHours.contains("2h 30m"))
   }
+
+  @Test
+  fun pdfExporter_buildReportSummaryText_includesUserChurchServiceAndTotals() {
+    val logs = listOf(
+      com.example.data.model.PrayerLogEntity(
+        prayerCode = PrayerId.PRIME.code,
+        dateString = "2026-11-13",
+        year = 2026,
+        month = 11,
+        day = 13,
+        timestamp = 1_700_000_000_000L,
+        hour = 6,
+        minute = 30
+      )
+    )
+    val arrowLogs = listOf(
+      com.example.data.model.ArrowPrayerLogEntity(
+        prayerText = "كيرياليسون",
+        count = 33,
+        dateString = "2026-11-13",
+        year = 2026,
+        month = 11,
+        quarter = 4,
+        halfYear = 2,
+        day = 13,
+        timestamp = 1_700_000_500_000L,
+        hour = 9,
+        minute = 0
+      )
+    )
+
+    val arabicSummary = com.example.report.PrayerPdfExporter.buildReportSummaryText(
+      userEmail = "georgeyoussef393@gmail.com",
+      userName = "George Youssef",
+      churchName = "كنيسة مارمرقس",
+      serviceName = "خدمة الشباب",
+      syncKey = "key_123",
+      lang = AppLanguage.ARABIC,
+      periodName = "شهري",
+      allLogs = logs,
+      allArrowLogs = arrowLogs
+    )
+    assertTrue(arabicSummary.contains("George Youssef"))
+    assertTrue(arabicSummary.contains("كنيسة مارمرقس"))
+    assertTrue(arabicSummary.contains("خدمة الشباب"))
+    assertTrue(arabicSummary.contains("33"))
+
+    val englishSummary = com.example.report.PrayerPdfExporter.buildReportSummaryText(
+      userEmail = "georgeyoussef393@gmail.com",
+      userName = "George Youssef",
+      churchName = "St. Mark Church",
+      serviceName = "Youth Ministry",
+      syncKey = null,
+      lang = AppLanguage.ENGLISH,
+      periodName = "Monthly",
+      allLogs = logs,
+      allArrowLogs = arrowLogs
+    )
+    assertTrue(englishSummary.contains("St. Mark Church"))
+    assertTrue(englishSummary.contains("Youth Ministry"))
+    assertTrue(englishSummary.contains("Total Canonical Prayers Logged: 1"))
+    assertTrue(englishSummary.contains("Total Arrow Prayers Count: 33"))
+  }
 }
 
 

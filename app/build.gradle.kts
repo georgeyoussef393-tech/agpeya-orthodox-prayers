@@ -1,4 +1,5 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.time.Duration
 
 plugins {
   alias(libs.plugins.android.application)
@@ -42,7 +43,8 @@ android {
   buildTypes {
     release {
       isCrunchPngs = false
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
@@ -60,6 +62,14 @@ android {
   dependenciesInfo {
     includeInApk = false
     includeInBundle = true
+  }
+}
+
+tasks.withType<Test> {
+  failFast = true
+  timeout.set(Duration.ofMinutes(2))
+  testLogging {
+    events("passed", "failed", "skipped")
   }
 }
 
@@ -104,9 +114,9 @@ dependencies {
   implementation(libs.firebase.ai)
   implementation(libs.firebase.firestore)
   implementation(libs.firebase.auth)
-  // implementation(libs.androidx.credentials)
-  // implementation(libs.androidx.credentials.play.services)
-  // implementation(libs.googleid)
+  implementation(libs.androidx.credentials)
+  implementation(libs.androidx.credentials.play.services)
+  implementation(libs.googleid)
   implementation(libs.firebase.appcheck.recaptcha)
   implementation(libs.firebase.appcheck.debug)
   implementation(libs.kotlinx.coroutines.android)

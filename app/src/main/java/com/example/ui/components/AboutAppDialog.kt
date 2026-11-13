@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Verified
@@ -42,6 +43,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,6 +72,7 @@ fun AboutAppDialog(
     val context = LocalContext.current
     val email = AgpeyaStrings.developerEmailAddress()
     val phone = AgpeyaStrings.developerPhoneNumber()
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -450,6 +456,27 @@ fun AboutAppDialog(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
                     ) {
+                        OutlinedButton(
+                            onClick = { showPrivacyDialog = true },
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.45f)),
+                            modifier = Modifier.fillMaxWidth().testTag("btn_about_privacy_policy")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Security,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (language == AppLanguage.ARABIC) "سياسة الخصوصية وأمان البيانات" else "Privacy Policy & Data Safety",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = GoldPrimary
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = AgpeyaStrings.appReleaseDedication(language),
                             style = MaterialTheme.typography.bodySmall,
@@ -481,4 +508,11 @@ fun AboutAppDialog(
             }
         }
     )
+
+    if (showPrivacyDialog) {
+        PrivacyPolicyDialog(
+            language = language,
+            onDismissRequest = { showPrivacyDialog = false }
+        )
+    }
 }

@@ -80,7 +80,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.credentials.CredentialManager
+import com.example.data.sync.GoogleSignInHelper
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -147,12 +150,15 @@ fun SettingsScreen(
     val userEmail by viewModel.userEmail.collectAsState()
     val userPhone by viewModel.userPhone.collectAsState()
     val userFullName by viewModel.userFullName.collectAsState()
+    val isGoogleSignedIn by viewModel.isGoogleSignedIn.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
     val fontSizeMultiplier by viewModel.fontSizeMultiplier.collectAsState()
     val dailyArrowTarget by viewModel.dailyArrowTarget.collectAsState()
     val churchName by viewModel.churchName.collectAsState()
     val serviceName by viewModel.serviceName.collectAsState()
     val churchEmblem by viewModel.churchEmblem.collectAsState()
     val allLogs by viewModel.allLogs.collectAsState()
+    val allArrowLogs by viewModel.allArrowLogs.collectAsState()
     val spiritualTheme by viewModel.spiritualTheme.collectAsState()
     val spiritualOpacity by viewModel.spiritualOpacity.collectAsState()
     val isCandleGlowEnabled by viewModel.isCandleGlowEnabled.collectAsState()
@@ -1174,6 +1180,122 @@ fun SettingsScreen(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Google Account Cloud Authentication Row
+                    val credentialManager = remember { CredentialManager.create(context) }
+                    var isGoogleLinking by remember { mutableStateOf(false) }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (isGoogleSignedIn) Color(0xFF4CAF50).copy(alpha = 0.14f)
+                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                            )
+                            .padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isGoogleSignedIn) Icons.Default.CloudDone else Icons.Default.CloudSync,
+                            contentDescription = null,
+                            tint = if (isGoogleSignedIn) Color(0xFF4CAF50) else GoldPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (lang == AppLanguage.ARABIC) "حساب Google للمزامنة السحابية الآمنة" else "Google Cloud Authentication",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = if (isGoogleSignedIn) {
+                                    if (lang == AppLanguage.ARABIC) "متصل بحساب Google (المزامنة السحابية مفعّلة)" else "Connected to Google Cloud Sync"
+                                } else {
+                                    if (lang == AppLanguage.ARABIC) "غير متصل — اضغط لربط حساب Google" else "Not connected — tap to link Google"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isGoogleSignedIn) Color(0xFF81C784) else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        if (isGoogleSignedIn) {
+                            OutlinedButton(
+                                onClick = {
+                                    GoogleSignInHelper.signOutGoogle(
+                                        credentialManager = credentialManager,
+                                        scope = coroutineScope,
+                                        onSignOutComplete = {
+                                            viewModel.refreshGoogleAuthState()
+                                        }
+                                    )
+                                },
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                modifier = Modifier.testTag("btn_settings_google_sign_out")
+                            ) {
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "فصل" else "Sign Out",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = GoldPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        } else {
+                            Button(
+                                onClick = {
+                                    isGoogleLinking = true
+                                    GoogleSignInHelper.onGoogleSignInClicked(
+                                        context = context,
+                                        credentialManager = credentialManager,
+                                        scope = coroutineScope,
+                                        onAuthSuccess = { email, displayName ->
+                                            isGoogleLinking = false
+                                            viewModel.onGoogleSignInCompleted(
+                                                email = email,
+                                                displayName = displayName,
+                                                completeOnboarding = false
+                                            )
+                                            Toast.makeText(
+                                                context,
+                                                if (lang == AppLanguage.ARABIC) "تم ربط حساب Google والمزامنة السحابية بنجاح" else "Google Cloud Sync connected",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        },
+                                        onAuthError = { err ->
+                                            isGoogleLinking = false
+                                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                                        },
+                                        onAuthCancelled = {
+                                            isGoogleLinking = false
+                                        }
+                                    )
+                                },
+                                enabled = !isGoogleLinking,
+                                colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                modifier = Modifier.testTag("btn_settings_google_sign_in")
+                            ) {
+                                if (isGoogleLinking) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(14.dp),
+                                        strokeWidth = 2.dp,
+                                        color = Color.Black
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                }
+                                Text(
+                                    text = if (lang == AppLanguage.ARABIC) "ربط Google" else "Link Google",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Church / Ministry Row (Optional Profile Field)
@@ -1498,7 +1620,9 @@ fun SettingsScreen(
                                     syncKey = syncKey,
                                     lang = lang,
                                     periodName = if (lang == AppLanguage.ARABIC) "تقرير السجل الشامل" else "Full History Report",
-                                    allLogs = allLogs
+                                    allLogs = allLogs,
+                                    allArrowLogs = allArrowLogs,
+                                    isCloudConnected = isGoogleSignedIn
                                 )
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
@@ -2944,94 +3068,9 @@ fun SettingsScreen(
 
     // Google Play Store Compliance Privacy Policy Dialog
     if (showPrivacyDialog) {
-        AlertDialog(
-            onDismissRequest = { showPrivacyDialog = false },
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        tint = GoldPrimary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (lang == AppLanguage.ARABIC) "سياسة الخصوصية وأمان البيانات" else "Privacy Policy & Data Safety",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-            },
-            text = {
-                LazyColumn(modifier = Modifier.height(320.dp)) {
-                    item {
-                        Text(
-                            text = if (lang == AppLanguage.ARABIC) {
-                                """
-                                تطبيق الأجبية الأرثوذكسية (Agpeya Prayers)
-                                الإصدار: 1.0.0 (Release)
-                                
-                                1. الخصوصية وحفظ البيانات:
-                                • جميع سجلات الصلوات، الملاحظات الروحية، ومذكرات سر الاعتراف يتم حفظها حصرياً داخل جهازك في قاعدة بيانات محلية مشفرة وآمنة (Room Database).
-                                • التطبيق لا يشارك أياً من نصوصك أو صلواتك مع أي طرف ثالث أو خوادم خارجية إطلاقاً.
-                                
-                                2. التزامن السحابي الاختياري:
-                                • المزامنة السحابية هي ميزة اختيارية تماماً، وتتم فقط عند تفعيلك لها لحفظ نسخة احتياطية من سجلات الصلوات عبر مفتاح التزامن الخاص بك.
-                                
-                                3. الأذونات المستخدمة:
-                                • الإشعارات (POST_NOTIFICATIONS): لتنبيهك بمواعيد الساعات القانونية للصلوات.
-                                • المنبه الدقيق (USE_EXACT_ALARM): لضمان دقة مواعيد التنبيهات في وقتها المحدد حتى عند إغلاق التطبيق.
-                                • الاهتزاز (VIBRATE): لإصدار اهتزاز لمسي هادئ عند الصلاة وأثناء التسبيح.
-                                
-                                4. الدعم الفني والتواصل:
-                                • مطور التطبيق: جورج يوسف (George Youssef)
-                                • البريد الإلكتروني للمطور: georgeyoussef393@gmail.com
-                                • رقم الهاتف / واتساب: +20 1222563688
-                                • التطبيق مجاني وخالٍ تماماً من أي إعلانات تجارية.
-                                """.trimIndent()
-                            } else {
-                                """
-                                Agpeya Orthodox Prayers
-                                Version: 1.0.0 (Release)
-                                
-                                1. Privacy & Local Data Storage:
-                                • All prayer logs, spiritual journal entries, and confession notes are stored locally on your device in a secure Room database.
-                                • No personal prayers or confession notes are ever shared with third parties.
-                                
-                                2. Optional Cloud Synchronization:
-                                • Cloud sync is 100% optional and only functions when you authenticate or share your personal sync key to backup prayer logs across your devices.
-                                
-                                3. Permissions Used:
-                                • Notifications: To alert you at canonical prayer hours.
-                                • Exact Alarms: To ensure canonical hour bells ring precisely on time.
-                                • Vibration: For gentle haptic feedback during prayer beads and alarms.
-                                
-                                4. Developer & Support:
-                                • Developer: George Youssef
-                                • Developer Contact: georgeyoussef393@gmail.com
-                                • Phone / WhatsApp: +20 1222563688
-                                • The application is free and completely ad-free.
-                                """.trimIndent()
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            lineHeight = 20.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showPrivacyDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary)
-                ) {
-                    Text(
-                        text = if (lang == AppLanguage.ARABIC) "فهمت وموافق" else "Close",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
+        com.example.ui.components.PrivacyPolicyDialog(
+            language = lang,
+            onDismissRequest = { showPrivacyDialog = false }
         )
     }
 

@@ -132,6 +132,8 @@ fun ReportsScreen(
     val userFullName by viewModel.userFullName.collectAsState()
     val churchName by viewModel.churchName.collectAsState()
     val serviceName by viewModel.serviceName.collectAsState()
+    val churchEmblem by viewModel.churchEmblem.collectAsState()
+    val isGoogleSignedIn by viewModel.isGoogleSignedIn.collectAsState()
     val syncKey by viewModel.syncKey.collectAsState()
     val resolvedUserName = userFullName ?: userEmail?.substringBefore("@") ?: userPhone
     val context = LocalContext.current
@@ -244,11 +246,13 @@ fun ReportsScreen(
                                 userName = resolvedUserName,
                                 churchName = churchName,
                                 serviceName = serviceName,
+                                churchEmblem = churchEmblem,
                                 syncKey = syncKey,
                                 lang = lang,
                                 periodName = periodLabel,
                                 allLogs = allLogs,
-                                allArrowLogs = allArrowLogs
+                                allArrowLogs = allArrowLogs,
+                                isCloudConnected = isGoogleSignedIn
                             )
                         },
                         modifier = Modifier
@@ -2010,6 +2014,8 @@ private fun HistoryLogView(
     val userFullName by viewModel.userFullName.collectAsState()
     val churchName by viewModel.churchName.collectAsState()
     val serviceName by viewModel.serviceName.collectAsState()
+    val churchEmblem by viewModel.churchEmblem.collectAsState()
+    val isGoogleSignedIn by viewModel.isGoogleSignedIn.collectAsState()
     val syncKey by viewModel.syncKey.collectAsState()
     val resolvedUserName = userFullName ?: userEmail?.substringBefore("@") ?: userPhone
     val context = LocalContext.current
@@ -2152,11 +2158,13 @@ private fun HistoryLogView(
                                     userName = resolvedUserName,
                                     churchName = churchName,
                                     serviceName = serviceName,
+                                    churchEmblem = churchEmblem,
                                     syncKey = syncKey,
                                     lang = lang,
                                     periodName = AgpeyaStrings.prayersLogHistory(lang),
                                     allLogs = allLogs,
-                                    allArrowLogs = allArrowLogs
+                                    allArrowLogs = allArrowLogs,
+                                    isCloudConnected = isGoogleSignedIn
                                 )
                             },
                             modifier = Modifier

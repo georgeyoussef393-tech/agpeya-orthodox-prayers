@@ -3,23 +3,38 @@ package com.example.data.sync
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.example.R
 import com.example.data.model.ArrowPrayerLogEntity
 import com.example.data.model.PrayerAlarmSetting
 import com.example.data.model.PrayerLogEntity
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.snapshots
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 import java.util.UUID
 
 enum class SyncStatus {
@@ -30,17 +45,32 @@ enum class SyncStatus {
     ERROR
 }
 
+enum class OperationType(val value: String) {
+    CREATE("create"),
+    UPDATE("update"),
+    DELETE("delete"),
+    LIST("list"),
+    GET("get"),
+    WRITE("write")
+}
+
 /**
  * Enterprise-grade Cross-Device Sync Manager using Google Cloud Firestore.
  * Ensures bidirectional, real-time synchronization of Agpeya prayer history and settings
- * across multiple user devices (phones, tablets, family devices) while maintaining 100%
- * offline local-first operability.
+ * scoped to the Google-authenticated Firebase user (/users/{uid}/...) while maintaining
+ * 100% offline local-first operability via Room.
  */
-class FirestoreSyncManager(private val context: Context) {
+class FirestoreSyncManager(
+    private val context: Context,
+    injectedFirestore: FirebaseFirestore? = null,
+    injectedAuth: FirebaseAuth? = null
+) {
 
     private val TAG = "FirestoreSyncManager"
     private val prefs: SharedPreferences =
-        context.getSharedPreferences("agpeya_cloud_sync_prefs", Context.MODE_PRIVATE)
+        context.applicationContext.getSharedPreferences("agpeya_cloud_sync_prefs", Context.MODE_PRIVATE)
+
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _syncStatus = MutableStateFlow(SyncStatus.IDLE)
     val syncStatus: StateFlow<SyncStatus> = _syncStatus.asStateFlow()
@@ -63,14 +93,17 @@ class FirestoreSyncManager(private val context: Context) {
     private val _isRealtimeSyncActive = MutableStateFlow(prefs.getBoolean("realtime_sync_enabled", true))
     val isRealtimeSyncActive: StateFlow<Boolean> = _isRealtimeSyncActive.asStateFlow()
 
-    private var firestore: FirebaseFirestore? = null
-    private var auth: FirebaseAuth? = null
+    private var firestore: FirebaseFirestore? = injectedFirestore
+    private var auth: FirebaseAuth? = injectedAuth
     private var logsListenerRegistration: ListenerRegistration? = null
     private var arrowLogsListenerRegistration: ListenerRegistration? = null
     private var settingsListenerRegistration: ListenerRegistration? = null
+    private val profileSyncMutex = Mutex()
 
     init {
-        initializeFirebaseIfPossible()
+        if (firestore == null || auth == null) {
+            initializeFirebaseIfPossible()
+        }
     }
 
     private fun resolveInitialSyncKey(): String {
@@ -104,6 +137,53 @@ class FirestoreSyncManager(private val context: Context) {
             val digits = phone.replace("[^0-9]".toRegex(), "")
             return "ph_" + digits
         }
+    }
+
+    fun handleFirestoreError(exception: Throwable, operationType: OperationType, path: String?): String {
+        val causes = generateSequence(exception) { it.cause }
+        val rootError = causes.firstOrNull { it is FirebaseFirestoreException }
+            ?: causes.firstOrNull { it !is CancellationException }
+            ?: exception
+
+        val currentUser = auth?.currentUser
+        val providerInfoList = currentUser?.providerData?.map { provider ->
+            JSONObject().apply {
+                put("providerId", provider.providerId)
+                put("email", provider.email)
+            }
+        } ?: emptyList()
+
+        val authInfoJson = JSONObject().apply {
+            put("userId", currentUser?.uid)
+            put("email", currentUser?.email)
+            put("emailVerified", currentUser?.isEmailVerified)
+            put("tenantId", currentUser?.tenantId)
+            put("providerInfo", JSONArray(providerInfoList))
+        }
+
+        val errorInfoJson = JSONObject().apply {
+            put("error", rootError.message ?: rootError.toString())
+            put("operationType", operationType.value)
+            put("path", path)
+            put("authInfo", authInfoJson)
+        }
+
+        val jsonString = errorInfoJson.toString()
+        Log.e("FirestoreError", "Firestore Error: $jsonString")
+        return jsonString
+    }
+
+    private fun requireUserId(): String {
+        return auth?.currentUser?.uid
+            ?: throw IllegalStateException("User must be signed in with Google before accessing Firestore.")
+    }
+
+    fun isGoogleSignedIn(): Boolean {
+        return auth?.currentUser != null
+    }
+
+    fun getSignedInGoogleEmail(): String? {
+        return auth?.currentUser?.email
     }
 
     fun setUserPhone(phone: String?, onComplete: () -> Unit = {}) {
@@ -148,6 +228,7 @@ class FirestoreSyncManager(private val context: Context) {
             setUserFullName(fullName)
         }
         setUserPhone(cleanPhone) {
+            uploadUserProfileToFirestore()
             onResult(true, null)
         }
     }
@@ -201,40 +282,98 @@ class FirestoreSyncManager(private val context: Context) {
         uploadUserProfileToFirestore()
     }
 
+    fun onGoogleAuthenticated(email: String?, displayName: String?) {
+        if (!email.isNullOrBlank() && _userEmail.value.isNullOrBlank()) {
+            setUserEmail(email)
+        }
+        if (!displayName.isNullOrBlank() && _userFullName.value.isNullOrBlank()) {
+            prefs.edit().putString("user_full_name", displayName.trim()).apply()
+            _userFullName.value = displayName.trim()
+        }
+        uploadUserProfileToFirestore()
+    }
+
+    private suspend fun upsertDocumentWithServerTimestamps(
+        docRef: DocumentReference,
+        fields: MutableMap<String, Any>,
+        path: String
+    ) {
+        val existingSnap = try {
+            docRef.get().await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            handleFirestoreError(e, OperationType.GET, path)
+            throw e
+        }
+
+        if (!existingSnap.exists()) {
+            fields["createdAt"] = FieldValue.serverTimestamp()
+            fields["updatedAt"] = FieldValue.serverTimestamp()
+            try {
+                docRef.set(fields).await()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                handleFirestoreError(e, OperationType.CREATE, path)
+                throw e
+            }
+        } else {
+            fields["updatedAt"] = FieldValue.serverTimestamp()
+            try {
+                docRef.update(fields as Map<String, Any>).await()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                handleFirestoreError(e, OperationType.UPDATE, path)
+                throw e
+            }
+        }
+    }
+
+    suspend fun syncProfileToCloud(): Result<Unit> = withContext(Dispatchers.IO) {
+        profileSyncMutex.withLock {
+            if (!isFirebaseReady()) return@withContext Result.failure(IllegalStateException("Firebase not initialized"))
+            val db = firestore ?: return@withContext Result.failure(IllegalStateException("Firestore unavailable"))
+            val uid = requireUserId()
+            val path = "users/$uid"
+            val docRef = db.collection("users").document(uid)
+
+            val profileData = hashMapOf<String, Any>(
+                "userId" to uid,
+                "fullName" to (prefs.getString("user_full_name", null) ?: ""),
+                "email" to (_userEmail.value ?: auth?.currentUser?.email ?: ""),
+                "phone" to (_userPhone.value ?: ""),
+                "churchName" to (prefs.getString("user_church_name", null) ?: ""),
+                "serviceName" to (prefs.getString("user_service_name", null) ?: ""),
+                "syncKey" to _syncKey.value
+            )
+
+            return@withContext try {
+                upsertDocumentWithServerTimestamps(docRef, profileData, path)
+                Result.success(Unit)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
     /**
      * Uploads user profile (Full Name, Phone, Email, Church Name, Service Name)
-     * to Firestore under the user document for periodic and live sync.
+     * to Firestore under /users/{uid} when signed in with Google.
      */
     fun uploadUserProfileToFirestore() {
-        if (!isFirebaseReady()) return
-        val db = firestore ?: return
-        val currentKey = _syncKey.value
-        val now = System.currentTimeMillis()
-
-        val profileData = hashMapOf<String, Any>(
-            "fullName" to (prefs.getString("user_full_name", null) ?: ""),
-            "email" to (_userEmail.value ?: ""),
-            "phone" to (_userPhone.value ?: ""),
-            "churchName" to (prefs.getString("user_church_name", null) ?: ""),
-            "serviceName" to (prefs.getString("user_service_name", null) ?: ""),
-            "syncKey" to currentKey,
-            "updatedAt" to now
-        )
-
-        db.collection("users")
-            .document(currentKey)
-            .set(profileData, SetOptions.merge())
-            .addOnSuccessListener {
-                Log.d(TAG, "User profile synced with Firestore: $currentKey")
-            }
-            .addOnFailureListener { e ->
-                Log.w(TAG, "Failed to upload user profile to Firestore: ${e.message}")
-            }
+        if (!isFirebaseReady() || auth?.currentUser == null) return
+        ioScope.launch {
+            syncProfileToCloud()
+        }
     }
 
     fun authenticateWithEmail(
         email: String,
-        password: String? = null,
+        @Suppress("UNUSED_PARAMETER") password: String? = null,
         onResult: (Boolean, String?) -> Unit
     ) {
         val cleanEmail = email.trim()
@@ -243,48 +382,15 @@ class FirestoreSyncManager(private val context: Context) {
             return
         }
 
-        setUserEmail(cleanEmail)
-
-        val fbAuth = auth
-        if (fbAuth != null) {
-            val pass = if (!password.isNullOrBlank() && password.length >= 6) password else "Agpeya777#"
-            fbAuth.signInWithEmailAndPassword(cleanEmail, pass)
-                .addOnSuccessListener {
-                    Log.d(TAG, "FirebaseAuth signed in with email: $cleanEmail")
-                    onResult(true, null)
-                }
-                .addOnFailureListener { e ->
-                    // Attempt to create account if user doesn't exist
-                    val msg = e.message ?: ""
-                    if (msg.contains("no user record", ignoreCase = true) ||
-                        msg.contains("user-not-found", ignoreCase = true) ||
-                        msg.contains("INVALID_LOGIN_CREDENTIALS", ignoreCase = true)) {
-                        fbAuth.createUserWithEmailAndPassword(cleanEmail, pass)
-                            .addOnSuccessListener {
-                                Log.d(TAG, "FirebaseAuth user created for email: $cleanEmail")
-                                onResult(true, null)
-                            }
-                            .addOnFailureListener {
-                                // Firestore document key is set to user email anyway, so sync works 100%
-                                Log.w(TAG, "FirebaseAuth fallback to email-scoped Firestore: ${it.message}")
-                                onResult(true, null)
-                            }
-                    } else {
-                        // Resilient fallback: email-scoped Firestore sync
-                        Log.w(TAG, "FirebaseAuth fallback: ${e.message}")
-                        onResult(true, null)
-                    }
-                }
-        } else {
+        setUserEmail(cleanEmail) {
+            uploadUserProfileToFirestore()
             onResult(true, null)
         }
     }
 
     private fun initializeFirebaseIfPossible(): Boolean {
         return try {
-            val apps = FirebaseApp.getApps(context)
-            if (apps.isEmpty()) {
-                // Try default initialization if google-services.json was provided
+            if (FirebaseApp.getApps(context).isEmpty()) {
                 try {
                     FirebaseApp.initializeApp(context)
                 } catch (e: Exception) {
@@ -293,19 +399,17 @@ class FirestoreSyncManager(private val context: Context) {
             }
 
             if (FirebaseApp.getApps(context).isNotEmpty()) {
-                firestore = FirebaseFirestore.getInstance()
-                auth = FirebaseAuth.getInstance()
-
-                // Authenticate anonymously if not already signed in to obtain secure session
-                auth?.let { firebaseAuth ->
-                    if (firebaseAuth.currentUser == null) {
-                        firebaseAuth.signInAnonymously().addOnSuccessListener {
-                            Log.d(TAG, "FirebaseAuth anonymous sign-in successful: ${it.user?.uid}")
-                        }.addOnFailureListener { e ->
-                            Log.w(TAG, "FirebaseAuth sign-in failed (continuing with Firestore): ${e.message}")
-                        }
-                    }
+                val databaseId = try {
+                    context.applicationContext.getString(R.string.firestore_database_id)
+                } catch (e: Exception) {
+                    null
                 }
+                if (databaseId.isNullOrBlank()) {
+                    _syncStatus.value = SyncStatus.OFFLINE
+                    return false
+                }
+                firestore = FirebaseFirestore.getInstance(databaseId)
+                auth = FirebaseAuth.getInstance()
                 true
             } else {
                 _syncStatus.value = SyncStatus.OFFLINE
@@ -325,7 +429,7 @@ class FirestoreSyncManager(private val context: Context) {
 
     /**
      * Retrieves or generates a unique, human-friendly Sync Key
-     * (e.g. "agpeya-sync-8ab12c") allowing users to share and link devices easily.
+     * (e.g. "agpeya-sync-8ab12c").
      */
     fun getOrGenerateSyncKey(): String {
         val existing = prefs.getString("user_sync_key", null)
@@ -337,16 +441,11 @@ class FirestoreSyncManager(private val context: Context) {
         return generated
     }
 
-    /**
-     * Allows linking another device by entering an existing Sync Key.
-     */
     fun updateSyncKey(newKey: String, onComplete: () -> Unit = {}) {
         val trimmed = newKey.trim()
         if (trimmed.isNotBlank() && trimmed != _syncKey.value) {
             prefs.edit().putString("user_sync_key", trimmed).apply()
             _syncKey.value = trimmed
-
-            // Re-bind listener for the new key
             stopRealtimeListener()
             onComplete()
         }
@@ -360,21 +459,20 @@ class FirestoreSyncManager(private val context: Context) {
         }
     }
 
-    /**
-     * Uploads a single prayer log entry to Firestore.
-     */
-    fun uploadPrayerLog(log: PrayerLogEntity) {
+    suspend fun upsertPrayerLogSuspending(log: PrayerLogEntity): Result<String> = withContext(Dispatchers.IO) {
         if (!isFirebaseReady()) {
-            Log.d(TAG, "Local-first: Firebase not available, log kept locally.")
-            return
+            return@withContext Result.failure(IllegalStateException("Firebase not initialized"))
         }
-
-        val db = firestore ?: return
-        val currentKey = _syncKey.value
+        val db = firestore ?: return@withContext Result.failure(IllegalStateException("Firestore unavailable"))
+        val uid = requireUserId()
         val docId = "${log.prayerCode}_${log.dateString}_${log.timestamp}"
+        val path = "users/$uid/prayer_logs/$docId"
+        val docRef = db.collection("users")
+            .document(uid)
+            .collection("prayer_logs")
+            .document(docId)
 
-        val data = hashMapOf(
-            "id" to log.id,
+        val data = hashMapOf<String, Any>(
             "prayerCode" to log.prayerCode,
             "timestamp" to log.timestamp,
             "dateString" to log.dateString,
@@ -382,36 +480,94 @@ class FirestoreSyncManager(private val context: Context) {
             "month" to log.month,
             "day" to log.day,
             "hour" to log.hour,
-            "minute" to log.minute,
-            "updatedAt" to System.currentTimeMillis()
+            "minute" to log.minute
         )
 
-        db.collection("users")
-            .document(currentKey)
-            .collection("prayer_logs")
-            .document(docId)
-            .set(data, SetOptions.merge())
-            .addOnSuccessListener {
-                Log.d(TAG, "Prayer log successfully synchronized with Firestore: $docId")
-                _lastSyncTimestamp.value = System.currentTimeMillis()
-                prefs.edit().putLong("last_sync_time", _lastSyncTimestamp.value).apply()
-                _syncStatus.value = SyncStatus.SYNCED
-            }
-            .addOnFailureListener { e ->
-                Log.w(TAG, "Failed to upload log to Firestore (cached locally): ${e.message}")
-            }
+        return@withContext try {
+            upsertDocumentWithServerTimestamps(docRef, data, path)
+            _lastSyncTimestamp.value = System.currentTimeMillis()
+            prefs.edit().putLong("last_sync_time", _lastSyncTimestamp.value).apply()
+            _syncStatus.value = SyncStatus.SYNCED
+            Result.success(docId)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchPrayerLogsSuspending(): Result<List<PrayerLogEntity>> = withContext(Dispatchers.IO) {
+        if (!isFirebaseReady()) {
+            return@withContext Result.failure(IllegalStateException("Firebase not initialized"))
+        }
+        val db = firestore ?: return@withContext Result.failure(IllegalStateException("Firestore unavailable"))
+        val uid = requireUserId()
+        val path = "users/$uid/prayer_logs"
+
+        return@withContext try {
+            val snapshot = db.collection("users")
+                .document(uid)
+                .collection("prayer_logs")
+                .get()
+                .await()
+            val logs = snapshot.documents.mapNotNull { documentToPrayerLog(it) }
+            Result.success(logs)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            handleFirestoreError(e, OperationType.LIST, path)
+            Result.failure(e)
+        }
+    }
+
+    fun observePrayerLogsFlow(): Flow<List<PrayerLogEntity>> = flow {
+        val db = firestore ?: throw IllegalStateException("Firestore unavailable")
+        val uid = requireUserId()
+        val path = "users/$uid/prayer_logs"
+        emitAll(
+            db.collection("users")
+                .document(uid)
+                .collection("prayer_logs")
+                .snapshots()
+                .map { snapshot -> snapshot.documents.mapNotNull { documentToPrayerLog(it) } }
+                .catch { error ->
+                    val firestoreError = generateSequence(error) { it.cause }
+                        .filterIsInstance<FirebaseFirestoreException>()
+                        .firstOrNull()
+                    if (firestoreError == null && error is CancellationException) throw error
+                    val exceptionToLog = firestoreError ?: error
+                    if (auth?.currentUser?.uid == uid) {
+                        handleFirestoreError(exceptionToLog, OperationType.LIST, path)
+                    }
+                    throw error
+                }
+        )
+    }
+
+    /**
+     * Uploads a single prayer log entry to Firestore when signed in with Google.
+     */
+    fun uploadPrayerLog(log: PrayerLogEntity) {
+        if (!isFirebaseReady() || auth?.currentUser == null) {
+            Log.d(TAG, "Local-first: Google session not active, log kept locally.")
+            return
+        }
+        ioScope.launch {
+            upsertPrayerLogSuspending(log)
+        }
     }
 
     /**
      * Deletes a prayer log from Firestore.
      */
     fun deletePrayerLog(prayerCode: String, dateString: String) {
-        if (!isFirebaseReady()) return
+        if (!isFirebaseReady() || auth?.currentUser == null) return
         val db = firestore ?: return
-        val currentKey = _syncKey.value
+        val uid = auth?.currentUser?.uid ?: return
+        val path = "users/$uid/prayer_logs"
 
         db.collection("users")
-            .document(currentKey)
+            .document(uid)
             .collection("prayer_logs")
             .whereEqualTo("prayerCode", prayerCode)
             .whereEqualTo("dateString", dateString)
@@ -419,25 +575,31 @@ class FirestoreSyncManager(private val context: Context) {
             .addOnSuccessListener { snapshot ->
                 for (doc in snapshot.documents) {
                     doc.reference.delete()
+                        .addOnFailureListener { delEx ->
+                            handleFirestoreError(delEx, OperationType.DELETE, doc.reference.path)
+                        }
                 }
                 Log.d(TAG, "Remote prayer logs deleted for: $prayerCode on $dateString")
             }
             .addOnFailureListener { e ->
-                Log.w(TAG, "Failed to delete remote log: ${e.message}")
+                handleFirestoreError(e, OperationType.LIST, path)
             }
     }
 
-    /**
-     * Uploads an arrow prayer log entry to Firestore.
-     */
-    fun uploadArrowPrayerLog(log: ArrowPrayerLogEntity) {
-        if (!isFirebaseReady()) return
-        val db = firestore ?: return
-        val currentKey = _syncKey.value
+    suspend fun upsertArrowPrayerLogSuspending(log: ArrowPrayerLogEntity): Result<String> = withContext(Dispatchers.IO) {
+        if (!isFirebaseReady()) {
+            return@withContext Result.failure(IllegalStateException("Firebase not initialized"))
+        }
+        val db = firestore ?: return@withContext Result.failure(IllegalStateException("Firestore unavailable"))
+        val uid = requireUserId()
         val docId = "arrow_${log.dateString}_${log.timestamp}"
+        val path = "users/$uid/arrow_prayer_logs/$docId"
+        val docRef = db.collection("users")
+            .document(uid)
+            .collection("arrow_prayer_logs")
+            .document(docId)
 
-        val data = hashMapOf(
-            "id" to log.id,
+        val data = hashMapOf<String, Any>(
             "count" to log.count,
             "prayerText" to log.prayerText,
             "timestamp" to log.timestamp,
@@ -448,36 +610,45 @@ class FirestoreSyncManager(private val context: Context) {
             "halfYear" to log.halfYear,
             "day" to log.day,
             "hour" to log.hour,
-            "minute" to log.minute,
-            "updatedAt" to System.currentTimeMillis()
+            "minute" to log.minute
         )
 
-        db.collection("users")
-            .document(currentKey)
-            .collection("arrow_prayer_logs")
-            .document(docId)
-            .set(data, SetOptions.merge())
-            .addOnSuccessListener {
-                Log.d(TAG, "Arrow prayer log synchronized with Firestore: $docId")
-                _lastSyncTimestamp.value = System.currentTimeMillis()
-                prefs.edit().putLong("last_sync_time", _lastSyncTimestamp.value).apply()
-            }
-            .addOnFailureListener { e ->
-                Log.w(TAG, "Failed to upload arrow log to Firestore: ${e.message}")
-            }
+        return@withContext try {
+            upsertDocumentWithServerTimestamps(docRef, data, path)
+            _lastSyncTimestamp.value = System.currentTimeMillis()
+            prefs.edit().putLong("last_sync_time", _lastSyncTimestamp.value).apply()
+            Result.success(docId)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     /**
-     * Directly uploads alarm preferences to Firestore so any change on this device
-     * immediately propagates to other phones and tablets.
+     * Uploads an arrow prayer log entry to Firestore when signed in with Google.
      */
-    fun uploadAlarmSettings(
+    fun uploadArrowPrayerLog(log: ArrowPrayerLogEntity) {
+        if (!isFirebaseReady() || auth?.currentUser == null) return
+        ioScope.launch {
+            upsertArrowPrayerLogSuspending(log)
+        }
+    }
+
+    suspend fun upsertAlarmSettingsSuspending(
         languageCode: String,
         alarmSettings: List<PrayerAlarmSetting>
-    ) {
-        if (!isFirebaseReady()) return
-        val db = firestore ?: return
-        val currentKey = _syncKey.value
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isFirebaseReady()) {
+            return@withContext Result.failure(IllegalStateException("Firebase not initialized"))
+        }
+        val db = firestore ?: return@withContext Result.failure(IllegalStateException("Firestore unavailable"))
+        val uid = requireUserId()
+        val path = "users/$uid/settings/agpeya_settings"
+        val docRef = db.collection("users")
+            .document(uid)
+            .collection("settings")
+            .document("agpeya_settings")
 
         val alarmsMap = hashMapOf<String, Any>()
         for (setting in alarmSettings) {
@@ -491,45 +662,48 @@ class FirestoreSyncManager(private val context: Context) {
             )
         }
 
-        val now = System.currentTimeMillis()
-        val payload = hashMapOf(
+        val payload = hashMapOf<String, Any>(
             "languageCode" to languageCode,
-            "alarms" to alarmsMap,
-            "updatedAt" to now
+            "alarms" to alarmsMap
         )
 
-        db.collection("users")
-            .document(currentKey)
-            .collection("settings")
-            .document("agpeya_settings")
-            .set(payload, SetOptions.merge())
-            .addOnSuccessListener {
-                Log.d(TAG, "Alarm preferences uploaded to Firestore successfully.")
-                _lastSyncTimestamp.value = now
-                prefs.edit().putLong("last_sync_time", now).apply()
-                _syncStatus.value = SyncStatus.SYNCED
-            }
-            .addOnFailureListener { e ->
-                Log.w(TAG, "Failed to upload alarm preferences: ${e.message}")
-            }
+        return@withContext try {
+            upsertDocumentWithServerTimestamps(docRef, payload, path)
+            val now = System.currentTimeMillis()
+            _lastSyncTimestamp.value = now
+            prefs.edit().putLong("last_sync_time", now).apply()
+            _syncStatus.value = SyncStatus.SYNCED
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     /**
-     * Backward-compatible alias to upload alarm and language settings to Firestore.
+     * Directly uploads alarm preferences to Firestore when signed in with Google.
      */
+    fun uploadAlarmSettings(
+        languageCode: String,
+        alarmSettings: List<PrayerAlarmSetting>
+    ) {
+        if (!isFirebaseReady() || auth?.currentUser == null) return
+        ioScope.launch {
+            upsertAlarmSettingsSuspending(languageCode, alarmSettings)
+        }
+    }
+
     fun syncSettings(
         languageCode: String,
         alarmSettings: List<PrayerAlarmSetting>,
-        onRemoteAlarmsReceived: ((String, List<PrayerAlarmSetting>) -> Unit)? = null
+        @Suppress("UNUSED_PARAMETER") onRemoteAlarmsReceived: ((String, List<PrayerAlarmSetting>) -> Unit)? = null
     ) {
         uploadAlarmSettings(languageCode, alarmSettings)
     }
 
     /**
-     * Performs a full bidirectional sync across devices:
-     * 1. Pulls all remote canonical prayer logs and pushes local ones missing on remote.
-     * 2. Pulls all remote arrow prayer logs and pushes local ones missing on remote.
-     * 3. Syncs alarm preferences and prayer settings across devices.
+     * Performs a full bidirectional sync across devices when signed in with Google.
      */
     suspend fun performFullBidirectionalSync(
         localLogs: List<PrayerLogEntity>,
@@ -540,7 +714,8 @@ class FirestoreSyncManager(private val context: Context) {
         onRemoteArrowLogsReceived: (suspend (List<ArrowPrayerLogEntity>) -> Unit)? = null,
         onRemoteAlarmsReceived: (suspend (String, List<PrayerAlarmSetting>) -> Unit)? = null
     ) = withContext(Dispatchers.IO) {
-        if (!isFirebaseReady()) {
+        val currentUid = auth?.currentUser?.uid
+        if (!isFirebaseReady() || currentUid == null) {
             _syncStatus.value = SyncStatus.OFFLINE
             return@withContext
         }
@@ -552,14 +727,19 @@ class FirestoreSyncManager(private val context: Context) {
 
         try {
             _syncStatus.value = SyncStatus.SYNCING
-            val currentKey = _syncKey.value
 
             // 1. Sync Canonical Prayer Reading Logs
-            val snapshot = db.collection("users")
-                .document(currentKey)
-                .collection("prayer_logs")
-                .get()
-                .await()
+            val logsPath = "users/$currentUid/prayer_logs"
+            val snapshot = try {
+                db.collection("users")
+                    .document(currentUid)
+                    .collection("prayer_logs")
+                    .get()
+                    .await()
+            } catch (e: Exception) {
+                handleFirestoreError(e, OperationType.LIST, logsPath)
+                throw e
+            }
 
             val remoteLogs = mutableListOf<PrayerLogEntity>()
             val remoteKeys = mutableSetOf<String>()
@@ -576,39 +756,26 @@ class FirestoreSyncManager(private val context: Context) {
                 onRemoteLogsReceived(remoteLogs)
             }
 
-            // Upload any local logs that do not exist on remote
             for (local in localLogs) {
                 val key = "${local.prayerCode}_${local.dateString}"
                 if (!remoteKeys.contains(key)) {
-                    val docId = "${local.prayerCode}_${local.dateString}_${local.timestamp}"
-                    val data = hashMapOf(
-                        "id" to local.id,
-                        "prayerCode" to local.prayerCode,
-                        "timestamp" to local.timestamp,
-                        "dateString" to local.dateString,
-                        "year" to local.year,
-                        "month" to local.month,
-                        "day" to local.day,
-                        "hour" to local.hour,
-                        "minute" to local.minute,
-                        "updatedAt" to System.currentTimeMillis()
-                    )
-                    db.collection("users")
-                        .document(currentKey)
-                        .collection("prayer_logs")
-                        .document(docId)
-                        .set(data, SetOptions.merge())
-                        .await()
+                    upsertPrayerLogSuspending(local)
                 }
             }
 
-            // 2. Sync Arrow Prayer Logs (الصلوات السهمية)
+            // 2. Sync Arrow Prayer Logs
             if (onRemoteArrowLogsReceived != null) {
-                val arrowSnapshot = db.collection("users")
-                    .document(currentKey)
-                    .collection("arrow_prayer_logs")
-                    .get()
-                    .await()
+                val arrowPath = "users/$currentUid/arrow_prayer_logs"
+                val arrowSnapshot = try {
+                    db.collection("users")
+                        .document(currentUid)
+                        .collection("arrow_prayer_logs")
+                        .get()
+                        .await()
+                } catch (e: Exception) {
+                    handleFirestoreError(e, OperationType.LIST, arrowPath)
+                    throw e
+                }
 
                 val remoteArrowLogs = mutableListOf<ArrowPrayerLogEntity>()
                 val remoteArrowTimestamps = mutableSetOf<Long>()
@@ -627,40 +794,25 @@ class FirestoreSyncManager(private val context: Context) {
 
                 for (local in localArrowLogs) {
                     if (!remoteArrowTimestamps.contains(local.timestamp)) {
-                        val docId = "arrow_${local.dateString}_${local.timestamp}"
-                        val data = hashMapOf(
-                            "id" to local.id,
-                            "count" to local.count,
-                            "prayerText" to local.prayerText,
-                            "timestamp" to local.timestamp,
-                            "dateString" to local.dateString,
-                            "year" to local.year,
-                            "month" to local.month,
-                            "quarter" to local.quarter,
-                            "halfYear" to local.halfYear,
-                            "day" to local.day,
-                            "hour" to local.hour,
-                            "minute" to local.minute,
-                            "updatedAt" to System.currentTimeMillis()
-                        )
-                        db.collection("users")
-                            .document(currentKey)
-                            .collection("arrow_prayer_logs")
-                            .document(docId)
-                            .set(data, SetOptions.merge())
-                            .await()
+                        upsertArrowPrayerLogSuspending(local)
                     }
                 }
             }
 
             // 3. Sync Alarm Settings & Preferences
             if (onRemoteAlarmsReceived != null) {
+                val settingsPath = "users/$currentUid/settings/agpeya_settings"
                 val settingsDocRef = db.collection("users")
-                    .document(currentKey)
+                    .document(currentUid)
                     .collection("settings")
                     .document("agpeya_settings")
 
-                val doc = settingsDocRef.get().await()
+                val doc = try {
+                    settingsDocRef.get().await()
+                } catch (e: Exception) {
+                    handleFirestoreError(e, OperationType.GET, settingsPath)
+                    throw e
+                }
                 if (doc.exists()) {
                     val remoteLang = doc.getString("languageCode") ?: localLanguageCode
                     val alarmsList = mutableListOf<PrayerAlarmSetting>()
@@ -671,8 +823,8 @@ class FirestoreSyncManager(private val context: Context) {
                             alarmsList.add(
                                 PrayerAlarmSetting(
                                     prayerCode = code.toString(),
-                                    hour = (map["hour"] as? Long)?.toInt() ?: 0,
-                                    minute = (map["minute"] as? Long)?.toInt() ?: 0,
+                                    hour = (map["hour"] as? Number)?.toInt() ?: 0,
+                                    minute = (map["minute"] as? Number)?.toInt() ?: 0,
                                     isEnabled = map["isEnabled"] as? Boolean ?: true,
                                     soundEnabled = map["soundEnabled"] as? Boolean ?: true,
                                     vibrateEnabled = map["vibrateEnabled"] as? Boolean ?: true,
@@ -684,16 +836,17 @@ class FirestoreSyncManager(private val context: Context) {
                     if (alarmsList.isNotEmpty()) {
                         onRemoteAlarmsReceived(remoteLang, alarmsList)
                     } else if (localAlarmSettings.isNotEmpty()) {
-                        uploadAlarmSettings(localLanguageCode, localAlarmSettings)
+                        upsertAlarmSettingsSuspending(localLanguageCode, localAlarmSettings)
                     }
                 } else if (localAlarmSettings.isNotEmpty()) {
-                    uploadAlarmSettings(localLanguageCode, localAlarmSettings)
+                    upsertAlarmSettingsSuspending(localLanguageCode, localAlarmSettings)
                 }
             }
 
-            // 4. Sync User Profile (Full Name, Phone, Email, Church Name, Service Name)
+            // 4. Sync User Profile
             try {
-                val userDocRef = db.collection("users").document(currentKey)
+                val userPath = "users/$currentUid"
+                val userDocRef = db.collection("users").document(currentUid)
                 val userDoc = userDocRef.get().await()
                 if (userDoc.exists()) {
                     val remoteFullName = userDoc.getString("fullName")
@@ -711,9 +864,11 @@ class FirestoreSyncManager(private val context: Context) {
                         prefs.edit().putString("user_service_name", remoteService).apply()
                     }
                 }
-                uploadUserProfileToFirestore()
+                syncProfileToCloud()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                Log.w(TAG, "Profile sync warning: ${e.message}")
+                handleFirestoreError(e, OperationType.GET, "users/$currentUid")
             }
 
             val now = System.currentTimeMillis()
@@ -721,6 +876,8 @@ class FirestoreSyncManager(private val context: Context) {
             prefs.edit().putLong("last_sync_time", now).apply()
             _syncStatus.value = SyncStatus.SYNCED
             Log.d(TAG, "Full cross-device sync completed successfully.")
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Sync error: ${e.message}", e)
             _syncStatus.value = SyncStatus.ERROR
@@ -728,30 +885,29 @@ class FirestoreSyncManager(private val context: Context) {
     }
 
     /**
-     * Starts real-time listeners for live cross-device sync:
-     * - Canonical prayer reading logs
-     * - Arrow prayer logs
-     * - Alarm preferences and settings
+     * Starts real-time listeners for live cross-device sync scoped to the signed-in Google user.
      */
     fun startRealtimeListener(
         onRemoteLogAddedOrUpdated: (PrayerLogEntity) -> Unit,
         onRemoteArrowLogAddedOrUpdated: ((ArrowPrayerLogEntity) -> Unit)? = null,
         onRemoteAlarmsChanged: ((String, List<PrayerAlarmSetting>) -> Unit)? = null
     ) {
-        if (!_isRealtimeSyncActive.value || !isFirebaseReady()) return
+        val currentUid = auth?.currentUser?.uid
+        if (!_isRealtimeSyncActive.value || !isFirebaseReady() || currentUid == null) return
         val db = firestore ?: return
-        val currentKey = _syncKey.value
 
         stopRealtimeListener()
 
         try {
-            // 1. Listen for prayer reading logs
+            val logsPath = "users/$currentUid/prayer_logs"
             logsListenerRegistration = db.collection("users")
-                .document(currentKey)
+                .document(currentUid)
                 .collection("prayer_logs")
                 .addSnapshotListener { snapshots, error ->
                     if (error != null) {
-                        Log.w(TAG, "Real-time prayer log listener error: ${error.message}")
+                        if (auth?.currentUser?.uid == currentUid) {
+                            handleFirestoreError(error, OperationType.LIST, logsPath)
+                        }
                         return@addSnapshotListener
                     }
                     if (snapshots != null) {
@@ -764,14 +920,16 @@ class FirestoreSyncManager(private val context: Context) {
                     }
                 }
 
-            // 2. Listen for arrow prayer logs
             if (onRemoteArrowLogAddedOrUpdated != null) {
+                val arrowPath = "users/$currentUid/arrow_prayer_logs"
                 arrowLogsListenerRegistration = db.collection("users")
-                    .document(currentKey)
+                    .document(currentUid)
                     .collection("arrow_prayer_logs")
                     .addSnapshotListener { snapshots, error ->
                         if (error != null) {
-                            Log.w(TAG, "Real-time arrow log listener error: ${error.message}")
+                            if (auth?.currentUser?.uid == currentUid) {
+                                handleFirestoreError(error, OperationType.LIST, arrowPath)
+                            }
                             return@addSnapshotListener
                         }
                         if (snapshots != null) {
@@ -785,14 +943,20 @@ class FirestoreSyncManager(private val context: Context) {
                     }
             }
 
-            // 3. Listen for alarm preferences and settings changes
             if (onRemoteAlarmsChanged != null) {
+                val settingsPath = "users/$currentUid/settings/agpeya_settings"
                 settingsListenerRegistration = db.collection("users")
-                    .document(currentKey)
+                    .document(currentUid)
                     .collection("settings")
                     .document("agpeya_settings")
                     .addSnapshotListener { doc, error ->
-                        if (error != null || doc == null || !doc.exists()) {
+                        if (error != null) {
+                            if (auth?.currentUser?.uid == currentUid) {
+                                handleFirestoreError(error, OperationType.GET, settingsPath)
+                            }
+                            return@addSnapshotListener
+                        }
+                        if (doc == null || !doc.exists()) {
                             return@addSnapshotListener
                         }
                         val remoteLang = doc.getString("languageCode") ?: "ar"
@@ -804,8 +968,8 @@ class FirestoreSyncManager(private val context: Context) {
                                 alarmsList.add(
                                     PrayerAlarmSetting(
                                         prayerCode = code.toString(),
-                                        hour = (map["hour"] as? Long)?.toInt() ?: 0,
-                                        minute = (map["minute"] as? Long)?.toInt() ?: 0,
+                                        hour = (map["hour"] as? Number)?.toInt() ?: 0,
+                                        minute = (map["minute"] as? Number)?.toInt() ?: 0,
                                         isEnabled = map["isEnabled"] as? Boolean ?: true,
                                         soundEnabled = map["soundEnabled"] as? Boolean ?: true,
                                         vibrateEnabled = map["vibrateEnabled"] as? Boolean ?: true,
@@ -815,13 +979,12 @@ class FirestoreSyncManager(private val context: Context) {
                             }
                         }
                         if (alarmsList.isNotEmpty()) {
-                            Log.d(TAG, "Real-time alarm preferences update received from other device.")
                             onRemoteAlarmsChanged(remoteLang, alarmsList)
                         }
                     }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error starting realtime listeners: ${e.message}")
+            handleFirestoreError(e, OperationType.LIST, "users/$currentUid")
         }
     }
 
@@ -845,7 +1008,7 @@ class FirestoreSyncManager(private val context: Context) {
         val minute = doc.getLong("minute")?.toInt() ?: 0
 
         return PrayerLogEntity(
-            id = 0, // Auto-generated locally by Room
+            id = 0,
             prayerCode = prayerCode,
             timestamp = timestamp,
             dateString = dateString,
@@ -871,7 +1034,7 @@ class FirestoreSyncManager(private val context: Context) {
         val minute = doc.getLong("minute")?.toInt() ?: 0
 
         return ArrowPrayerLogEntity(
-            id = 0, // Auto-generated locally by Room
+            id = 0,
             count = count,
             prayerText = prayerText,
             timestamp = timestamp,

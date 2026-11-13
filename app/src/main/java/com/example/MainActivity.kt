@@ -97,6 +97,9 @@ import com.example.ui.screens.PrayersScreen
 import com.example.ui.screens.ReportsAndSettingsHostScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.SpiritualJournalScreen
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.credentials.CredentialManager
+import com.example.data.sync.GoogleSignInHelper
 import com.example.ui.theme.AgpeyaTheme
 import com.example.ui.theme.GoldPrimary
 import com.example.ui.viewmodel.AgpeyaViewModel
@@ -175,10 +178,25 @@ fun AgpeyaApp(
         hasNotificationPermission = isGranted
     }
 
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = remember { CredentialManager.create(context) }
+
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+        GoogleSignInHelper.attemptAutoSignIn(
+            context = context,
+            credentialManager = credentialManager,
+            scope = coroutineScope,
+            onAuthSuccess = { email, displayName ->
+                viewModel.onGoogleSignInCompleted(
+                    email = email,
+                    displayName = displayName,
+                    completeOnboarding = false
+                )
+            }
+        )
         // If opened from prayer alarm notification, open reading immediately
         initialPrayerCode?.let { code ->
             viewModel.openPrayerReading(PrayerId.fromCode(code))

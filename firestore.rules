@@ -1,0 +1,161 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: deny all access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() <= 128 &&
+             data.fullName is string && data.fullName.size() <= 120 &&
+             data.email is string && data.email.size() <= 160 &&
+             data.phone is string && data.phone.size() <= 40 &&
+             data.churchName is string && data.churchName.size() <= 120 &&
+             data.serviceName is string && data.serviceName.size() <= 120 &&
+             data.syncKey is string && data.syncKey.size() >= 1 && data.syncKey.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidPrayerLog(data) {
+      return data.prayerCode is string && data.prayerCode.size() >= 1 && data.prayerCode.size() <= 32 &&
+             data.timestamp is int && data.timestamp > 0 &&
+             data.dateString is string && data.dateString.size() >= 8 && data.dateString.size() <= 32 &&
+             data.year is int && data.year >= 2000 && data.year <= 2100 &&
+             data.month is int && data.month >= 1 && data.month <= 12 &&
+             data.day is int && data.day >= 1 && data.day <= 31 &&
+             data.hour is int && data.hour >= 0 && data.hour <= 23 &&
+             data.minute is int && data.minute >= 0 && data.minute <= 59 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidArrowPrayerLog(data) {
+      return data.count is int && data.count >= 1 && data.count <= 100000 &&
+             data.prayerText is string && data.prayerText.size() >= 1 && data.prayerText.size() <= 500 &&
+             data.timestamp is int && data.timestamp > 0 &&
+             data.dateString is string && data.dateString.size() >= 8 && data.dateString.size() <= 32 &&
+             data.year is int && data.year >= 2000 && data.year <= 2100 &&
+             data.month is int && data.month >= 1 && data.month <= 12 &&
+             data.quarter is int && data.quarter >= 1 && data.quarter <= 4 &&
+             data.halfYear is int && data.halfYear >= 1 && data.halfYear <= 2 &&
+             data.day is int && data.day >= 1 && data.day <= 31 &&
+             data.hour is int && data.hour >= 0 && data.hour <= 23 &&
+             data.minute is int && data.minute >= 0 && data.minute <= 59 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidAgpeyaSettings(data) {
+      return data.languageCode is string && data.languageCode.size() >= 1 && data.languageCode.size() <= 16 &&
+             data.alarms is map && data.alarms.size() <= 16 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list: if isOwner(userId);
+
+      allow create: if isValidId(userId) &&
+                       isOwner(userId) &&
+                       incoming().keys().hasAll(['userId', 'fullName', 'email', 'phone', 'churchName', 'serviceName', 'syncKey', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'fullName', 'email', 'phone', 'churchName', 'serviceName', 'syncKey', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isValidId(userId) &&
+                       isOwner(userId) &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'email', 'phone', 'churchName', 'serviceName', 'syncKey', 'updatedAt']);
+
+      allow delete: if isValidId(userId) && isOwner(userId);
+
+      match /prayer_logs/{logId} {
+        allow get: if isValidId(userId) && isValidId(logId) && isOwner(userId);
+        allow list: if isOwner(userId);
+
+        allow create: if isValidId(userId) &&
+                         isValidId(logId) &&
+                         isOwner(userId) &&
+                         incoming().keys().hasAll(['prayerCode', 'timestamp', 'dateString', 'year', 'month', 'day', 'hour', 'minute', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['prayerCode', 'timestamp', 'dateString', 'year', 'month', 'day', 'hour', 'minute', 'createdAt', 'updatedAt']) &&
+                         isValidPrayerLog(incoming());
+
+        allow update: if isValidId(userId) &&
+                         isValidId(logId) &&
+                         isOwner(userId) &&
+                         isValidPrayerLog(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['prayerCode', 'timestamp', 'dateString', 'year', 'month', 'day', 'hour', 'minute', 'updatedAt']);
+
+        allow delete: if isValidId(userId) && isValidId(logId) && isOwner(userId);
+      }
+
+      match /arrow_prayer_logs/{logId} {
+        allow get: if isValidId(userId) && isValidId(logId) && isOwner(userId);
+        allow list: if isOwner(userId);
+
+        allow create: if isValidId(userId) &&
+                         isValidId(logId) &&
+                         isOwner(userId) &&
+                         incoming().keys().hasAll(['count', 'prayerText', 'timestamp', 'dateString', 'year', 'month', 'quarter', 'halfYear', 'day', 'hour', 'minute', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['count', 'prayerText', 'timestamp', 'dateString', 'year', 'month', 'quarter', 'halfYear', 'day', 'hour', 'minute', 'createdAt', 'updatedAt']) &&
+                         isValidArrowPrayerLog(incoming());
+
+        allow update: if isValidId(userId) &&
+                         isValidId(logId) &&
+                         isOwner(userId) &&
+                         isValidArrowPrayerLog(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['count', 'prayerText', 'timestamp', 'dateString', 'year', 'month', 'quarter', 'halfYear', 'day', 'hour', 'minute', 'updatedAt']);
+
+        allow delete: if isValidId(userId) && isValidId(logId) && isOwner(userId);
+      }
+
+      match /settings/{settingId} {
+        allow get: if isValidId(userId) && isValidId(settingId) && isOwner(userId);
+        allow list: if isOwner(userId);
+
+        allow create: if isValidId(userId) &&
+                         isValidId(settingId) &&
+                         isOwner(userId) &&
+                         incoming().keys().hasAll(['languageCode', 'alarms', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['languageCode', 'alarms', 'createdAt', 'updatedAt']) &&
+                         isValidAgpeyaSettings(incoming());
+
+        allow update: if isValidId(userId) &&
+                         isValidId(settingId) &&
+                         isOwner(userId) &&
+                         isValidAgpeyaSettings(incoming()) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['languageCode', 'alarms', 'updatedAt']);
+
+        allow delete: if isValidId(userId) && isValidId(settingId) && isOwner(userId);
+      }
+    }
+  }
+}

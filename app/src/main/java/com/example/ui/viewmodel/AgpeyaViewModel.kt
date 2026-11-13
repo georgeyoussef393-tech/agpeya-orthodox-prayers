@@ -102,6 +102,9 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     private val _isAuthCompleted = MutableStateFlow(false)
     val isAuthCompleted: StateFlow<Boolean> = _isAuthCompleted.asStateFlow()
 
+    private val _isGoogleSignedIn = MutableStateFlow(false)
+    val isGoogleSignedIn: StateFlow<Boolean> = _isGoogleSignedIn.asStateFlow()
+
     // User Full Name (الاسم ثلاثي أو رباعي)
     private val _userFullName = MutableStateFlow<String?>(null)
     val userFullName: StateFlow<String?> = _userFullName.asStateFlow()
@@ -212,6 +215,7 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         userPhone = repository.syncManager.userPhone
         lastSyncTime = repository.syncManager.lastSyncTimestamp
         isRealtimeSyncActive = repository.syncManager.isRealtimeSyncActive
+        _isGoogleSignedIn.value = repository.syncManager.isGoogleSignedIn()
 
         loadAlarmSettings()
 
@@ -462,6 +466,40 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun onGoogleSignInCompleted(
+        email: String?,
+        displayName: String?,
+        fullName: String? = null,
+        churchName: String? = null,
+        serviceName: String? = null,
+        completeOnboarding: Boolean = true
+    ) {
+        val resolvedName = fullName?.trim()?.takeIf { it.isNotBlank() }
+            ?: _userFullName.value?.takeIf { it.isNotBlank() }
+            ?: displayName?.trim()?.takeIf { it.isNotBlank() }
+        if (!resolvedName.isNullOrBlank()) {
+            saveUserFullName(resolvedName)
+        }
+        if (!churchName.isNullOrBlank()) {
+            saveChurchName(churchName)
+        }
+        if (!serviceName.isNullOrBlank()) {
+            saveServiceName(serviceName)
+        }
+        repository.syncManager.onGoogleAuthenticated(email, displayName)
+        _isGoogleSignedIn.value = repository.syncManager.isGoogleSignedIn()
+        if (completeOnboarding) {
+            repository.setAuthOnboardingCompleted(true)
+            _isAuthCompleted.value = true
+        }
+        triggerSync()
+        repository.startRealtimeSync(viewModelScope)
+    }
+
+    fun refreshGoogleAuthState() {
+        _isGoogleSignedIn.value = repository.syncManager.isGoogleSignedIn()
+    }
+
     fun continueAsGuest(churchName: String? = null, serviceName: String? = null) {
         if (!churchName.isNullOrBlank()) {
             saveChurchName(churchName)
@@ -478,6 +516,12 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
             if (clearLocalHistory) {
                 repository.clearAllLocalLogs()
             }
+            repository.syncManager.stopRealtimeListener()
+            try {
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+            } catch (_: Exception) {
+            }
+            _isGoogleSignedIn.value = false
             repository.setUserEmail(null)
             repository.setAuthOnboardingCompleted(false)
             _isAuthCompleted.value = false
