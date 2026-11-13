@@ -359,11 +359,13 @@ private fun DailyReportView(
 ) {
     val selectedDateStr by viewModel.selectedDateString.collectAsState()
 
-    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-    val parsedDate = try {
-        sdf.parse(selectedDateStr) ?: Date()
-    } catch (e: Exception) {
-        Date()
+    val sdf = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US) }
+    val parsedDate = remember(selectedDateStr) {
+        try {
+            sdf.parse(selectedDateStr) ?: Date()
+        } catch (e: Exception) {
+            Date()
+        }
     }
 
     val dateLogs = remember(allLogs, selectedDateStr) {

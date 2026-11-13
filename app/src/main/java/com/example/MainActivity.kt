@@ -141,6 +141,11 @@ fun AgpeyaApp(
     val lang by viewModel.currentLanguage.collectAsState()
     var selectedScreen by rememberSaveable { mutableIntStateOf(0) }
 
+    // Smooth Back Handling: pressing Back on any sub-screen returns gracefully to Prayers instead of exiting
+    androidx.activity.compose.BackHandler(enabled = selectedScreen != 0) {
+        selectedScreen = 0
+    }
+
     // Navigation Items Data
     val navItems = listOf(
         Triple(Icons.Default.MenuBook, AgpeyaStrings.tabPrayers(lang), "nav_tab_prayers"),

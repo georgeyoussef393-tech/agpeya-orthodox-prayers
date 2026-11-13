@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Timer
@@ -40,6 +41,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
@@ -90,6 +92,8 @@ fun MultilingualAndNotificationSettings(
     val isQuietHours by viewModel.isQuietHoursEnabled.collectAsState()
     val quietStart by viewModel.quietHoursStartHour.collectAsState()
     val quietEnd by viewModel.quietHoursEndHour.collectAsState()
+    val scheduledAlarms by viewModel.scheduledAlarmsList.collectAsState()
+    val upcomingAlarm by viewModel.upcomingAlarm.collectAsState()
 
     val scope = rememberCoroutineScope()
     var isSyncingAlarms by remember { mutableStateOf(false) }
@@ -743,6 +747,165 @@ fun MultilingualAndNotificationSettings(
                                 color = Color(0xFF4CAF50),
                                 fontWeight = FontWeight.Bold
                             )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // ==========================================
+        // 3. SCHEDULED PRAYER ALARMS STATUS CARD
+        // ==========================================
+        Text(
+            text = if (isArabic) "حالة تنبيهات صلوات السواعي المجدولة" else "Scheduled Prayer Alarms Status",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = GoldPrimary,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = if (isArabic) "مواعيد تنبيهات صلوات الأجبية القادمة المحسوبة بدقة حسب منطقتك الزمنية المحددة" else "Upcoming prayer notifications computed in your chosen timezone",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        Card(
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("scheduled_alarms_status_card")
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Spotlight next upcoming alarm
+                upcomingAlarm?.let { nextAlert ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(GoldPrimary.copy(alpha = 0.15f))
+                            .border(1.dp, GoldPrimary.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+                            .padding(12.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(GoldPrimary.copy(alpha = 0.25f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.NotificationsActive,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (isArabic) "التنبيه القادم: ${nextAlert.prayerDisplayName}" else "Next Alert: ${nextAlert.prayerDisplayName}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "${nextAlert.formattedTimeInTargetTimezone} (${nextAlert.targetTimezoneDisplayName})",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = GoldLight
+                            )
+                            if (nextAlert.isDeviceTimezoneDifferent) {
+                                Text(
+                                    text = if (isArabic) "يعادل ${nextAlert.formattedTimeInDeviceTimezone} بتوقيت جهازك" else "Equivalent to ${nextAlert.formattedTimeInDeviceTimezone} on your device",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(GoldPrimary)
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = nextAlert.formattedTimeRemaining,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
+
+                if (scheduledAlarms.isEmpty()) {
+                    Text(
+                        text = if (isArabic) "لا توجد تنبيهات صلوات مفعلة حالياً. يمكنك تفعيل تنبيهات السواعي من صفحة الصلوات أو الإعدادات." else "No prayer alarms are currently enabled.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = if (isArabic) "الصلوات المجدولة (${scheduledAlarms.size}):" else "Active Alarms (${scheduledAlarms.size}):",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    scheduledAlarms.forEach { alert ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Schedule,
+                                contentDescription = null,
+                                tint = GoldPrimary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = alert.prayerDisplayName,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${alert.formattedTimeInTargetTimezone}${if (alert.isDeviceTimezoneDifferent) " (${alert.formattedTimeInDeviceTimezone} محلياً)" else ""}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Text(
+                                text = alert.formattedTimeRemaining,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = GoldLight,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 6.dp)
+                            )
+                            IconButton(
+                                onClick = { viewModel.testPrayerAlarm(alert.prayerId) },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.VolumeUp,
+                                    contentDescription = "Test Sound",
+                                    tint = GoldPrimary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                         }
                     }
                 }

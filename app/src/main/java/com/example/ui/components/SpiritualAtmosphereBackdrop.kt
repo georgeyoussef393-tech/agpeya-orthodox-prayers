@@ -101,7 +101,11 @@ private fun OptimizedCandleGlowCanvas() {
     )
 
     androidx.compose.foundation.Canvas(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                alpha = glowAlpha
+            }
     ) {
         val canvasWidth = size.width
         val radius = 200f * (canvasWidth / 360f)
@@ -110,8 +114,8 @@ private fun OptimizedCandleGlowCanvas() {
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    Color(0xFFFFD700).copy(alpha = 0.16f * glowAlpha),
-                    Color(0xFFFF8C00).copy(alpha = 0.08f * glowAlpha),
+                    Color(0xFFFFD700).copy(alpha = 0.16f),
+                    Color(0xFFFF8C00).copy(alpha = 0.08f),
                     Color.Transparent
                 ),
                 center = Offset(canvasWidth / 2f, 90f),

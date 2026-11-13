@@ -37,7 +37,9 @@ import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PhoneIphone
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ViewInAr
@@ -119,6 +121,7 @@ fun PrayersScreen(
     val themeMode by viewModel.themeMode.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
     val syncStatus by viewModel.syncStatus.collectAsState()
+    val upcomingAlarm by viewModel.upcomingAlarm.collectAsState()
     var showShareIosDialog by remember { mutableStateOf(false) }
 
     val todayString = AgpeyaRepository.getTodayString()
@@ -572,7 +575,78 @@ fun PrayersScreen(
                 }
             }
 
-
+            // Scheduled Prayer Notification Alert Banner (Based on user-defined timezone)
+            upcomingAlarm?.let { nextAlert ->
+                item {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.90f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .clickable { viewModel.openPrayerReading(nextAlert.prayerId) }
+                            .testTag("upcoming_prayer_alarm_banner")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(GoldPrimary.copy(alpha = 0.20f))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.NotificationsActive,
+                                    contentDescription = null,
+                                    tint = GoldPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = if (isAr) "تنبيه الصلاة القادمة:" else "Next Scheduled Prayer:",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = nextAlert.prayerDisplayName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = GoldLight
+                                    )
+                                }
+                                Text(
+                                    text = "${nextAlert.formattedTimeInTargetTimezone} (${nextAlert.targetTimezoneDisplayName})${if (nextAlert.isDeviceTimezoneDifferent) " • ${nextAlert.formattedTimeInDeviceTimezone} محلياً" else ""}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(GoldPrimary)
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = nextAlert.formattedTimeRemaining,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             // Room Database: Hourly Prayers Daily & Weekly Progress Tracker
             item {

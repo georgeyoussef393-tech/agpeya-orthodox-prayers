@@ -167,6 +167,12 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
     private val _quietHoursEndHour = MutableStateFlow(5)
     val quietHoursEndHour: StateFlow<Int> = _quietHoursEndHour.asStateFlow()
 
+    private val _upcomingAlarm = MutableStateFlow<com.example.alarm.ScheduledPrayerAlarmInfo?>(null)
+    val upcomingAlarm: StateFlow<com.example.alarm.ScheduledPrayerAlarmInfo?> = _upcomingAlarm.asStateFlow()
+
+    private val _scheduledAlarmsList = MutableStateFlow<List<com.example.alarm.ScheduledPrayerAlarmInfo>>(emptyList())
+    val scheduledAlarmsList: StateFlow<List<com.example.alarm.ScheduledPrayerAlarmInfo>> = _scheduledAlarmsList.asStateFlow()
+
     init {
         val db = AgpeyaDatabase.getDatabase(application)
         repository = AgpeyaRepository(db.prayerLogDao(), application)
@@ -508,6 +514,18 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
             map[prayer.code] = repository.getAlarmSetting(prayer)
         }
         _alarmSettings.value = map
+        refreshScheduledAlarms()
+    }
+
+    fun refreshScheduledAlarms() {
+        val lang = _currentLanguage.value
+        val all = AgpeyaAlarmScheduler.getAllScheduledAlarms(getApplication(), lang)
+        _scheduledAlarmsList.value = all
+        _upcomingAlarm.value = all.firstOrNull()
+    }
+
+    fun testPrayerAlarm(prayerId: PrayerId) {
+        AgpeyaAlarmScheduler.testImmediateAlarmNotification(getApplication(), prayerId)
     }
 
     fun setLanguage(language: AppLanguage) {
@@ -623,6 +641,7 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
         } else {
             AgpeyaAlarmScheduler.cancelAlarm(getApplication(), prayerId)
         }
+        refreshScheduledAlarms()
     }
 
     private val _playingSoundId = MutableStateFlow<String?>(null)
@@ -777,18 +796,21 @@ class AgpeyaViewModel(application: Application) : AndroidViewModel(application) 
             _timezoneSyncResult.value = result
             repository.saveSelectedTimezoneId(result.currentTimezoneId)
         }
+        refreshScheduledAlarms()
     }
 
     fun setSelectedTimezoneId(tzId: String) {
         _selectedTimezoneId.value = tzId
         repository.saveSelectedTimezoneId(tzId)
         AgpeyaAlarmScheduler.rescheduleAllActiveAlarms(getApplication())
+        refreshScheduledAlarms()
     }
 
     fun setNotificationLeadTimeMinutes(minutes: Int) {
         _notificationLeadTimeMinutes.value = minutes
         repository.saveNotificationLeadTimeMinutes(minutes)
         AgpeyaAlarmScheduler.rescheduleAllActiveAlarms(getApplication())
+        refreshScheduledAlarms()
     }
 
     fun setQuietHoursEnabled(enabled: Boolean) {

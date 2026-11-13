@@ -97,6 +97,7 @@ fun DailyArrowPrayersCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val vibrator = remember(context) { context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator }
     var showTargetDialog by remember { mutableStateOf(false) }
 
     val effectiveTarget = remember(dailyTarget) { if (dailyTarget > 0) dailyTarget else 33 }
@@ -335,7 +336,6 @@ fun DailyArrowPrayersCard(
                         Button(
                             onClick = {
                                 onQuickTap()
-                                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
                                 vibrator?.let {
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                         it.vibrate(VibrationEffect.createOneShot(25, VibrationEffect.DEFAULT_AMPLITUDE))

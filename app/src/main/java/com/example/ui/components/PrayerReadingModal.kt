@@ -20,6 +20,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -194,10 +195,10 @@ fun PrayerReadingModal(
         }
     }
 
-    // 3. Auto-Scroll Loop Engine (Fluid, responsive, smooth scrolling)
+    // 3. Auto-Scroll Loop Engine (Fluid 60-120fps continuous scrolling)
     LaunchedEffect(isAutoScrolling, scrollSpeedMultiplier) {
         if (isAutoScrolling) {
-            val stepDuration = 80
+            val stepMs = 16L // 60fps frame target
             while (isActive && isAutoScrolling) {
                 val currentScroll = scrollState.value
                 val maxScroll = scrollState.maxValue
@@ -205,24 +206,24 @@ fun PrayerReadingModal(
                     isAutoScrolling = false
                     break
                 }
-                val scrollDelta = 8f * scrollSpeedMultiplier
-                scrollState.animateScrollBy(
-                    value = scrollDelta,
-                    animationSpec = tween(durationMillis = stepDuration, easing = LinearEasing)
-                )
-                delay(stepDuration.toLong())
+                val pixelsPerFrame = 1.35f * scrollSpeedMultiplier
+                scrollState.scrollBy(pixelsPerFrame)
+                delay(stepMs)
             }
         }
     }
 
-    // 4. Automatic Gospel recording check
-    LaunchedEffect(scrollState.value, gospelOffsetY, isPrayedToday) {
+    // 4. Automatic Gospel recording check using snapshotFlow to avoid continuous coroutine relaunch
+    LaunchedEffect(gospelOffsetY, isPrayedToday) {
         val y = gospelOffsetY
         if (!isPrayedToday && !hasAutoRecordedThisSession && y != null && y > 0f) {
-            if (scrollState.value >= (y - 500f)) {
-                hasAutoRecordedThisSession = true
-                onAutoMarkPrayed()
-            }
+            androidx.compose.runtime.snapshotFlow { scrollState.value }
+                .collect { currentScroll ->
+                    if (!hasAutoRecordedThisSession && currentScroll >= (y - 500f)) {
+                        hasAutoRecordedThisSession = true
+                        onAutoMarkPrayed()
+                    }
+                }
         }
     }
 
