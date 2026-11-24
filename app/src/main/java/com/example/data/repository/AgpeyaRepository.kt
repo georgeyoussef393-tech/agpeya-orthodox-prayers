@@ -673,11 +673,12 @@ class AgpeyaRepository(
     suspend fun getOrCachePrayerSections(prayerId: PrayerId, lang: AppLanguage): List<PrayerSectionItem> = withContext(Dispatchers.IO) {
         val sections = AgpeyaHourDetails.getFullPrayerSections(prayerId, lang)
         val cached = prayerTextDao.getSectionsForPrayerDirect(prayerId.code, lang.code)
-        if (cached.isNotEmpty() && cached.size == sections.size) {
-            return@withContext cached.map { it.toPrayerSectionItem() }
+        val cachedItems = cached.map { it.toPrayerSectionItem() }
+        if (cachedItems == sections) {
+            return@withContext cachedItems
         }
 
-        // Cache miss or section list updated: clear stale cache and store fresh sections in Room
+        // Cache miss or liturgical text updated: clear stale cache and store fresh sections in Room
         prayerTextDao.clearSectionsForPrayer(prayerId.code, lang.code)
         val entities = sections.mapIndexed { index, section ->
             CachedPrayerSectionEntity.fromPrayerSectionItem(
@@ -693,15 +694,16 @@ class AgpeyaRepository(
 
     /**
      * Pre-caches all canonical prayer hours across all active languages into Room DB
-     * to guarantee complete offline functionality.
+     * to guarantee complete offline functionality and keep cached texts synchronized.
      */
     suspend fun preCacheAllPrayerTexts() = withContext(Dispatchers.IO) {
         val languages = AppLanguage.entries
         for (lang in languages) {
             for (prayer in PrayerId.canonicalPrayers) {
-                val count = prayerTextDao.getSectionCount(prayer.code, lang.code)
-                if (count == 0) {
-                    val sections = AgpeyaHourDetails.getFullPrayerSections(prayer, lang)
+                val sections = AgpeyaHourDetails.getFullPrayerSections(prayer, lang)
+                val cached = prayerTextDao.getSectionsForPrayerDirect(prayer.code, lang.code)
+                if (cached.map { it.toPrayerSectionItem() } != sections) {
+                    prayerTextDao.clearSectionsForPrayer(prayer.code, lang.code)
                     val entities = sections.mapIndexed { index, section ->
                         CachedPrayerSectionEntity.fromPrayerSectionItem(
                             item = section,

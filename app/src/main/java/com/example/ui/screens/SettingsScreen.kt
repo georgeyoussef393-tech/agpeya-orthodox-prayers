@@ -100,9 +100,12 @@ import com.example.data.model.PrayerId
 import com.example.data.sync.SyncStatus
 import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
+import com.example.report.PrayerExcelExporter
 import com.example.report.PrayerPdfExporter
+import com.example.report.ReportExportFormat
 import com.example.ui.components.CopticCrossCanvas
 import com.example.ui.components.MultilingualAndNotificationSettings
+import com.example.ui.components.ReportExportDialog
 import com.example.ui.components.SpiritualSoundPickerDialog
 import com.example.ui.components.TimePickerDialog
 import com.example.ui.theme.BurgundyDeep
@@ -166,6 +169,8 @@ fun SettingsScreen(
     val totalCachedMeditations by viewModel.totalCachedMeditations.collectAsState()
     val isPreCachingInProgress by viewModel.isPreCachingInProgress.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
+
+    var showReportExportDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val restoreLauncher = rememberLauncherForActivityResult(
@@ -1609,22 +1614,7 @@ fun SettingsScreen(
                         }
 
                         Button(
-                            onClick = {
-                                PrayerPdfExporter.generateAndSharePdf(
-                                    context = context,
-                                    userEmail = userEmail ?: userPhone,
-                                    userName = userFullName ?: userEmail?.substringBefore("@") ?: userPhone,
-                                    churchName = churchName,
-                                    serviceName = serviceName,
-                                    churchEmblem = churchEmblem,
-                                    syncKey = syncKey,
-                                    lang = lang,
-                                    periodName = if (lang == AppLanguage.ARABIC) "تقرير السجل الشامل" else "Full History Report",
-                                    allLogs = allLogs,
-                                    allArrowLogs = allArrowLogs,
-                                    isCloudConnected = isGoogleSignedIn
-                                )
-                            },
+                            onClick = { showReportExportDialog = true },
                             colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
@@ -3085,6 +3075,49 @@ fun SettingsScreen(
         AboutAppDialog(
             language = lang,
             onDismissRequest = { showAboutDialog = false }
+        )
+    }
+
+    if (showReportExportDialog) {
+        ReportExportDialog(
+            lang = lang,
+            initialFormat = ReportExportFormat.PDF,
+            allLogs = allLogs,
+            allArrowLogs = allArrowLogs,
+            onDismiss = { showReportExportDialog = false },
+            onConfirmExport = { config, filteredLogs, filteredArrowLogs, periodLabel ->
+                showReportExportDialog = false
+                val resolvedName = userFullName ?: userEmail?.substringBefore("@") ?: userPhone
+                if (config.format == ReportExportFormat.PDF) {
+                    PrayerPdfExporter.generateAndSharePdf(
+                        context = context,
+                        userEmail = userEmail ?: userPhone,
+                        userName = resolvedName,
+                        churchName = churchName,
+                        serviceName = serviceName,
+                        churchEmblem = churchEmblem,
+                        syncKey = syncKey,
+                        lang = lang,
+                        periodName = periodLabel,
+                        allLogs = filteredLogs,
+                        allArrowLogs = filteredArrowLogs,
+                        isCloudConnected = isGoogleSignedIn
+                    )
+                } else {
+                    PrayerExcelExporter.generateAndShareCsv(
+                        context = context,
+                        userEmail = userEmail ?: userPhone,
+                        userName = resolvedName,
+                        churchName = churchName,
+                        serviceName = serviceName,
+                        syncKey = syncKey,
+                        lang = lang,
+                        allLogs = filteredLogs,
+                        allArrowLogs = filteredArrowLogs,
+                        periodName = periodLabel
+                    )
+                }
+            }
         )
     }
 }

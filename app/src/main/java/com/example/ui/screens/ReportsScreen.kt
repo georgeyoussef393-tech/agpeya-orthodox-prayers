@@ -77,8 +77,12 @@ import com.example.data.repository.AgpeyaRepository
 import com.example.data.sync.SyncStatus
 import com.example.localization.AgpeyaStrings
 import com.example.localization.AppLanguage
+import com.example.report.PrayerExcelExporter
 import com.example.report.PrayerPdfExporter
+import com.example.report.ReportExportFormat
+import com.example.report.ReportExportScope
 import com.example.ui.components.CopticCrossCanvas
+import com.example.ui.components.ReportExportDialog
 import com.example.ui.components.charts.AnnualPrayerHeatmap
 import com.example.ui.components.charts.AreaPoint
 import com.example.ui.components.charts.BarChartItem
@@ -138,6 +142,7 @@ fun ReportsScreen(
     val resolvedUserName = userFullName ?: userEmail?.substringBefore("@") ?: userPhone
     val context = LocalContext.current
 
+    var showTopExportDialog by remember { mutableStateOf(false) }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabTitles = listOf(
         AgpeyaStrings.reportDaily(lang),
@@ -236,25 +241,9 @@ fun ReportsScreen(
                         }
                     }
 
-                    // Export PDF Button
+                    // Export PDF Button -> opens period/scope export configuration dialog
                     IconButton(
-                        onClick = {
-                            val periodLabel = tabTitles[selectedTabIndex]
-                            PrayerPdfExporter.generateAndSharePdf(
-                                context = context,
-                                userEmail = userEmail ?: userPhone,
-                                userName = resolvedUserName,
-                                churchName = churchName,
-                                serviceName = serviceName,
-                                churchEmblem = churchEmblem,
-                                syncKey = syncKey,
-                                lang = lang,
-                                periodName = periodLabel,
-                                allLogs = allLogs,
-                                allArrowLogs = allArrowLogs,
-                                isCloudConnected = isGoogleSignedIn
-                            )
-                        },
+                        onClick = { showTopExportDialog = true },
                         modifier = Modifier
                             .size(34.dp)
                             .clip(CircleShape)
@@ -348,6 +337,57 @@ fun ReportsScreen(
                 5 -> HistoryLogView(viewModel = viewModel, allLogs = allLogs, allArrowLogs = allArrowLogs, lang = lang)
             }
         }
+    }
+
+    if (showTopExportDialog) {
+        val defaultScope = when (selectedTabIndex) {
+            1 -> ReportExportScope.CUSTOM_DURATION
+            2 -> ReportExportScope.QUARTERLY
+            3 -> ReportExportScope.SEMI_ANNUAL
+            4 -> ReportExportScope.ANNUAL
+            5 -> ReportExportScope.ALL_RECORDS
+            else -> ReportExportScope.CUSTOM_DURATION
+        }
+        ReportExportDialog(
+            lang = lang,
+            initialFormat = ReportExportFormat.PDF,
+            initialScope = defaultScope,
+            allLogs = allLogs,
+            allArrowLogs = allArrowLogs,
+            onDismiss = { showTopExportDialog = false },
+            onConfirmExport = { config, filteredLogs, filteredArrowLogs, periodLabel ->
+                showTopExportDialog = false
+                if (config.format == ReportExportFormat.PDF) {
+                    PrayerPdfExporter.generateAndSharePdf(
+                        context = context,
+                        userEmail = userEmail ?: userPhone,
+                        userName = resolvedUserName,
+                        churchName = churchName,
+                        serviceName = serviceName,
+                        churchEmblem = churchEmblem,
+                        syncKey = syncKey,
+                        lang = lang,
+                        periodName = periodLabel,
+                        allLogs = filteredLogs,
+                        allArrowLogs = filteredArrowLogs,
+                        isCloudConnected = isGoogleSignedIn
+                    )
+                } else {
+                    PrayerExcelExporter.generateAndShareCsv(
+                        context = context,
+                        userEmail = userEmail ?: userPhone,
+                        userName = resolvedUserName,
+                        churchName = churchName,
+                        serviceName = serviceName,
+                        syncKey = syncKey,
+                        lang = lang,
+                        allLogs = filteredLogs,
+                        allArrowLogs = filteredArrowLogs,
+                        periodName = periodLabel
+                    )
+                }
+            }
+        )
     }
 }
 
@@ -2019,6 +2059,7 @@ private fun HistoryLogView(
     val syncKey by viewModel.syncKey.collectAsState()
     val resolvedUserName = userFullName ?: userEmail?.substringBefore("@") ?: userPhone
     val context = LocalContext.current
+    var historyExportFormat by remember { mutableStateOf<ReportExportFormat?>(null) }
 
     val filterLabels = listOf(
         if (lang == AppLanguage.ARABIC) "الكل (${allLogs.size + allArrowLogs.size})" else "All (${allLogs.size + allArrowLogs.size})",
@@ -2114,19 +2155,7 @@ private fun HistoryLogView(
 
                         // 2. Excel (CSV) Export Button
                         Button(
-                            onClick = {
-                                com.example.report.PrayerExcelExporter.generateAndShareCsv(
-                                    context = context,
-                                    userEmail = userEmail ?: userPhone,
-                                    userName = resolvedUserName,
-                                    churchName = churchName,
-                                    serviceName = serviceName,
-                                    syncKey = syncKey,
-                                    lang = lang,
-                                    allLogs = allLogs,
-                                    allArrowLogs = allArrowLogs
-                                )
-                            },
+                            onClick = { historyExportFormat = ReportExportFormat.EXCEL_CSV },
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("export_excel_button"),
@@ -2151,22 +2180,7 @@ private fun HistoryLogView(
 
                         // 3. PDF Report Export Button
                         Button(
-                            onClick = {
-                                PrayerPdfExporter.generateAndSharePdf(
-                                    context = context,
-                                    userEmail = userEmail ?: userPhone,
-                                    userName = resolvedUserName,
-                                    churchName = churchName,
-                                    serviceName = serviceName,
-                                    churchEmblem = churchEmblem,
-                                    syncKey = syncKey,
-                                    lang = lang,
-                                    periodName = AgpeyaStrings.prayersLogHistory(lang),
-                                    allLogs = allLogs,
-                                    allArrowLogs = allArrowLogs,
-                                    isCloudConnected = isGoogleSignedIn
-                                )
-                            },
+                            onClick = { historyExportFormat = ReportExportFormat.PDF },
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("export_pdf_button"),
@@ -2434,6 +2448,49 @@ private fun HistoryLogView(
             dismissButton = {
                 OutlinedButton(onClick = { arrowLogToDelete = null }) {
                     Text(AgpeyaStrings.close(lang))
+                }
+            }
+        )
+    }
+
+    historyExportFormat?.let { initialFmt ->
+        ReportExportDialog(
+            lang = lang,
+            initialFormat = initialFmt,
+            initialScope = ReportExportScope.CUSTOM_DURATION,
+            allLogs = allLogs,
+            allArrowLogs = allArrowLogs,
+            onDismiss = { historyExportFormat = null },
+            onConfirmExport = { config, filteredLogs, filteredArrowLogs, periodLabel ->
+                historyExportFormat = null
+                if (config.format == ReportExportFormat.PDF) {
+                    PrayerPdfExporter.generateAndSharePdf(
+                        context = context,
+                        userEmail = userEmail ?: userPhone,
+                        userName = resolvedUserName,
+                        churchName = churchName,
+                        serviceName = serviceName,
+                        churchEmblem = churchEmblem,
+                        syncKey = syncKey,
+                        lang = lang,
+                        periodName = periodLabel,
+                        allLogs = filteredLogs,
+                        allArrowLogs = filteredArrowLogs,
+                        isCloudConnected = isGoogleSignedIn
+                    )
+                } else {
+                    PrayerExcelExporter.generateAndShareCsv(
+                        context = context,
+                        userEmail = userEmail ?: userPhone,
+                        userName = resolvedUserName,
+                        churchName = churchName,
+                        serviceName = serviceName,
+                        syncKey = syncKey,
+                        lang = lang,
+                        allLogs = filteredLogs,
+                        allArrowLogs = filteredArrowLogs,
+                        periodName = periodLabel
+                    )
                 }
             }
         )

@@ -28,7 +28,8 @@ object PrayerExcelExporter {
         syncKey: String?,
         lang: AppLanguage,
         allLogs: List<PrayerLogEntity>,
-        allArrowLogs: List<ArrowPrayerLogEntity> = emptyList()
+        allArrowLogs: List<ArrowPrayerLogEntity> = emptyList(),
+        periodName: String? = null
     ): File? {
         try {
             val cacheDir = File(context.cacheDir, "reports").apply { mkdirs() }
@@ -47,6 +48,9 @@ object PrayerExcelExporter {
                 }
                 if (!serviceName.isNullOrBlank()) {
                     writer.append("Ministry/Service,\"$serviceName\"\n")
+                }
+                if (!periodName.isNullOrBlank()) {
+                    writer.append("Report Period,\"$periodName\"\n")
                 }
                 if (!syncKey.isNullOrBlank()) {
                     writer.append("Sync Key,$syncKey\n")
@@ -112,7 +116,8 @@ object PrayerExcelExporter {
         syncKey: String?,
         lang: AppLanguage,
         allLogs: List<PrayerLogEntity>,
-        allArrowLogs: List<ArrowPrayerLogEntity> = emptyList()
+        allArrowLogs: List<ArrowPrayerLogEntity> = emptyList(),
+        periodName: String? = null
     ) {
         val csvFile = generateCsvFile(
             context = context,
@@ -123,7 +128,8 @@ object PrayerExcelExporter {
             syncKey = syncKey,
             lang = lang,
             allLogs = allLogs,
-            allArrowLogs = allArrowLogs
+            allArrowLogs = allArrowLogs,
+            periodName = periodName
         ) ?: return
 
         try {
